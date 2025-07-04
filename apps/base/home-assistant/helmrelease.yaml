@@ -9,11 +9,11 @@ spec:
     spec:
       # The chart directory name in the repo:
       chart: home-assistant
-      version: "home-assistant-0.3.9"                   # match a valid tag/commit in the repo
+      version: "0.3.9"                   # match a valid tag/commit in the repo
       sourceRef:
         kind: HelmRepository
         name: pajikos
-        namespace: flux-system
+        namespace: home-assistant
   values:
     replicaCount: 1
 
