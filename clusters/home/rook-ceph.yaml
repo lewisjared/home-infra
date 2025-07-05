@@ -1,33 +1,30 @@
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: infra-ceph-cluster
+  name: rook-ceph
   namespace: flux-system
 spec:
-  interval: 1h
-  retryInterval: 1m
-  timeout: 5m
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  path: ./infrastructure/ceph-cluster
-  prune: true
-  wait: true
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: infra-rook-ceph
-  namespace: flux-system
-spec:
-  dependsOn:
-    - name: infra-ceph-cluster
-  interval: 1h
-  retryInterval: 1m
-  timeout: 5m
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
+  interval: 10m0s
   path: ./infrastructure/rook-ceph
   prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: ceph-cluster
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./infrastructure/ceph-cluster
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2beta2
+      kind: HelmRelease
+      name: rook-ceph
+      namespace: rook-ceph
