@@ -22,7 +22,7 @@ spec:
       port: 8123
 
     persistence:
-      enabled: false
+      enabled: true
       storageClass: rook-ceph-block
       accessModes:
         - ReadWriteOnce
