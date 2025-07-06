@@ -1,3 +1,13 @@
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: pajikos
+  namespace: home-assistant
+spec:
+  interval: 5m
+  url: http://pajikos.github.io/home-assistant-helm-chart/
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -7,9 +17,8 @@ spec:
   interval: 5m
   chart:
     spec:
-      # The chart directory name in the repo:
       chart: home-assistant
-      version: "0.3.9"                   # match a valid tag/commit in the repo
+      version: "0.3.9"
       sourceRef:
         kind: HelmRepository
         name: pajikos

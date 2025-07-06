@@ -3,6 +3,4 @@ kind: Kustomization
 namespace: home-assistant
 resources:
   - namespace.yaml
-  - helmrepository.yaml
-  - helmrelease.yaml
-
+  - home-assistant.yaml
