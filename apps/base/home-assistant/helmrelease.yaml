@@ -23,7 +23,7 @@ spec:
 
     persistence:
       enabled: true
-      storageClass: standard
+      storageClass: rook-ceph-block
       accessModes:
         - ReadWriteOnce
       size: 5Gi
