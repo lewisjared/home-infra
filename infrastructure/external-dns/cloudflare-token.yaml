@@ -5,22 +5,22 @@ metadata:
     namespace: external-dns
 type: Opaque
 data:
-    CF_API_EMAIL: ENC[AES256_GCM,data:JnCLK/Cu34ILnlNv9GToKnxVYA==,iv:XUnWlZMKUZgaJywJR7oaMZO1xmipw6hig1544ntk0aQ=,tag:yGenl68nVwHWd9xUNe44Dw==,type:str]
-    CF_DNS_API_TOKEN: ENC[AES256_GCM,data:GUux6Ws/Qwhds8Nk95zcm1cPkMd2AJ3yNluqF7ekeuXmQzrHTuSj7g==,iv:mu1YCjwxEzgZg8xChhZJ8t6B+5NkZhMdo8Y9Q284zzA=,tag:/FPIv8sWJtebAhkKD6P/uw==,type:str]
+    CF_API_EMAIL: ENC[AES256_GCM,data:VVZ9ZxwKLOIZ10RoKozMmdbVrQ==,iv:Spqj305Swt0fVhYh6JIQqyZTEoSkfcs3fCThxYD9DC4=,tag:XCFeIOHkp3WyWzYBwALXbg==,type:str]
+    CF_DNS_API_TOKEN: ENC[AES256_GCM,data:lbF7UITdRiP8/SD9NHNu9fKqC1dlU6PthwWSv7X1hh2A6/38a+VoGQ==,iv:8Dd20OM46OJcei1tYshYqUFFg1+5ZRXNgHuABZIw2aE=,tag:Z5afnD8fGLSM2Qr1k4wMsg==,type:str]
 sops:
-    lastmodified: "2025-07-09T12:14:21Z"
-    mac: ENC[AES256_GCM,data:26DjZ7jTyq3x0VKCn/0XoxO9jLtvDc3loITJNQ9bMNJ2Zr+5V4U45MIhlA1cblUPKKaTvpz+WbTp62Kxm09l2YKWx9MRRymVoICqGUkdYGaJji32f8CORLaHVDxqOMjk6k5CgHRtcm3VqkV5BDywMLPi+rDwdlS4vp9YM6lyMw8=,iv:ByBbkST8glAk9dVLW6ezXfhKbtLRpifYjOiC6118kUE=,tag:FY8AHdRB0tilJ7hiufGX5w==,type:str]
+    lastmodified: "2025-07-11T10:33:46Z"
+    mac: ENC[AES256_GCM,data:ED9VfQ9X/uvo7QGESXRHqZML+huO0hTikahS+9WeUMMlHMoU2NN4Pq4Kd9LJ0v7VapBmGPplh9GbqA8P1n2/DPIoJGo+B3IYROVxmJ2XEs3GY32pjgVEvGR/1wmOtKtNcH9dME5jSP6ZWpLUQzMBViqay16odCyOwqT/n5Q64j8=,iv:VspH2ePXP0FWJZ32c4t5p9ShQrv1XC57grFLtWTNtoU=,tag:Uak1bHAtboeTwE1bh1SAxg==,type:str]
     pgp:
-        - created_at: "2025-07-09T12:14:21Z"
+        - created_at: "2025-07-11T10:33:46Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hF4DG75A0M95pbgSAQdAmjp4hERRuUEom2N4Dq6jDT7ZdQhL2/GN6o3DP4MAZH4w
-            C61srq4oJs6mVW/ZjWBzlm0hNOT+d4ppMH1frM0Gy7FLTJaTD9EPSgPhs3wUhZpq
-            1GYBCQIQPEEaJm1MkG9hrzjdUErhgTdjf6Qcy1J0T9HURNhVT49BWOOfL8iWKFld
-            Q5eVCRcW/+mZDweGSpw6MU8C2cu9F/CM03KfKCeuEfQv77hj0y56Gt3PAarjSdiI
-            w3fGC1VqMj0=
-            =k/Y+
+            hF4DG75A0M95pbgSAQdAkNeSLNQRzVjZ5r1/eF9VrYLlOAUzcsksSG7wIPjmYnAw
+            ryXPlO4Pqz3rhmXL/FJ8lCOTqFYGyXSrUq+usJpZbJDRDsmftL/Hb3YfiO/KYj5k
+            1GgBCQIQbM3pSGJubcmuPv/J9mvAlB8+V0swi1ucQTZnCsnym+dT14UBE9aGzima
+            /Y5cdq7qB4i/zODZhZWjrXWIQULiElMM9aIv+dcc/3Xxofzyk3S4t+7HaE2ZPKj4
+            Mo0fOugNqcnKHw==
+            =Bj36
             -----END PGP MESSAGE-----
           fp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
     encrypted_regex: ^(data|stringData)$
