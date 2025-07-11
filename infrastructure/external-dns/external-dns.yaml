@@ -39,3 +39,4 @@ spec:
     - --policy=upsert-only
     # Switch to pihole V6 API
     - --pihole-api-version=6
+    - --pihole-server=http://10.16.0.21
