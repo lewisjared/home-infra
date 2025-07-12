@@ -4,3 +4,5 @@ resources:
 - namespace.yaml
 - cert-issuers.yaml
 - cert-manager.yaml
+- cloudflare-token.yaml
+
