@@ -9,12 +9,12 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
-      - dns01:
-        cloudflare:
-          email: jared@jared.kiwi.nz
-          apiTokenSecretRef:
-            name: cloudflare-token
-            key: CF_DNS_API_TOKEN
+    - dns01:
+      cloudflare:
+        email: jared@jared.kiwi.nz
+        apiTokenSecretRef:
+          name: cloudflare-token
+          key: CF_DNS_API_TOKEN
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
