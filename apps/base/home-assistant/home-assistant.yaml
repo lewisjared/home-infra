@@ -25,7 +25,8 @@ spec:
         namespace: home-assistant
   values:
     replicaCount: 1
-
+    ingress:
+      external: true
     service:
       type: ClusterIP
       port: 8123
@@ -35,7 +36,7 @@ spec:
       storageClass: rook-ceph-block
       accessModes:
         - ReadWriteOnce
-      size: 5Gi
+      size: 10Gi
 
     extraEnv:
       - name: TZ
