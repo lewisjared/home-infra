@@ -35,7 +35,7 @@ spec:
       enabled: true
       className: nginx
       annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-staging
+        cert-manager.io/cluster-issuer: letsencrypt-production
         external-dns.alpha.kubernetes.io/hostname: podinfo.home.lewelly.com
       hosts:
       - host: podinfo.home.lewelly.com

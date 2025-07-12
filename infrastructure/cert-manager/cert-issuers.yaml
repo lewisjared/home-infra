@@ -27,6 +27,10 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-production
     solvers:
-    - http01:
-        ingress:
-          class: nginx
+    - dns01:
+        cloudflare:
+          email: jared@jared.kiwi.nz
+          apiTokenSecretRef:
+            name: cloudflare-token
+            key: CF_DNS_API_TOKEN
+
