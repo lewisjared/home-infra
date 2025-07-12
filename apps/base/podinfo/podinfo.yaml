@@ -34,3 +34,15 @@ spec:
     ingress:
       enabled: true
       className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-staging
+        external-dns.alpha.kubernetes.io/hostname: podinfo.home.lewelly.com
+      hosts:
+      - host: podinfo.home.lewelly.com
+        paths:
+        - path: /
+          pathType: Prefix
+      tls:
+      - hosts:
+        - podinfo.home.lewelly.com
+        secretName: podinfo-tls-secret
