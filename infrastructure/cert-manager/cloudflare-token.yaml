@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: cloudflare-token
+    namespace: cert-manager
+type: Opaque
+data:
+    CF_DNS_API_TOKEN: ENC[AES256_GCM,data:sZtCLuHwjoluXtMeFhiiaw2yopQE4DZhYhAK7X2vJkFZF4D9ZGSgPnJky0CsqLLNML8Y6EdB88I=,iv:pz2wGEzUDG7tmMqyzjsoXApkGRwQF7YkzVTZsH6MZDU=,tag:JwTQ8n06pujOvWqdlL/41A==,type:str]
+sops:
+    lastmodified: "2025-07-12T22:21:01Z"
+    mac: ENC[AES256_GCM,data:AdQmGXYH4ZeX1nuD+BvsFlkd5fHln+9LFKJDgqEpxdLAChs64BrS2Ku1DF3ZJcPJnMxl9ve5wUvA7DZO0pA6+8LO+ILhL15ZNpz87DUMIyLMNbG2qmv1gXOzntKglJyUIxByUJGHHiL7Knypna8RsMGCigorMexZ4eqnaBaZUK4=,iv:64/ZMApqqIK47osFLQ7xf8A72MmV26V8y5qJWpdzqE4=,tag:EhCOAcrVbnvMhsJM57hDTw==,type:str]
+    pgp:
+        - created_at: "2025-07-12T22:21:01Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DG75A0M95pbgSAQdAq6L3MVyEGxwsNBqn+yhdwsLqMw6D5getWHapFqavBwMw
+            5VhehFdWLU4O0UAiJ0AE/lf74LIKpXvADLLzFLQweeH7fkvS6E5XsoxcBY+wYFCF
+            1GgBCQIQ1J0XtAY/EB06qBg4zNSZAp0wMGQKsaQxN4po7YaMyfGkf7fywIHMN+qM
+            S70QCDyiczFdTr1w7/2lVDfbz5B0EwnKZg4BZcvUuZyiu46xYG9gyydj0Rp0K/dG
+            9LxnWQFAiDs8tQ==
+            =ffXt
+            -----END PGP MESSAGE-----
+          fp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
+    encrypted_regex: ^(data|stringData)$
+    version: 3.10.2
