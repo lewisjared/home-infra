@@ -30,8 +30,7 @@ spec:
       forceInit: true
       # List of trusted proxies in the format of CIDR notation in a case of using a reverse proxy
       trusted_proxies:
-      - 10.42.0.0/16      # Add the IP address of your cluster CIDR
-
+      - 10.42.0.0/16
     ingress:
       enabled: true
       annotations:
@@ -62,3 +61,24 @@ spec:
     extraEnv:
       - name: TZ
         value: Australia/Melbourne
+
+    addons:
+      codeserver:
+        enabled: true
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            external-dns.alpha.kubernetes.io/hostname: ha.home.lewelly.com
+            cert-manager.io/cluster-issuer: letsencrypt-production
+          hosts:
+            - host: ha.home.lewelly.com
+              paths:
+                - path: /code-server
+                  pathType: ImplementationSpecific
+          tls:
+            - secretName: home-assistant-tls-secret
+
+              hosts:
+                - ha.home.lewelly.com
+
