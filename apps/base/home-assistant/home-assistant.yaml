@@ -53,7 +53,7 @@ spec:
       enabled: true
       storageClass: rook-ceph-block
       accessModes:
-        - ReadOnlyMany
+        - ReadWriteOnce
       size: 10Gi
 
     extraEnv:
