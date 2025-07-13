@@ -27,6 +27,10 @@ spec:
     replicaCount: 1
     configuration:
       enabled: true
+      forceInit: true
+      # List of trusted proxies in the format of CIDR notation in a case of using a reverse proxy
+      trusted_proxies:
+      - 10.42.0.0/16      # Add the IP address of your cluster CIDR
 
     ingress:
       enabled: true
