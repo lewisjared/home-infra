@@ -25,6 +25,9 @@ spec:
         namespace: home-assistant
   values:
     replicaCount: 1
+    configuration:
+      enabled: true
+
     ingress:
       enabled: true
       annotations:
