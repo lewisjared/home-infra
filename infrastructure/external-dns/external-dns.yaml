@@ -27,6 +27,7 @@ spec:
     provider: pihole
     domainFilters:
     - home.lewelly.com
+    - vela.lewelly.com
     extraArgs:
     - --source=service
     - --source=ingress
