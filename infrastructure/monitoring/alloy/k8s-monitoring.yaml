@@ -34,34 +34,34 @@ spec:
 
     # Destination configuration for self-hosted LGTM stack
     destinations:
-      - name: local-lgtm
+      - name: local-prometheus
+        type: prometheus
+        url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
+
+      - name: local-loki
         type: loki
-        loki:
-          url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
-        metrics:
-          prometheus:
-            url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
-        tempo:
-          url: http://tempo.monitoring.svc.cluster.local:3200
+        url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+      - name: local-tempo
+        type: otlp
+        protocol: http
+        url: http://tempo.monitoring.svc.cluster.local:3200/otlp
+        metrics: {enabled: false}
+        logs: {enabled: false}
+        traces: {enabled: true}
 
     # Feature configuration
     clusterMetrics:
       enabled: true
-      destinations:
-        - local-lgtm
 
     clusterEvents:
       enabled: true
-      destinations:
-        - local-lgtm
 
     podLogs:
       enabled: true
-      destinations:
-        - local-lgtm
 
     nodeLogs:
-      enabled: false  # Host-level logs not needed for containers
+      enabled: true  
 
     # Application observability (for app instrumentation)
     applicationObservability:

@@ -68,5 +68,3 @@ spec:
       enabled: true
       labels:
         prometheus: kube-prometheus
-
-
