@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - ../base/home-assistant
   - ../base/podinfo
+  - ../base/kubernetes-dashboard
 

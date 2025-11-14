@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(flux get:*)",
+      "Bash(flux reconcile:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
