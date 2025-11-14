@@ -29,7 +29,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/part-of: vela-platform
+      app.kubernetes.io/part-of: home-infra
   policyTypes:
     - Ingress
   ingress:

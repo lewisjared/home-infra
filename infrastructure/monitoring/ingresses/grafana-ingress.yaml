@@ -6,18 +6,18 @@ metadata:
   namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: nginx
-    external-dns.alpha.kubernetes.io/hostname: grafana.vela.lewelly.com
+    external-dns.alpha.kubernetes.io/hostname: grafana.home.lewelly.com
     cert-manager.io/cluster-issuer: letsencrypt-production
   labels:
-    app.kubernetes.io/part-of: vela-platform
+    app.kubernetes.io/part-of: home-infra
 spec:
   ingressClassName: nginx
   tls:
     - secretName: grafana-tls-secret
       hosts:
-        - grafana.vela.lewelly.com
+        - grafana.home.lewelly.com
   rules:
-    - host: grafana.vela.lewelly.com
+    - host: grafana.home.lewelly.com
       http:
         paths:
           - path: /

@@ -6,18 +6,18 @@ metadata:
   namespace: monitoring
   annotations:
     kubernetes.io/ingress.class: nginx
-    external-dns.alpha.kubernetes.io/hostname: alertmanager.vela.lewelly.com
+    external-dns.alpha.kubernetes.io/hostname: alertmanager.home.lewelly.com
     cert-manager.io/cluster-issuer: letsencrypt-production
   labels:
-    app.kubernetes.io/part-of: vela-platform
+    app.kubernetes.io/part-of: home-infra
 spec:
   ingressClassName: nginx
   tls:
     - secretName: alertmanager-tls-secret
       hosts:
-        - alertmanager.vela.lewelly.com
+        - alertmanager.home.lewelly.com
   rules:
-    - host: alertmanager.vela.lewelly.com
+    - host: alertmanager.home.lewelly.com
       http:
         paths:
           - path: /
