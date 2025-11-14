@@ -37,12 +37,12 @@ spec:
       - name: local-lgtm
         type: loki
         loki:
-          url: http://monitoring-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+          url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
         metrics:
           prometheusRemoteWrite:
             url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
         tempo:
-          url: http://monitoring-tempo.monitoring.svc.cluster.local:3200
+          url: http://tempo.monitoring.svc.cluster.local:3200
 
     # Feature configuration
     clusterMetrics:
@@ -155,7 +155,7 @@ spec:
         // Loki write component (connects to destination)
         loki.write "local_lgtm" {
           endpoint {
-            url = "http://monitoring-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
           }
         }
 

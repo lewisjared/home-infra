@@ -44,5 +44,3 @@ spec:
       ports:
         - protocol: TCP
           port: 3100  # Loki HTTP API
-        - protocol: TCP
-          port: 8080  # Loki gateway (container port)

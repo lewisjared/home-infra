@@ -63,11 +63,6 @@ spec:
       # Retention configuration
       retention: 168h  # 7 days
 
-      # Ingester configuration
-      ingester:
-        trace_idle_period: 10s
-        max_block_duration: 5m
-
     # Monitoring
     serviceMonitor:
       enabled: true
