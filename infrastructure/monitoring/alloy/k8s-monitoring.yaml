@@ -70,6 +70,7 @@ spec:
           - name: loki
             labelSelectors:
               app.kubernetes.io/name: loki
+            # Don't collect logs as we are forwarding logs to loki directly
             logs:
               enabled: false
             metrics:
@@ -93,14 +94,8 @@ spec:
 
     # Alloy configuration
     alloy-logs:
-      # Resource limits for log collection
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 500m
-          memory: 256Mi
+      enabled: true
+
 
       # Mount audit log directory from host
       extraVolumes:
@@ -169,28 +164,13 @@ spec:
         }
 
     alloy-metrics:
-      resources:
-        requests:
-          cpu: 200m
-          memory: 256Mi
-        limits:
-          cpu: 1000m
-          memory: 512Mi
+      enabled: true
+
 
     alloy-singleton:
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 500m
-          memory: 256Mi
+      enabled: true
+
 
     alloy-receiver:
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 500m
-          memory: 256Mi
+      enabled: true
+   
