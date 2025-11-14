@@ -4,7 +4,10 @@
       "Bash(cat:*)",
       "Bash(tree:*)",
       "Bash(flux get:*)",
-      "Bash(flux reconcile:*)"
+      "Bash(flux reconcile:*)",
+      "Bash(kubectl get:*)",
+      "Bash(kubectl debug:*)",
+      "Bash(kubectl describe:*)"
     ],
     "deny": [],
     "ask": []
