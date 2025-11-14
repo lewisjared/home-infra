@@ -20,5 +20,5 @@ spec:
       namespace: monitoring
     - apiVersion: apps/v1
       kind: StatefulSet
-      name: prometheus-prometheus
+      name: prometheus-prometheus-prometheus
       namespace: monitoring
