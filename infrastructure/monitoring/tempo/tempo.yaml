@@ -65,13 +65,8 @@ spec:
 
       # Ingester configuration
       ingester:
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
+        trace_idle_period: 10s
+        max_block_duration: 5m
 
     # Monitoring
     serviceMonitor:
