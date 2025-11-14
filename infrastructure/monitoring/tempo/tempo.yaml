@@ -1,0 +1,82 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tempo
+  namespace: monitoring
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: tempo
+      version: ">=1.24.0 <1.25.0"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: monitoring
+      interval: 12h
+  # Installation options
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  # Upgrade options
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  # Rollback on failure
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  # Values override
+  values:
+    # Resource configuration
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+    # Persistence for trace data
+    persistence:
+      enabled: true
+      storageClassName: rook-ceph-block
+      size: 20Gi
+
+    # Tempo configuration
+    tempo:
+      searchEnabled: true
+      metricsGenerator:
+        enabled: true
+
+      # Storage configuration
+      storage:
+        trace:
+          backend: local
+          local:
+            path: /var/tempo/traces
+
+      # Retention configuration
+      retention: 168h  # 7 days
+
+      # Ingester configuration
+      ingester:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+
+    # Monitoring
+    serviceMonitor:
+      enabled: true
+      labels:
+        prometheus: kube-prometheus
+
+

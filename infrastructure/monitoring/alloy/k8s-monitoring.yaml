@@ -1,0 +1,186 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: k8s-monitoring
+  namespace: monitoring
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: k8s-monitoring
+      version: "3.5.6"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: monitoring
+      interval: 12h
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  values:
+    # Cluster identification
+    cluster:
+      name: home-infra
+
+    # Destination configuration for self-hosted LGTM stack
+    destinations:
+      - name: local-lgtm
+        type: loki
+        loki:
+          url: http://monitoring-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+        prometheus:
+          url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+        tempo:
+          url: http://monitoring-tempo.monitoring.svc.cluster.local:3200
+
+    # Feature configuration
+    clusterMetrics:
+      enabled: true
+      destinations:
+        - local-lgtm
+
+    clusterEvents:
+      enabled: true
+      destinations:
+        - local-lgtm
+
+    podLogs:
+      enabled: true
+      destinations:
+        - local-lgtm
+
+    nodeLogs:
+      enabled: false  # Host-level logs not needed for containers
+
+    # Application observability (for app instrumentation)
+    applicationObservability:
+      enabled: true
+      destinations:
+        - local-lgtm
+      receivers:
+        grpc:
+          enabled: true
+          port: 4317
+        http:
+          enabled: true
+          port: 4318
+
+    # Alloy configuration
+    alloy-logs:
+      # Resource limits for log collection
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi
+
+      # Mount audit log directory from host
+      extraVolumes:
+        - name: audit-logs
+          hostPath:
+            path: /var/log/kubernetes/audit
+            type: DirectoryOrCreate
+
+      extraVolumeMounts:
+        - name: audit-logs
+          mountPath: /var/log/kubernetes/audit
+          readOnly: true
+
+      # Custom configuration for Kubernetes audit log collection
+      extraConfig: |
+        // Kubernetes Audit Log Collection
+        // Collect audit logs from control plane nodes
+        local.file_match "kubernetes_audit" {
+          path_targets = [{
+            "__path__"  = "/var/log/kubernetes/audit/*.log",
+            "job"       = "kubernetes-audit",
+            "node_name" = env("HOSTNAME"),
+            "cluster"   = "vela-prod",
+          }]
+          sync_period = "5s"
+        }
+
+        loki.source.file "kubernetes_audit" {
+          targets    = local.file_match.kubernetes_audit.targets
+          forward_to = [loki.process.kubernetes_audit.receiver]
+          tail_from_end = true
+        }
+
+        loki.process "kubernetes_audit" {
+          // Parse JSON audit log format
+          stage.json {
+            expressions = {
+              "level"       = "level",
+              "verb"        = "verb",
+              "user"        = "user.username",
+              "namespace"   = "objectRef.namespace",
+              "resource"    = "objectRef.resource",
+              "name"        = "objectRef.name",
+              "stage"       = "stage",
+              "status_code" = "responseStatus.code",
+              "api_group"   = "objectRef.apiGroup",
+            }
+          }
+
+          // Add extracted fields as labels for efficient querying
+          stage.labels {
+            values = {
+              "level"       = "",
+              "verb"        = "",
+              "user"        = "",
+              "namespace"   = "",
+              "resource"    = "",
+              "stage"       = "",
+              "status_code" = "",
+            }
+          }
+
+          // Forward to Loki
+          forward_to = [loki.write.local_lgtm.receiver]
+        }
+
+        // Loki write component (connects to destination)
+        loki.write "local_lgtm" {
+          endpoint {
+            url = "http://monitoring-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+          }
+        }
+
+    alloy-metrics:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+        limits:
+          cpu: 1000m
+          memory: 512Mi
+
+    alloy-singleton:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi
+
+    alloy-receiver:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi

@@ -1,0 +1,178 @@
+# kube-prometheus-stack HelmRelease
+# This includes Prometheus, AlertManager, Grafana, and related components
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: ">=79.0.0 <80.0.0"  # Pin to v79.x (latest stable)
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: monitoring
+      interval: 12h
+  # Installation options
+  install:
+    createNamespace: false  # Namespace created by infrastructure kustomization
+    remediation:
+      retries: 3
+  # Upgrade options
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  # Rollback on failure
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  # Values override
+  values:
+    # CRD Management - Enable automated CRD updates for chart upgrades
+    crds:
+      enabled: true
+
+    # Global settings
+    fullnameOverride: prometheus
+
+    # Prometheus configuration
+    prometheus:
+      prometheusSpec:
+        # Resource limits for Prometheus
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+
+        # Retention settings
+        retention: 30d
+        retentionSize: "45GB"
+
+        # Storage configuration
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: rook-ceph-block
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 50Gi
+
+        # Service monitor selector (monitor all ServiceMonitors)
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+
+        # Enable Prometheus metrics for trading platform
+        additionalScrapeConfigs:
+          - job_name: 'vela-trading'
+            kubernetes_sd_configs:
+              - role: pod
+                namespaces:
+                  names:
+                    - vela-trading
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                action: keep
+                regex: true
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                action: replace
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $1:$2
+                target_label: __address__
+
+    # Grafana configuration
+    grafana:
+      enabled: true
+      adminPassword: "admin"  # TODO: Change this or use secret
+
+      # Pod annotations for Reloader
+      podAnnotations:
+        configmap.reloader.stakater.com/reload: "prometheus-grafana-datasource"
+
+      # Resource limits for Grafana
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+      # Persistence for Grafana dashboards
+      persistence:
+        enabled: true
+        storageClassName: rook-ceph-block
+        size: 10Gi
+
+      # Grafana datasources
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          url: http://monitoring-loki.monitoring.svc.cluster.local:3100
+          access: proxy
+          isDefault: false
+        - name: Tempo
+          type: tempo
+          url: http://monitoring-tempo.monitoring.svc.cluster.local:3200
+          access: proxy
+          isDefault: false
+
+      # Grafana configuration
+      grafana.ini:
+        analytics:
+          check_for_updates: false
+        security:
+          allow_embedding: true
+        server:
+          root_url: "http://localhost:3000"
+
+    # AlertManager configuration
+    alertmanager:
+      enabled: true
+      alertmanagerSpec:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: rook-ceph-block
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+
+    # Disable components we don't need
+    kubeStateMetrics:
+      enabled: true
+
+    nodeExporter:
+      enabled: true
+
+    # Prometheus Operator settings
+    prometheusOperator:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi

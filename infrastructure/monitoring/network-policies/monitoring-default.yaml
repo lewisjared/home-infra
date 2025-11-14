@@ -1,0 +1,45 @@
+---
+# Default deny all ingress in monitoring namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow Prometheus to scrape all monitoring components
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scraping
+  namespace: monitoring
+spec:
+  podSelector: {}  # Apply to all pods in monitoring
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow Prometheus to scrape metrics from all pods
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - protocol: TCP
+          port: 3000  # Grafana metrics
+        - protocol: TCP
+          port: 3100  # Loki
+        - protocol: TCP
+          port: 3200  # Tempo metrics
+        - protocol: TCP
+          port: 8080  # kube-state-metrics
+        - protocol: TCP
+          port: 8081  # Config reloader
+        - protocol: TCP
+          port: 9093  # AlertManager
+        - protocol: TCP
+          port: 9100  # node-exporter
+        - protocol: TCP
+          port: 10250  # Kubelet

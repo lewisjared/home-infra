@@ -1,0 +1,29 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    external-dns.alpha.kubernetes.io/hostname: alertmanager.vela.lewelly.com
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  labels:
+    app.kubernetes.io/part-of: vela-platform
+spec:
+  ingressClassName: nginx
+  tls:
+    - secretName: alertmanager-tls-secret
+      hosts:
+        - alertmanager.vela.lewelly.com
+  rules:
+    - host: alertmanager.vela.lewelly.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-alertmanager
+                port:
+                  number: 9093
