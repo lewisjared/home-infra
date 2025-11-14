@@ -41,11 +41,12 @@ spec:
       - name: local-loki
         type: loki
         url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
-
+      
       - name: local-tempo
         type: otlp
-        protocol: http
-        url: http://tempo.monitoring.svc.cluster.local:3200/otlp
+        protocol: grpc
+        url: http://tempo.monitoring.svc.cluster.local:4317
+        # Only enable traces for tempo
         metrics: {enabled: false}
         logs: {enabled: false}
         traces: {enabled: true}
@@ -61,13 +62,27 @@ spec:
       enabled: true
 
     nodeLogs:
-      enabled: true  
+      enabled: true
+
+    integrations:
+      loki:
+        instances:
+          - name: loki
+            labelSelectors:
+              app.kubernetes.io/name: loki
+            logs:
+              enabled: false
+            metrics:
+              enabled: true
+      grafana:
+        instances:
+          - name: grafana
+            labelSelectors:
+              app.kubernetes.io/name: grafana
 
     # Application observability (for app instrumentation)
     applicationObservability:
       enabled: true
-      destinations:
-        - local-lgtm
       receivers:
         grpc:
           enabled: true
@@ -138,25 +153,19 @@ spec:
           // Add extracted fields as labels for efficient querying
           stage.labels {
             values = {
-              "level"       = "",
-              "verb"        = "",
-              "user"        = "",
-              "namespace"   = "",
-              "resource"    = "",
-              "stage"       = "",
-              "status_code" = "",
+              "level"       = "level",
+              "verb"        = "verb",
+              "user"        = "user",
+              "namespace"   = "namespace",
+              "resource"    = "resource",
+              "stage"       = "stage",
+              "status_code" = "status_code",
+              "api_group"   = "api_group",
             }
           }
 
-          // Forward to Loki
-          forward_to = [loki.write.local_lgtm.receiver]
-        }
-
-        // Loki write component (connects to destination)
-        loki.write "local_lgtm" {
-          endpoint {
-            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
-          }
+          // Forward to Loki (uses chart's auto-generated destination)
+          forward_to = [loki.write.local_loki.receiver]
         }
 
     alloy-metrics:
