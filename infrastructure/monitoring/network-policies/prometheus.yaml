@@ -19,33 +19,33 @@ spec:
       ports:
         - protocol: TCP
           port: 9090  # Prometheus remote write
----
-# Allow Prometheus and Alloy to scrape metrics from vela-trading namespace
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-prometheus-scraping
-  namespace: vela-trading
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/part-of: home-infra
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              name: monitoring
-          podSelector:
-            matchLabels:
-              app: prometheus
-        - namespaceSelector:
-            matchLabels:
-              name: monitoring
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: alloy
-      ports:
-        - protocol: TCP
-          port: 8080  # Metrics endpoint
+# ---
+# # Allow Prometheus and Alloy to scrape metrics from vela-trading namespace
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: allow-prometheus-scraping
+#   namespace: vela-trading
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app.kubernetes.io/part-of: home-infra
+#   policyTypes:
+#     - Ingress
+#   ingress:
+#     - from:
+#         - namespaceSelector:
+#             matchLabels:
+#               name: monitoring
+#           podSelector:
+#             matchLabels:
+#               app: prometheus
+#         - namespaceSelector:
+#             matchLabels:
+#               name: monitoring
+#           podSelector:
+#             matchLabels:
+#               app.kubernetes.io/name: alloy
+#       ports:
+#         - protocol: TCP
+#           port: 8080  # Metrics endpoint

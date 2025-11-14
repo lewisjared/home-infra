@@ -107,7 +107,7 @@ spec:
             "__path__"  = "/var/log/kubernetes/audit/*.log",
             "job"       = "kubernetes-audit",
             "node_name" = env("HOSTNAME"),
-            "cluster"   = "vela-prod",
+            "cluster"   = "home-infra",
           }]
           sync_period = "5s"
         }
