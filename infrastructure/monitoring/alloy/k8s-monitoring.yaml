@@ -38,8 +38,9 @@ spec:
         type: loki
         loki:
           url: http://monitoring-loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
-        prometheus:
-          url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+        metrics:
+          prometheusRemoteWrite:
+            url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
         tempo:
           url: http://monitoring-tempo.monitoring.svc.cluster.local:3200
 
