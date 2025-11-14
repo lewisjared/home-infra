@@ -50,7 +50,6 @@ spec:
     # Service configuration
     service:
       type: ClusterIP
-      externalPort: 443
       internalPort: 8443
 
     # Ingress configuration
@@ -65,7 +64,7 @@ spec:
         - host: k8s.home.lewelly.com
           paths:
             - path: /
-              pathType: Prefix
+              pathType: ImplementationSpecific
       tls:
         - secretName: kubernetes-dashboard-tls-secret
           hosts:
