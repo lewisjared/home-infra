@@ -85,12 +85,13 @@ spec:
     applicationObservability:
       enabled: true
       receivers:
-        grpc:
-          enabled: true
-          port: 4317
-        http:
-          enabled: true
-          port: 4318
+        otlp:
+          grpc:
+            enabled: true
+            port: 4317
+          http:
+            enabled: true
+            port: 4318
 
     # Alloy configuration
     alloy-logs:
