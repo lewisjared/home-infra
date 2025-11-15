@@ -37,11 +37,13 @@ spec:
       - name: local-prometheus
         type: prometheus
         url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
-
+        metrics: {enabled: true}
+        
       - name: local-loki
         type: loki
         url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
-      
+        logs: {enabled: true}
+
       - name: local-tempo
         type: otlp
         protocol: grpc
@@ -96,6 +98,7 @@ spec:
     applicationObservability:
       enabled: true
       destinations:
+        - local-loki
         - local-tempo
         - local-prometheus
       receivers:

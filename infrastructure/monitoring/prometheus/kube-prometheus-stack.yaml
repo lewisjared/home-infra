@@ -118,6 +118,7 @@ spec:
         size: 10Gi
 
       # Grafana datasources
+      prune: true
       additionalDataSources:
         - name: Loki
           type: loki

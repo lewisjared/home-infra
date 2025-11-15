@@ -1,0 +1,16 @@
+# Validation results directory
+validation-results/
+
+# Local environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+.DS_Store
