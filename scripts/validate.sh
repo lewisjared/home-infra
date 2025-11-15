@@ -2,6 +2,7 @@
 
 # This script downloads the Flux OpenAPI schemas, then it validates the
 # Flux custom resources and the kustomize overlays using kubeconform.
+# It also validates all Helm charts by rendering templates.
 # This script is meant to be run locally and in CI before the changes
 # are merged on the main branch that's synced by Flux.
 
@@ -23,9 +24,22 @@
 # - yq v4.34
 # - kustomize v5.3
 # - kubeconform v0.6
+# - helm v3
 
 set -o errexit
 set -o pipefail
+
+# Setup
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+RESULTS_DIR="${REPO_DIR}/validation-results"
+HELM_TEMPLATES_DIR="${RESULTS_DIR}/helm-templates"
+HELM_ERRORS_DIR="${RESULTS_DIR}/helm-errors"
+
+# Counters
+HELM_ERRORS=0
+KUSTOMIZE_ERRORS=0
+YAML_ERRORS=0
 
 # mirror kustomize-controller build options
 kustomize_flags=("--load-restrictor=LoadRestrictionsNone")
@@ -35,14 +49,22 @@ kustomize_config="kustomization.yaml"
 kubeconform_flags=("-skip=Secret")
 kubeconform_config=("-strict" "-ignore-missing-schemas" "-schema-location" "default" "-schema-location" "/tmp/flux-crd-schemas" "-verbose")
 
+# Cleanup and create results directory
+rm -rf "$RESULTS_DIR"
+mkdir -p "$HELM_TEMPLATES_DIR" "$HELM_ERRORS_DIR"
+
 echo "INFO - Downloading Flux OpenAPI schemas"
 mkdir -p /tmp/flux-crd-schemas/master-standalone-strict
 curl -sL https://github.com/fluxcd/flux2/releases/latest/download/crd-schemas.tar.gz | tar zxf - -C /tmp/flux-crd-schemas/master-standalone-strict
 
+echo "INFO - Validating YAML syntax"
 find . -type f -name '*.yaml' -print0 | while IFS= read -r -d $'\0' file;
   do
     echo "INFO - Validating $file"
-    yq e 'true' "$file" > /dev/null
+    if ! yq e 'true' "$file" > /dev/null; then
+      echo "ERROR - YAML validation failed: $file"
+      exit 1
+    fi
 done
 
 echo "INFO - Validating clusters"
@@ -64,3 +86,125 @@ find . -type f -name $kustomize_config -print0 | while IFS= read -r -d $'\0' fil
       exit 1
     fi
 done
+
+echo "INFO - Validating Helm charts"
+# Process each HelmRelease file
+helm_release_files=$(find . -type f -name '*.yaml' -exec grep -l "kind: HelmRelease" {} \;)
+
+for helm_file in $helm_release_files; do
+  # Extract values only from HelmRelease documents (skip HelmRepository, etc.)
+  chart_name=$(yq 'select(.kind == "HelmRelease") | .spec.chart.spec.chart' "$helm_file" 2>/dev/null)
+  chart_version=$(yq 'select(.kind == "HelmRelease") | .spec.chart.spec.version' "$helm_file" 2>/dev/null)
+  repo_name=$(yq 'select(.kind == "HelmRelease") | .spec.chart.spec.sourceRef.name' "$helm_file" 2>/dev/null)
+  release_name=$(yq 'select(.kind == "HelmRelease") | .metadata.name' "$helm_file" 2>/dev/null)
+  release_namespace=$(yq 'select(.kind == "HelmRelease") | .metadata.namespace' "$helm_file" 2>/dev/null)
+
+  # Skip if not a valid HelmRelease with chart spec
+  if [[ -z "$chart_name" || "$chart_name" == "null" ]]; then
+    continue
+  fi
+
+  echo "INFO - Processing HelmRelease: $helm_file"
+  echo "  Chart: $chart_name@$chart_version"
+  echo "  Release: $release_name (namespace: $release_namespace)"
+
+  # Extract values section to temp file
+  values_file="/tmp/helm-values-$$.yaml"
+  values_content=$(yq 'select(.kind == "HelmRelease") | .spec.values' "$helm_file" 2>/dev/null)
+  if [[ -n "$values_content" && "$values_content" != "null" ]]; then
+    echo "$values_content" > "$values_file"
+  else
+    echo "{}" > "$values_file"
+  fi
+
+  # Try to add the repo if it exists and construct full chart reference
+  chart_reference="$chart_name"
+  if [[ -n "$repo_name" && "$repo_name" != "null" ]]; then
+    chart_reference="$repo_name/$chart_name"
+    case "$repo_name" in
+      "grafana")
+        helm repo add grafana https://grafana.github.io/helm-charts --force-update 2>/dev/null || true
+        ;;
+      "prometheus-community")
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update 2>/dev/null || true
+        ;;
+      "jetstack")
+        helm repo add jetstack https://charts.jetstack.io --force-update 2>/dev/null || true
+        ;;
+      "ingress-nginx")
+        helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx --force-update 2>/dev/null || true
+        ;;
+      "rook-release")
+        helm repo add rook-release https://charts.rook.io/release --force-update 2>/dev/null || true
+        ;;
+      "kubernetes-dashboard")
+        helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/ --force-update 2>/dev/null || true
+        ;;
+      "podinfo")
+        helm repo add podinfo https://stefanprodan.github.io/podinfo --force-update 2>/dev/null || true
+        ;;
+      "pajikos")
+        helm repo add pajikos https://pajikos.github.io/helm-charts/ --force-update 2>/dev/null || true
+        ;;
+      "external-dns")
+        helm repo add external-dns https://kubernetes-sigs.github.io/external-dns --force-update 2>/dev/null || true
+        ;;
+    esac
+  fi
+
+  # Validate Helm template
+  safe_name="${release_namespace}-${release_name}"
+  safe_name="${safe_name//:/-}"
+  output_file="${HELM_TEMPLATES_DIR}/${safe_name}.yaml"
+  error_file="${HELM_ERRORS_DIR}/${safe_name}.err"
+
+  if helm template "$release_name" "$chart_reference" --version "$chart_version" -n "$release_namespace" -f "$values_file" > "$output_file" 2> "$error_file"; then
+    echo "  ✓ Helm template validation passed"
+    line_count=$(wc -l < "$output_file")
+    echo "  Generated $line_count lines of manifest"
+    rm -f "$error_file"
+  else
+    echo "  ✗ Helm template validation FAILED"
+    ((HELM_ERRORS++))
+  fi
+
+  rm -f "$values_file"
+done
+
+# Generate summary report
+{
+  echo "==============================================="
+  echo "Validation Results Summary"
+  echo "==============================================="
+  echo ""
+  echo "Generated: $(date)"
+  echo ""
+  echo "Helm Charts Validated: $(find "$HELM_TEMPLATES_DIR" -type f | wc -l)"
+  if [[ $HELM_ERRORS -gt 0 ]]; then
+    echo "Helm Errors: $HELM_ERRORS"
+    echo ""
+    echo "Error Details:"
+    find "$HELM_ERRORS_DIR" -type f -exec echo "--- {} ---" \; -exec cat {} \;
+  else
+    echo "Helm Errors: 0 ✓"
+  fi
+  echo ""
+  echo "Output Files:"
+  echo "  Rendered templates: $HELM_TEMPLATES_DIR"
+  if [[ $HELM_ERRORS -gt 0 ]]; then
+    echo "  Error logs: $HELM_ERRORS_DIR"
+  fi
+  echo ""
+} | tee "${RESULTS_DIR}/summary.txt"
+
+echo ""
+echo "INFO - Validation complete"
+echo "INFO - Results saved to: $RESULTS_DIR"
+
+# Exit with error if there were Helm failures
+if [[ $HELM_ERRORS -gt 0 ]]; then
+  echo "ERROR - $HELM_ERRORS Helm chart(s) failed validation"
+  exit 1
+fi
+
+exit 0
