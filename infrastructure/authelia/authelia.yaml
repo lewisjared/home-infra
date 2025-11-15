@@ -71,39 +71,42 @@ spec:
         enabled: true
         secret: authelia-tls-secret
 
-    # Configuration Map
+    # Authelia configuration
     configMap:
-      # Theme
       theme: dark
       default_2fa_method: totp
 
-      # Logging
       log:
         level: info
         format: text
 
-      # Authentication backend (file-based for home lab)
       authentication_backend:
         password_reset:
           disable: false
         file:
           enabled: true
           path: /config/users_database.yml
+          search:
+            email: false
+            case_insensitive: false
+          watch: false
 
-      # Session configuration
       session:
         cookies:
           - domain: home.lewelly.com
             subdomain: auth
             default_redirection_url: https://auth.home.lewelly.com
+            name: authelia_session
+            same_site: lax
+            expiration: 1h
+            inactivity: 5m
+            remember_me: 1M
 
-      # Storage (local for home lab)
       storage:
         local:
           enabled: true
           path: /config/db.sqlite3
 
-      # Notifier (file-based for home lab)
       notifier:
         filesystem:
           enabled: true
