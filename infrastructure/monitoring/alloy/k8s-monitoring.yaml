@@ -54,15 +54,26 @@ spec:
     # Feature configuration
     clusterMetrics:
       enabled: true
+      destinations:
+        - local-prometheus
+
+    nodeMetrics:
+      enabled: false  # Disabled - using kube-prometheus-stack node-exporter instead
 
     clusterEvents:
       enabled: true
+      destinations:
+        - local-loki
 
     podLogs:
       enabled: true
+      destinations:
+        - local-loki
 
     nodeLogs:
       enabled: true
+      destinations:
+        - local-loki
 
     integrations:
       loki:
@@ -84,6 +95,9 @@ spec:
     # Application observability (for app instrumentation)
     applicationObservability:
       enabled: true
+      destinations:
+        - local-tempo
+        - local-prometheus
       receivers:
         otlp:
           grpc:
