@@ -132,13 +132,13 @@ spec:
               algorithm: 'RS256'
               use: 'sig'
               key:
-                path: 'authelia-secrets/identity_providers.oidc.jwks.RS256.key'
+                path: '/secrets/authelia-secrets/identity_providers.oidc.jwks.RS256.key'
           clients:
             # Headlamp OIDC Client
             - client_id: headlamp
               client_name: Headlamp Kubernetes Dashboard
               client_secret:
-                path: authelia-secrets/headlamp-client-secret
+                path: '/secrets/authelia-secrets/headlamp-client-secret'
               public: false
               authorization_policy: one_factor
               redirect_uris:
@@ -163,6 +163,7 @@ spec:
       existingSecret: authelia-secrets
       additionalSecrets:
         authelia-secrets:
+          secretName: authelia-secrets
           items:
             - key: headlamp-client-secret
               path: headlamp-client-secret
