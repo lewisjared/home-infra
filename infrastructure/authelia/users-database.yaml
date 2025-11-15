@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: authelia-users-database
+    namespace: authelia
+type: Opaque
+stringData:
+    users_database.yml: ENC[AES256_GCM,data:zhWY9UbUmdiswb/TdKK830rU9Gu3f4BlwCIQed4l9o+PW/cQoed9Rnj/UAhDuf7VDxmU6LJC4uqyJEOK+HBVYOvXuWuEBn2aBwadFlUJMaK4b9jSRsDet7R85DVSmZv62ACvTs0syP8XoTy15lyQb2TTgX5KBzVYoD9gYuLMe6gtqsgT8dDQXEvxSAMnTa8rqn2uvYGfZePkm9lQW/3B7DJV9VyT7JP1Gj40wG1sP76Rl25dfwBRtgIMhFg7urUpTgsZV0KI/qVMKzNAFeS/Q/a3291sphR8BvpxF+B076w18TdYCfNR8uYStViGIiQYF+alJutIjj8rG1wYMa99DiSkWN2oXxALwsaTBeyP8IiXWdqsSsZeyxVqm4rsSX3n71tg7zCVNbGrEuiDoOw+yXfyZ4IxJy+54MwKlPHaDv2O3D79BMidpDHDVNDui9tCrSYH5zNTX3j4Id6TTg8B,iv:Y701fmI+AgBn7yrnmj1ZXTdNgGohFC5aGmv2kBgwdsA=,tag:iL4fGHGx8wwuYqDSS6kwUw==,type:str]
+sops:
+    lastmodified: "2025-11-15T05:41:44Z"
+    mac: ENC[AES256_GCM,data:gKGZKhMZmM4wV6pyauJ7F8fZcGu8aYC5+0M2xIfsx4TZJSN5aIOIkKC4B3rf9JNcjya5aULhsHX0RZGlSculAOEiIcRKWHBMDpaCO2piucObFNIXb4ISc2kjTcpHcQWqDC3NrV5lPU+GHruP0OP45roM12sJfXBsmNFbRXILX7s=,iv:F6+gr5dlhN/VKUx8AyTuedwMYUBNI7XOH6nKeiqK0po=,tag:Xfvoy6v5/OtryPH5vYO0dg==,type:str]
+    pgp:
+        - created_at: "2025-11-15T05:41:44Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DG75A0M95pbgSAQdA+ymH7yJJ2HtWeOobO8DiC8hdsVA29vNK3gkwsC+4iUMw
+            WX0XdqWPiWYYZ/tOHfYNb6Uq+ZYI2VjW/z6/TX8VE+m9VShem2eX4nIBiatPK2GC
+            1GgBCQIQ6xvfP8nNi7O/Aw/DDp1PdSGhwr2tOE7dHyf+1uT8qYVC4xJLOU+gyZE5
+            Rf733Xg0ISwF3Jvrqi2OsRWv2c2A1v222VLOUjlaWxi11AYmW3hBqcDFYM1irzrU
+            a3Sv8WMeJoQwUA==
+            =g+Z1
+            -----END PGP MESSAGE-----
+          fp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

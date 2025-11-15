@@ -1,7 +1,7 @@
 # .sops.yaml
 ---
 creation_rules:
-  - path_regex: (infrastructure|clusters)/.*.yaml
+  - path_regex: (infrastructure|clusters|apps)/.*.yaml
     encrypted_regex: ^(data|stringData)$
     pgp: >-
       069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F

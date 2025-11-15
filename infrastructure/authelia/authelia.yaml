@@ -1,0 +1,185 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  interval: 24h
+  url: https://charts.authelia.com
+
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authelia
+  namespace: authelia
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: authelia
+      version: ">=0.9.0 <1.0.0"
+      sourceRef:
+        kind: HelmRepository
+        name: authelia
+        namespace: authelia
+      interval: 12h
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  values:
+    # Pod configuration
+    pod:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      extraVolumes:
+        - name: users-database
+          secret:
+            secretName: authelia-users-database
+            items:
+              - key: users_database.yml
+                path: users_database.yml
+      extraVolumeMounts:
+        - name: users-database
+          mountPath: /config/users_database.yml
+          subPath: users_database.yml
+          readOnly: true
+
+    # Ingress configuration
+    ingress:
+      enabled: true
+      className: nginx
+      certManager: true
+      annotations:
+        external-dns.alpha.kubernetes.io/hostname: auth.home.lewelly.com
+      tls:
+        enabled: true
+        secret: authelia-tls-secret
+
+    # Configuration Map
+    configMap:
+      # Theme
+      theme: dark
+      default_2fa_method: totp
+
+      # Logging
+      log:
+        level: info
+        format: text
+
+      # Authentication backend (file-based for home lab)
+      authentication_backend:
+        password_reset:
+          disable: false
+        file:
+          enabled: true
+          path: /config/users_database.yml
+
+      # Session configuration
+      session:
+        cookies:
+          - domain: home.lewelly.com
+            subdomain: auth
+            default_redirection_url: https://auth.home.lewelly.com
+
+      # Storage (local for home lab)
+      storage:
+        local:
+          enabled: true
+          path: /config/db.sqlite3
+
+      # Notifier (file-based for home lab)
+      notifier:
+        filesystem:
+          enabled: true
+          filename: /config/notification.txt
+
+      # Access control
+      access_control:
+        default_policy: deny
+        rules:
+          # Headlamp access
+          - domain: headlamp.home.lewelly.com
+            policy: one_factor
+          # Auth portal itself
+          - domain: auth.home.lewelly.com
+            policy: bypass
+
+      # OIDC Provider Configuration
+      identity_providers:
+        oidc:
+          enabled: true
+          jwks:
+            - key_id: default
+              algorithm: RS256
+              use: sig
+              key:
+                path: /secrets/oidc-private-key
+          clients:
+            # Headlamp OIDC Client
+            - client_id: headlamp
+              client_name: Headlamp Kubernetes Dashboard
+              client_secret:
+                path: headlamp-client-secret
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://headlamp.home.lewelly.com/oidc-callback
+                - https://headlamp.home.lewelly.com/
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              grant_types:
+                - authorization_code
+              response_types:
+                - code
+              response_modes:
+                - form_post
+                - query
+              userinfo_signed_response_alg: none
+
+    # Secret configuration
+    secret:
+      existingSecret: authelia-secrets
+
+    # Persistence
+    persistence:
+      enabled: true
+      storageClass: rook-ceph-block
+      size: 1Gi
+      accessModes:
+        - ReadWriteOnce
+
+    # Redis dependency (lightweight session store)
+    redis:
+      enabled: true
+      architecture: standalone
+      auth:
+        enabled: false
+      master:
+        persistence:
+          enabled: false
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
