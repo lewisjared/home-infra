@@ -124,12 +124,6 @@ spec:
       identity_providers:
         oidc:
           enabled: true
-          jwks:
-            - key_id: default
-              algorithm: RS256
-              use: sig
-              key:
-                path: /secrets/oidc-private-key
           clients:
             # Headlamp OIDC Client
             - client_id: headlamp
