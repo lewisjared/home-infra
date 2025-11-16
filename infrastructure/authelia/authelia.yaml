@@ -94,8 +94,8 @@ spec:
       session:
         cookies:
           - domain: home.lewelly.com
-            subdomain: auth
-            default_redirection_url: https://auth.home.lewelly.com
+            authelia_url: https://auth.home.lewelly.com
+            default_redirection_url: https://home.lewelly.com
             name: authelia_session
             same_site: lax
             expiration: 1h
@@ -137,8 +137,7 @@ spec:
             # Headlamp OIDC Client
             - client_id: headlamp
               client_name: Headlamp Kubernetes Dashboard
-              client_secret:
-                path: '/secrets/authelia-secrets/headlamp-client-secret'
+              client_secret: '$pbkdf2-sha512$310000$j1BmlOwgn.U.jLoCVe.1aQ$vgdSMEB37OSq1w58zQC9IeCc/DC0TTjqfteWfgiklXiWWRKTfoPXkU/vGPJyk3r5GEWw7Jx.agdPX2yrvkOsNQ'
               public: false
               authorization_policy: one_factor
               redirect_uris:
@@ -165,8 +164,6 @@ spec:
         authelia-secrets:
           secretName: authelia-secrets
           items:
-            - key: headlamp-client-secret
-              path: headlamp-client-secret
             - key: identity_providers.oidc.jwks.RS256.key
               path: identity_providers.oidc.jwks.RS256.key
 
