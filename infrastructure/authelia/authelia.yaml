@@ -67,6 +67,7 @@ spec:
       certManager: true
       annotations:
         external-dns.alpha.kubernetes.io/hostname: auth.home.lewelly.com
+        cert-manager.io/cluster-issuer: letsencrypt-production
       tls:
         enabled: true
         secret: authelia-tls-secret
@@ -94,6 +95,7 @@ spec:
       session:
         cookies:
           - domain: home.lewelly.com
+            subdomain: auth
             authelia_url: https://auth.home.lewelly.com
             default_redirection_url: https://headlamp.home.lewelly.com
             name: authelia_session
