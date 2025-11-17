@@ -156,7 +156,6 @@ spec:
                 - code
               response_modes:
                 - form_post
-                - query
               userinfo_signed_response_alg: none
 
     # Secret configuration
