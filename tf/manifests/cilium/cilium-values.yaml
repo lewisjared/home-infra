@@ -1,0 +1,57 @@
+# Cilium Helm values for Talos Linux
+# Reference: https://docs.cilium.io/en/stable/installation/k8s-install-helm/
+# Talos-specific: https://www.talos.dev/v1.9/kubernetes-guides/network/deploying-cilium/
+
+# IPAM configuration
+ipam:
+  mode: kubernetes
+
+# Replace kube-proxy entirely with Cilium's eBPF implementation
+kubeProxyReplacement: true
+
+# Use KubePrism endpoint (Talos 1.6+ default)
+k8sServiceHost: localhost
+k8sServicePort: 7445
+
+# Talos provides cgroup mounts - don't let Cilium auto-mount
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
+
+# Security context adjustments for Talos
+# SYS_MODULE is not allowed in Talos, so we exclude it
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+
+# Enable Hubble for observability
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+
+# Enable L2 announcements for LoadBalancer services
+l2announcements:
+  enabled: true
+
+# Operator configuration
+operator:
+  replicas: 1
