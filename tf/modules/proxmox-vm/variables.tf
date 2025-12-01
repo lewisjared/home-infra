@@ -50,9 +50,14 @@ variable "vlan_id" {
   default     = null
 }
 
-variable "boot_disk_image_id" {
+variable "mac_address" {
   type        = string
-  description = "Disk image ID to import for boot"
+  description = "MAC address for the network interface (stable across recreates)"
+}
+
+variable "iso_file_id" {
+  type        = string
+  description = "ISO file ID for CD-ROM boot"
 }
 
 variable "machine_type" {

@@ -1,17 +1,11 @@
-# Fetch QEMU guest agent extension version
-data "talos_image_factory_extensions_versions" "this" {
-  talos_version = var.talos_version
-  filters = {
-    names = ["qemu-guest-agent"]
-  }
-}
-
 # Create schematic with QEMU guest agent for Proxmox integration
 resource "talos_image_factory_schematic" "this" {
   schematic = yamlencode({
     customization = {
       systemExtensions = {
-        officialExtensions = data.talos_image_factory_extensions_versions.this.extensions_info[*].name
+        officialExtensions = [
+          "siderolabs/qemu-guest-agent"
+        ]
       }
     }
   })
@@ -33,14 +27,14 @@ locals {
   )))
 }
 
-# Download Talos image to each Proxmox node
-resource "proxmox_virtual_environment_download_file" "talos_image" {
+# Download Talos ISO to each Proxmox node
+resource "proxmox_virtual_environment_download_file" "talos_iso" {
   for_each = local.proxmox_nodes
 
   content_type = "iso"
   datastore_id = "local"
   node_name    = each.key
-  url          = data.talos_image_factory_urls.this.urls.disk_image
-  file_name    = "talos-${var.talos_version}-nocloud-amd64.img"
+  url          = data.talos_image_factory_urls.this.urls.iso
+  file_name    = "talos-${var.talos_version}-${talos_image_factory_schematic.this.id}-nocloud-amd64.iso"
   overwrite    = false
 }

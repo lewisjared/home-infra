@@ -33,19 +33,19 @@ variable "cluster_name" {
 variable "cluster_endpoint" {
   type        = string
   description = "Kubernetes API endpoint (VIP or first control plane IP)"
-  default     = "https://10.10.20.11:6443"
+  default     = "https://10.10.20.51:6443"
 }
 
 variable "talos_version" {
   type        = string
   description = "Talos Linux version"
-  default     = "v1.9.1"
+  default     = "v1.11.5"
 }
 
 variable "kubernetes_version" {
   type        = string
   description = "Kubernetes version"
-  default     = "v1.32.0"
+  default     = "v1.34.2"
 }
 
 # =============================================================================
@@ -90,6 +90,7 @@ variable "control_plane_nodes" {
   type = map(object({
     proxmox_node = string
     ip_address   = string
+    mac_address  = string
     vm_id        = optional(number)
     cpu_cores    = optional(number)
     memory_mb    = optional(number)
@@ -99,17 +100,20 @@ variable "control_plane_nodes" {
   default = {
     "talos-master-1" = {
       proxmox_node = "churro"
-      ip_address   = "10.10.20.11"
+      ip_address   = "10.10.20.51"
+      mac_address  = "BC:24:11:20:01:51"
       vm_id        = 201
     }
     "talos-master-2" = {
       proxmox_node = "nacho"
-      ip_address   = "10.10.20.12"
+      ip_address   = "10.10.20.52"
+      mac_address  = "BC:24:11:20:01:52"
       vm_id        = 202
     }
     "talos-master-3" = {
       proxmox_node = "tamale"
-      ip_address   = "10.10.20.13"
+      ip_address   = "10.10.20.53"
+      mac_address  = "BC:24:11:20:01:53"
       vm_id        = 203
     }
   }
@@ -119,6 +123,7 @@ variable "worker_nodes" {
   type = map(object({
     proxmox_node = string
     ip_address   = string
+    mac_address  = string
     vm_id        = optional(number)
     cpu_cores    = optional(number)
     memory_mb    = optional(number)
@@ -128,12 +133,14 @@ variable "worker_nodes" {
   default = {
     "talos-worker-1" = {
       proxmox_node = "nacho"
-      ip_address   = "10.10.20.21"
+      ip_address   = "10.10.20.61"
+      mac_address  = "BC:24:11:20:02:61"
       vm_id        = 211
     }
     "talos-worker-2" = {
       proxmox_node = "tamale"
-      ip_address   = "10.10.20.22"
+      ip_address   = "10.10.20.62"
+      mac_address  = "BC:24:11:20:02:62"
       vm_id        = 212
     }
   }

@@ -12,9 +12,10 @@ module "controlplane_vms" {
   disk_size_gb = coalesce(each.value.disk_gb, var.controlplane_disk_gb)
   storage_pool = var.storage_pool
 
-  network_bridge     = var.network_bridge
-  vlan_id            = var.network_vlan_id
-  boot_disk_image_id = proxmox_virtual_environment_download_file.talos_image[each.value.proxmox_node].id
+  network_bridge = var.network_bridge
+  vlan_id        = var.network_vlan_id
+  mac_address    = each.value.mac_address
+  iso_file_id    = proxmox_virtual_environment_download_file.talos_iso[each.value.proxmox_node].id
 
   qemu_agent  = true
   on_boot     = true
@@ -37,9 +38,10 @@ module "worker_vms" {
   disk_size_gb = coalesce(each.value.disk_gb, var.worker_disk_gb)
   storage_pool = var.storage_pool
 
-  network_bridge     = var.network_bridge
-  vlan_id            = var.network_vlan_id
-  boot_disk_image_id = proxmox_virtual_environment_download_file.talos_image[each.value.proxmox_node].id
+  network_bridge = var.network_bridge
+  vlan_id        = var.network_vlan_id
+  mac_address    = each.value.mac_address
+  iso_file_id    = proxmox_virtual_environment_download_file.talos_iso[each.value.proxmox_node].id
 
   qemu_agent  = true
   on_boot     = true

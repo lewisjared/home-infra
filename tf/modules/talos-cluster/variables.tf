@@ -48,6 +48,7 @@ variable "control_plane_nodes" {
   type = map(object({
     proxmox_node = string
     ip_address   = string
+    mac_address  = string
     vm_id        = optional(number)
     cpu_cores    = optional(number)
     memory_mb    = optional(number)
@@ -60,6 +61,7 @@ variable "worker_nodes" {
   type = map(object({
     proxmox_node = string
     ip_address   = string
+    mac_address  = string
     vm_id        = optional(number)
     cpu_cores    = optional(number)
     memory_mb    = optional(number)

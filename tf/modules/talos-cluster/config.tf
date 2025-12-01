@@ -74,7 +74,8 @@ data "talos_machine_configuration" "controlplane" {
           }]
         }
         install = {
-          disk = "/dev/sda"
+          disk  = "/dev/sda"
+          image = data.talos_image_factory_urls.this.urls.installer
         }
       }
     })
@@ -107,7 +108,8 @@ data "talos_machine_configuration" "worker" {
           }]
         }
         install = {
-          disk = "/dev/sda"
+          disk  = "/dev/sda"
+          image = data.talos_image_factory_urls.this.urls.installer
         }
       }
     })

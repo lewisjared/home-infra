@@ -1,4 +1,5 @@
 # Apply machine configuration to control plane nodes
+# Uses static IP (assigned via DHCP reservation based on MAC address)
 resource "talos_machine_configuration_apply" "controlplane" {
   for_each   = var.control_plane_nodes
   depends_on = [module.controlplane_vms]
@@ -14,6 +15,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 }
 
 # Apply machine configuration to worker nodes
+# Uses static IP (assigned via DHCP reservation based on MAC address)
 resource "talos_machine_configuration_apply" "worker" {
   for_each   = var.worker_nodes
   depends_on = [module.worker_vms]
@@ -68,5 +70,22 @@ resource "local_sensitive_file" "kubeconfig" {
 resource "local_sensitive_file" "talosconfig" {
   content         = data.talos_client_configuration.this.talos_config
   filename        = "${path.root}/output/talosconfig"
+  file_permission = "0600"
+}
+
+# Write rendered machine configs for debugging
+resource "local_sensitive_file" "controlplane_config" {
+  for_each = var.control_plane_nodes
+
+  content         = data.talos_machine_configuration.controlplane[each.key].machine_configuration
+  filename        = "${path.root}/output/machineconfig-${each.key}.yaml"
+  file_permission = "0600"
+}
+
+resource "local_sensitive_file" "worker_config" {
+  for_each = var.worker_nodes
+
+  content         = data.talos_machine_configuration.worker[each.key].machine_configuration
+  filename        = "${path.root}/output/machineconfig-${each.key}.yaml"
   file_permission = "0600"
 }

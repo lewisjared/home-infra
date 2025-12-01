@@ -14,8 +14,8 @@ resource "proxmox_virtual_environment_vm" "this" {
   # Graceful shutdown for Talos
   stop_on_destroy = true
 
-  # Boot from disk first, not network
-  boot_order = ["scsi0"]
+  # Boot from CD-ROM first (for initial install), then disk
+  boot_order = ["ide2", "scsi0"]
 
   agent {
     enabled = var.qemu_agent
@@ -23,28 +23,35 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   cpu {
     cores = var.cpu_cores
-    type  = "x86-64-v2-AES"
+    type  = "host"
   }
 
   memory {
     dedicated = var.memory_mb
   }
 
-  # Boot disk from image
+  # CD-ROM with Talos ISO
+  cdrom {
+    file_id   = var.iso_file_id
+    interface = "ide2"
+  }
+
+  # Empty disk for Talos installation
   disk {
     datastore_id = var.storage_pool
-    file_id      = var.boot_disk_image_id
     interface    = "scsi0"
     iothread     = true
     discard      = "on"
     size         = var.disk_size_gb
     ssd          = true
+    file_format  = "raw"
   }
 
   network_device {
-    bridge  = var.network_bridge
-    vlan_id = var.vlan_id
-    model   = "virtio"
+    bridge      = var.network_bridge
+    vlan_id     = var.vlan_id
+    model       = "virtio"
+    mac_address = var.mac_address
   }
 
   # SCSI controller
@@ -56,10 +63,4 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   # Serial console for Talos
   serial_device {}
-
-  lifecycle {
-    ignore_changes = [
-      disk[0].file_id,
-    ]
-  }
 }
