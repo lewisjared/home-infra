@@ -15,7 +15,7 @@ resource "proxmox_virtual_environment_vm" "this" {
   stop_on_destroy = true
 
   # Boot from CD-ROM first (for initial install), then disk
-  boot_order = ["ide2", "scsi0"]
+  boot_order = [ "scsi0", "ide2",]
 
   agent {
     enabled = var.qemu_agent

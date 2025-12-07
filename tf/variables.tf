@@ -61,7 +61,7 @@ variable "network_gateway" {
 variable "network_nameservers" {
   type        = list(string)
   description = "DNS nameservers"
-  default     = ["10.10.20.1", "8.8.8.8"]
+  default     = ["10.10.20.1"]
 }
 
 variable "network_vlan_id" {
@@ -98,20 +98,21 @@ variable "control_plane_nodes" {
   }))
   description = "Control plane node definitions"
   default = {
+
     "talos-master-1" = {
-      proxmox_node = "churro"
+      proxmox_node = "nacho"
       ip_address   = "10.10.20.51"
       mac_address  = "BC:24:11:20:01:51"
       vm_id        = 201
     }
     "talos-master-2" = {
-      proxmox_node = "nacho"
+      proxmox_node = "tamale"
       ip_address   = "10.10.20.52"
       mac_address  = "BC:24:11:20:01:52"
       vm_id        = 202
     }
     "talos-master-3" = {
-      proxmox_node = "tamale"
+      proxmox_node = "churro"
       ip_address   = "10.10.20.53"
       mac_address  = "BC:24:11:20:01:53"
       vm_id        = 203
