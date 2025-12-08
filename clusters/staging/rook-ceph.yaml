@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./infrastructure/rook-ceph
+  path: ./infrastructure/base/rook-ceph
   prune: true
   sourceRef:
     kind: GitRepository
@@ -18,7 +18,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./infrastructure/rook-ceph/patches
+  path: ./infrastructure/base/rook-ceph/patches
   prune: true
   sourceRef:
     kind: GitRepository
@@ -33,7 +33,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./infrastructure/ceph-cluster
+  path: ./infrastructure/base/ceph-cluster
   prune: true
   sourceRef:
     kind: GitRepository
