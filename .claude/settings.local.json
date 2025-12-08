@@ -10,7 +10,9 @@
       "Bash(kubectl describe:*)",
       "Bash(kubectl logs:*)",
       "Bash(helm show values:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(curl:*)",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": []
