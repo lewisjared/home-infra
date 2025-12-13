@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base/monitoring
+patches:
+  # Grafana ingress
+  - target:
+      kind: Ingress
+      name: grafana
+      namespace: monitoring
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
+        value: grafana.staging.home.lewelly.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: grafana.staging.home.lewelly.com
+      - op: replace
+        path: /spec/rules/0/host
+        value: grafana.staging.home.lewelly.com
+  # Prometheus ingress
+  - target:
+      kind: Ingress
+      name: prometheus
+      namespace: monitoring
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
+        value: prometheus.staging.home.lewelly.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: prometheus.staging.home.lewelly.com
+      - op: replace
+        path: /spec/rules/0/host
+        value: prometheus.staging.home.lewelly.com
+  # Alertmanager ingress
+  - target:
+      kind: Ingress
+      name: alertmanager
+      namespace: monitoring
+    patch: |-
+      - op: replace
+        path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
+        value: alertmanager.staging.home.lewelly.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: alertmanager.staging.home.lewelly.com
+      - op: replace
+        path: /spec/rules/0/host
+        value: alertmanager.staging.home.lewelly.com

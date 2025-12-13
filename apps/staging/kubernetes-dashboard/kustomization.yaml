@@ -1,20 +1,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: headlamp
 resources:
-  - ../../base/headlamp
-  - headlamp-oidc-secret.yaml
+  - ../../base/kubernetes-dashboard
 patches:
   - target:
       kind: HelmRelease
-      name: headlamp
+      name: kubernetes-dashboard
     patch: |-
       - op: replace
         path: /spec/values/ingress/annotations/external-dns.alpha.kubernetes.io~1hostname
-        value: headlamp.staging.home.lewelly.com
+        value: k8s.staging.home.lewelly.com
       - op: replace
         path: /spec/values/ingress/hosts/0/host
-        value: headlamp.staging.home.lewelly.com
+        value: k8s.staging.home.lewelly.com
       - op: replace
         path: /spec/values/ingress/tls/0/hosts/0
-        value: headlamp.staging.home.lewelly.com
+        value: k8s.staging.home.lewelly.com

@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./infrastructure/base/external-dns
+  path: ./infrastructure/staging/external-dns
   prune: true
   sourceRef:
     kind: GitRepository

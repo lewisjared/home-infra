@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base/authelia
+patches:
+  - target:
+      kind: HelmRelease
+      name: authelia
+    patch: |-
+      - op: replace
+        path: /spec/values/ingress/annotations/external-dns.alpha.kubernetes.io~1hostname
+        value: auth.staging.home.lewelly.com
+      - op: replace
+        path: /spec/values/configMap/session/cookies/0/domain
+        value: staging.home.lewelly.com
+      - op: replace
+        path: /spec/values/configMap/session/cookies/0/authelia_url
+        value: https://auth.staging.home.lewelly.com
+      - op: replace
+        path: /spec/values/configMap/session/cookies/0/default_redirection_url
+        value: https://headlamp.staging.home.lewelly.com
+      - op: replace
+        path: /spec/values/configMap/access_control/rules/0/domain
+        value: headlamp.staging.home.lewelly.com
+      - op: replace
+        path: /spec/values/configMap/access_control/rules/1/domain
+        value: auth.staging.home.lewelly.com
+      - op: replace
+        path: /spec/values/configMap/identity_providers/oidc/clients/0/redirect_uris
+        value:
+          - https://headlamp.staging.home.lewelly.com/oidc-callback
+          - https://headlamp.staging.home.lewelly.com/
