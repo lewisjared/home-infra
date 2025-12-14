@@ -94,15 +94,13 @@ Terraform (`./tf`) is used to manage the creation and configuration of the VMs.
 This manages both the resources allocated to the VMs via Proxmox and the talos configuration.
 
 ```bash
-# Load the dotenv file
-dotenv
-
 cd tf
 tofu apply
 ```
 
-After appying the `kubeconfig` and `talosconfig` files will be generated in `./tf/output`.
-These are referenced as environment variables
+Environment variables (including `KUBECONFIG` and `TALOSCONFIG`) are auto-loaded via [direnv](https://direnv.net/) when entering the directory.
+
+After applying, the `kubeconfig` and `talosconfig` files will be generated in `./tf/output`.
 
 ## K3S cluster
 
