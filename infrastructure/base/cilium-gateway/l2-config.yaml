@@ -1,0 +1,24 @@
+---
+# IP Pool for LoadBalancer services
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: home-pool
+spec:
+  blocks:
+    - start: 10.10.20.200
+      stop: 10.10.20.250
+---
+# L2 Announcement Policy - announces LoadBalancer IPs via ARP
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: default
+spec:
+  loadBalancerIPs: true
+  interfaces:
+    - ^eth[0-9]+
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
