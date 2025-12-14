@@ -59,9 +59,43 @@ resource "talos_cluster_kubeconfig" "this" {
   }
 }
 
+# Transform kubeconfig to use consistent context name
+locals {
+  kubeconfig_raw   = yamldecode(talos_cluster_kubeconfig.this.kubeconfig_raw)
+  new_context_name = coalesce(var.kubeconfig_context_name, "admin@${var.cluster_name}")
+
+  kubeconfig_transformed = yamlencode({
+    apiVersion = local.kubeconfig_raw.apiVersion
+    kind       = local.kubeconfig_raw.kind
+    clusters = [
+      for c in local.kubeconfig_raw.clusters : {
+        name = local.new_context_name
+        cluster = c.cluster
+      }
+    ]
+    contexts = [
+      for ctx in local.kubeconfig_raw.contexts : {
+        name = local.new_context_name
+        context = {
+          cluster   = local.new_context_name
+          user      = local.new_context_name
+          namespace = try(ctx.context.namespace, null)
+        }
+      }
+    ]
+    users = [
+      for u in local.kubeconfig_raw.users : {
+        name = local.new_context_name
+        user = u.user
+      }
+    ]
+    current-context = local.new_context_name
+  })
+}
+
 # Write kubeconfig to local file
 resource "local_sensitive_file" "kubeconfig" {
-  content         = talos_cluster_kubeconfig.this.kubeconfig_raw
+  content         = local.kubeconfig_transformed
   filename        = "${path.root}/output/kubeconfig"
   file_permission = "0600"
 }

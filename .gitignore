@@ -4,6 +4,7 @@ validation-results/
 # Local environment files
 .env
 .env.local
+.envrc
 
 # IDE
 .vscode/

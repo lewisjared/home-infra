@@ -2,7 +2,6 @@
   "permissions": {
     "allow": [
       "Bash(cat:*)",
-      "Bash(tree:*)",
       "Bash(flux get:*)",
       "Bash(flux reconcile:*)",
       "Bash(kubectl get:*)",
@@ -12,7 +11,9 @@
       "Bash(helm show values:*)",
       "WebSearch",
       "Bash(curl:*)",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(sops:*)",
+      "Bash(kustomize build:*)"
     ],
     "deny": [],
     "ask": []

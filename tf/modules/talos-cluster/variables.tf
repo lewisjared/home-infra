@@ -3,6 +3,12 @@ variable "cluster_name" {
   description = "Name of the Talos cluster"
 }
 
+variable "kubeconfig_context_name" {
+  type        = string
+  description = "Context name to use in the generated kubeconfig"
+  default     = null
+}
+
 variable "cluster_endpoint" {
   type        = string
   description = "Kubernetes API endpoint URL"

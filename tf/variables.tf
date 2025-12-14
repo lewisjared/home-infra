@@ -36,6 +36,12 @@ variable "cluster_endpoint" {
   default     = "https://10.10.20.51:6443"
 }
 
+variable "kubeconfig_context_name" {
+  type        = string
+  description = "Context name in generated kubeconfig (defaults to admin@cluster_name)"
+  default     = "home-prod"
+}
+
 variable "talos_version" {
   type        = string
   description = "Talos Linux version"

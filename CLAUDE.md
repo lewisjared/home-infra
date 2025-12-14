@@ -53,6 +53,27 @@ flux get helmreleases            # List all Helm releases managed by Flux
 flux reconcile kustomization     # Force a manual sync of a specific kustomization
 ```
 
+### Multi-Cluster Context Switching
+
+Two Kubernetes clusters are managed from this repository:
+
+- **home-staging**: K3S cluster (staging environment)
+- **home-prod**: Talos cluster (production environment)
+
+```bash
+# Environment auto-loads via direnv when entering directory
+# (KUBECONFIG is automatically merged)
+
+# Switch contexts
+make ctx-staging    # Switch to K3S staging cluster
+make ctx-prod       # Switch to Talos production cluster
+
+# Check current context
+kubectl config current-context
+```
+
+Before running cluster-specific commands, verify the active context matches the target cluster.
+
 ## Architecture
 
 ### GitOps Structure

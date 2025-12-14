@@ -3,10 +3,11 @@ module "talos_cluster" {
   source = "./modules/talos-cluster"
 
   # Cluster configuration
-  cluster_name       = var.cluster_name
-  cluster_endpoint   = var.cluster_endpoint
-  talos_version      = var.talos_version
-  kubernetes_version = var.kubernetes_version
+  cluster_name            = var.cluster_name
+  cluster_endpoint        = var.cluster_endpoint
+  kubeconfig_context_name = var.kubeconfig_context_name
+  talos_version           = var.talos_version
+  kubernetes_version      = var.kubernetes_version
 
   # Network configuration
   network_gateway     = var.network_gateway
