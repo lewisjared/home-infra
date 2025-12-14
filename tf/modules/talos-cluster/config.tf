@@ -1,6 +1,12 @@
-# Load Cilium manifest for inline deployment
+# Load manifests for inline deployment
 locals {
   cilium_manifest = file("${path.module}/../../manifests/cilium/cilium-install.yaml")
+
+  # Gateway API CRDs fetched from GitHub at bootstrap
+  # Using experimental channel because Cilium 1.18 requires TLSRoute CRD
+  # See: https://github.com/cilium/cilium/issues/38420
+  gateway_api_version  = "v1.2.0"
+  gateway_api_crds_url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/${local.gateway_api_version}/experimental-install.yaml"
 
   # Common patches applied to all nodes
   common_patches = [
@@ -31,7 +37,15 @@ locals {
         allowSchedulingOnControlPlanes = true
       }
     }),
-    # Include Cilium as inline manifest
+    # Gateway API CRDs fetched from GitHub URL at bootstrap
+    yamlencode({
+      cluster = {
+        extraManifests = [
+          local.gateway_api_crds_url
+        ]
+      }
+    }),
+    # Cilium CNI as inline manifest (templated with our Helm values)
     yamlencode({
       cluster = {
         inlineManifests = [

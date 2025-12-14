@@ -27,7 +27,7 @@ variable "proxmox_ssh_user" {
 variable "cluster_name" {
   type        = string
   description = "Name of the Talos Kubernetes cluster"
-  default     = "talos-home"
+  default     = "home-prod"
 }
 
 variable "cluster_endpoint" {

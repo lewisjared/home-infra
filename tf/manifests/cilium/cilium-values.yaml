@@ -55,6 +55,8 @@ l2announcements:
 # Enable Gateway API support
 gatewayAPI:
   enabled: true
+  gatewayClass:
+    create: true
 
 # Operator configuration
 operator:
