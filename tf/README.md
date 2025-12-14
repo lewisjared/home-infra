@@ -163,9 +163,9 @@ talosctl logs kubelet -n 10.50.0.11
 ```bash
 # Regenerate manifest with new version
 helm template cilium cilium/cilium \
-  --version 1.17.0 \
+  --version 1.18.4 \
   --namespace kube-system \
-  -f manifests/cilium/cilium-values.yaml > manifests/cilium/cilium-install.yaml
+  -f tf/manifests/cilium/cilium-values.yaml > tf/manifests/cilium/cilium-install.yaml
 
 # Re-apply the cluster
 tofu apply
