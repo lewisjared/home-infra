@@ -1,0 +1,56 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: home-assistant
+  namespace: home-assistant
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ha.staging.home.lewelly.com
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  labels:
+    app.kubernetes.io/part-of: home-infra
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: home-assistant-staging-tls-secret
+      hosts:
+        - ha.staging.home.lewelly.com
+  rules:
+    - host: ha.staging.home.lewelly.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: home-assistant
+                port:
+                  number: 8123
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: code-server
+  namespace: home-assistant
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: code-server.staging.home.lewelly.com
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  labels:
+    app.kubernetes.io/part-of: home-infra
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: code-server-staging-tls-secret
+      hosts:
+        - code-server.staging.home.lewelly.com
+  rules:
+    - host: code-server.staging.home.lewelly.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: home-assistant-code-server
+                port:
+                  number: 12321

@@ -1,0 +1,84 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: monitoring
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: grafana.staging.home.lewelly.com
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  labels:
+    app.kubernetes.io/part-of: home-infra
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: grafana-staging-tls-secret
+      hosts:
+        - grafana.staging.home.lewelly.com
+  rules:
+    - host: grafana.staging.home.lewelly.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-grafana
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus
+  namespace: monitoring
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: prometheus.staging.home.lewelly.com
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  labels:
+    app.kubernetes.io/part-of: home-infra
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: prometheus-staging-tls-secret
+      hosts:
+        - prometheus.staging.home.lewelly.com
+  rules:
+    - host: prometheus.staging.home.lewelly.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-prometheus
+                port:
+                  number: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: alertmanager.staging.home.lewelly.com
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  labels:
+    app.kubernetes.io/part-of: home-infra
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: alertmanager-staging-tls-secret
+      hosts:
+        - alertmanager.staging.home.lewelly.com
+  rules:
+    - host: alertmanager.staging.home.lewelly.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-alertmanager
+                port:
+                  number: 9093

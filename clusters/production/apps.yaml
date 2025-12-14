@@ -14,7 +14,7 @@ spec:
   wait: true
   timeout: 5m0s
   dependsOn:
-    - name: ingress-nginx
+    - name: cilium-gateway
     - name: cert-manager
     - name: authelia
     - name: ceph-cluster

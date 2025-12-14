@@ -60,17 +60,9 @@ spec:
           subPath: users_database.yml
           readOnly: true
 
-    # Ingress configuration
+    # Ingress disabled - using Gateway API HTTPRoute
     ingress:
-      enabled: true
-      className: nginx
-      certManager: true
-      annotations:
-        external-dns.alpha.kubernetes.io/hostname: auth.home.lewelly.com
-        cert-manager.io/cluster-issuer: letsencrypt-production
-      tls:
-        enabled: true
-        secret: authelia-tls-secret
+      enabled: false
 
     # Authelia configuration
     configMap:

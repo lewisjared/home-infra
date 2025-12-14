@@ -2,26 +2,24 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../base/home-assistant
+  - ingress.yaml
+# Delete the base HTTPRoutes since we use Ingress for staging
 patches:
   - target:
-      kind: HelmRelease
+      kind: HTTPRoute
       name: home-assistant
     patch: |-
-      - op: replace
-        path: /spec/values/ingress/annotations/external-dns.alpha.kubernetes.io~1hostname
-        value: ha.staging.home.lewelly.com
-      - op: replace
-        path: /spec/values/ingress/hosts/0/host
-        value: ha.staging.home.lewelly.com
-      - op: replace
-        path: /spec/values/ingress/tls/0/hosts/0
-        value: ha.staging.home.lewelly.com
-      - op: replace
-        path: /spec/values/addons/codeserver/ingress/annotations/external-dns.alpha.kubernetes.io~1hostname
-        value: code-server.staging.home.lewelly.com
-      - op: replace
-        path: /spec/values/addons/codeserver/ingress/hosts/0/host
-        value: code-server.staging.home.lewelly.com
-      - op: replace
-        path: /spec/values/addons/codeserver/ingress/tls/0/hosts/0
-        value: code-server.staging.home.lewelly.com
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: home-assistant
+  - target:
+      kind: HTTPRoute
+      name: code-server
+    patch: |-
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: code-server

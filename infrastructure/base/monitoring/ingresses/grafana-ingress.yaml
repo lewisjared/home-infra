@@ -1,29 +1,24 @@
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: grafana
   namespace: monitoring
   annotations:
-    kubernetes.io/ingress.class: nginx
     external-dns.alpha.kubernetes.io/hostname: grafana.home.lewelly.com
-    cert-manager.io/cluster-issuer: letsencrypt-production
   labels:
     app.kubernetes.io/part-of: home-infra
 spec:
-  ingressClassName: nginx
-  tls:
-    - secretName: grafana-tls-secret
-      hosts:
-        - grafana.home.lewelly.com
+  parentRefs:
+    - name: home-gateway
+      namespace: cilium-gateway
+  hostnames:
+    - grafana.home.lewelly.com
   rules:
-    - host: grafana.home.lewelly.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: kube-prometheus-stack-grafana
-                port:
-                  number: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: kube-prometheus-stack-grafana
+          port: 80

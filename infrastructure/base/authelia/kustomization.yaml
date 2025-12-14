@@ -6,3 +6,4 @@ resources:
   - authelia.yaml
   - authelia-secrets.yaml
   - users-database.yaml
+  - httproute.yaml

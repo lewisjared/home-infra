@@ -4,4 +4,5 @@ namespace: headlamp
 resources:
   - namespace.yaml
   - headlamp.yaml
+  - httproute.yaml
   - rbac.yaml

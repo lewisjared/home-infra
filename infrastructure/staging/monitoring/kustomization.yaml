@@ -2,49 +2,33 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../base/monitoring
+  - ingresses.yaml
+# Exclude base HTTPRoutes since we use Ingress for staging
 patches:
-  # Grafana ingress
   - target:
-      kind: Ingress
+      kind: HTTPRoute
       name: grafana
-      namespace: monitoring
     patch: |-
-      - op: replace
-        path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
-        value: grafana.staging.home.lewelly.com
-      - op: replace
-        path: /spec/tls/0/hosts/0
-        value: grafana.staging.home.lewelly.com
-      - op: replace
-        path: /spec/rules/0/host
-        value: grafana.staging.home.lewelly.com
-  # Prometheus ingress
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: grafana
   - target:
-      kind: Ingress
+      kind: HTTPRoute
       name: prometheus
-      namespace: monitoring
     patch: |-
-      - op: replace
-        path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
-        value: prometheus.staging.home.lewelly.com
-      - op: replace
-        path: /spec/tls/0/hosts/0
-        value: prometheus.staging.home.lewelly.com
-      - op: replace
-        path: /spec/rules/0/host
-        value: prometheus.staging.home.lewelly.com
-  # Alertmanager ingress
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: prometheus
   - target:
-      kind: Ingress
+      kind: HTTPRoute
       name: alertmanager
-      namespace: monitoring
     patch: |-
-      - op: replace
-        path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
-        value: alertmanager.staging.home.lewelly.com
-      - op: replace
-        path: /spec/tls/0/hosts/0
-        value: alertmanager.staging.home.lewelly.com
-      - op: replace
-        path: /spec/rules/0/host
-        value: alertmanager.staging.home.lewelly.com
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: alertmanager

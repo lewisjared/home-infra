@@ -4,3 +4,4 @@ namespace: kubernetes-dashboard
 resources:
   - namespace.yaml
   - kubernetes-dashboard.yaml
+  - httproute.yaml

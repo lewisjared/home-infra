@@ -2,17 +2,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../base/kubernetes-dashboard
+  - ingress.yaml
+# Delete the base HTTPRoute since we use Ingress for staging
 patches:
   - target:
-      kind: HelmRelease
+      kind: HTTPRoute
       name: kubernetes-dashboard
     patch: |-
-      - op: replace
-        path: /spec/values/ingress/annotations/external-dns.alpha.kubernetes.io~1hostname
-        value: k8s.staging.home.lewelly.com
-      - op: replace
-        path: /spec/values/ingress/hosts/0/host
-        value: k8s.staging.home.lewelly.com
-      - op: replace
-        path: /spec/values/ingress/tls/0/hosts/0
-        value: k8s.staging.home.lewelly.com
+      $patch: delete
+      apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: kubernetes-dashboard

@@ -16,6 +16,6 @@ spec:
     secretRef:
       name: sops-gpg
   dependsOn:
-    - name: ingress-nginx
+    - name: cilium-gateway
     - name: cert-manager
     - name: ceph-cluster

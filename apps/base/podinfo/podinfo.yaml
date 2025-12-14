@@ -25,25 +25,10 @@ spec:
   install:
     remediation:
       retries: 3
-  # Default values
-  # https://github.com/stefanprodan/podinfo/blob/master/charts/podinfo/values.yaml
   values:
     redis:
       enabled: true
       repository: public.ecr.aws/docker/library/redis
       tag: 7.0.6
     ingress:
-      enabled: true
-      className: nginx
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-production
-        external-dns.alpha.kubernetes.io/hostname: podinfo.home.lewelly.com
-      hosts:
-      - host: podinfo.home.lewelly.com
-        paths:
-        - path: /
-          pathType: Prefix
-      tls:
-      - hosts:
-        - podinfo.home.lewelly.com
-        secretName: podinfo-tls-secret
+      enabled: false

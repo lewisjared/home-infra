@@ -1,29 +1,24 @@
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: alertmanager
   namespace: monitoring
   annotations:
-    kubernetes.io/ingress.class: nginx
     external-dns.alpha.kubernetes.io/hostname: alertmanager.home.lewelly.com
-    cert-manager.io/cluster-issuer: letsencrypt-production
   labels:
     app.kubernetes.io/part-of: home-infra
 spec:
-  ingressClassName: nginx
-  tls:
-    - secretName: alertmanager-tls-secret
-      hosts:
-        - alertmanager.home.lewelly.com
+  parentRefs:
+    - name: home-gateway
+      namespace: cilium-gateway
+  hostnames:
+    - alertmanager.home.lewelly.com
   rules:
-    - host: alertmanager.home.lewelly.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: prometheus-alertmanager
-                port:
-                  number: 9093
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: prometheus-alertmanager
+          port: 9093

@@ -55,23 +55,9 @@ spec:
       type: ClusterIP
       port: 80
 
-    # Ingress configuration
+    # Ingress disabled - using Gateway API HTTPRoute
     ingress:
-      enabled: true
-      className: nginx
-      annotations:
-        kubernetes.io/ingress.class: nginx
-        external-dns.alpha.kubernetes.io/hostname: headlamp.home.lewelly.com
-        cert-manager.io/cluster-issuer: letsencrypt-production
-      hosts:
-        - host: headlamp.home.lewelly.com
-          paths:
-            - path: /
-              type: ImplementationSpecific
-      tls:
-        - secretName: headlamp-tls-secret
-          hosts:
-            - headlamp.home.lewelly.com
+      enabled: false
 
     # OIDC Configuration
     config:
