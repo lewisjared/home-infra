@@ -36,6 +36,7 @@ spec:
     - --pihole-api-version=6
     - --pihole-server=http://10.16.0.21
     - --request-timeout=120s
+    - --log-level=debug
     rbac:
       additionalPermissions:
       - apiGroups: ["gateway.networking.k8s.io"]
