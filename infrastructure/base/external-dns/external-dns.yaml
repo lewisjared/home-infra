@@ -34,3 +34,8 @@ spec:
     - --source=gateway-httproute
     - --pihole-api-version=6
     - --pihole-server=http://10.16.0.21
+    rbac:
+      additionalPermissions:
+      - apiGroups: ["gateway.networking.k8s.io"]
+        resources: ["gateways", "httproutes"]
+        verbs: ["get", "list", "watch"]
