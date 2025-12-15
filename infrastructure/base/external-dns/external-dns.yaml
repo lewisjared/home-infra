@@ -28,12 +28,14 @@ spec:
     domainFilters:
     - home.lewelly.com
     - vela.lewelly.com
+    sources:
+    - service
+    - ingress
+    - gateway-httproute
     extraArgs:
-    - --source=service
-    - --source=ingress
-    - --source=gateway-httproute
     - --pihole-api-version=6
     - --pihole-server=http://10.16.0.21
+    - --request-timeout=120s
     rbac:
       additionalPermissions:
       - apiGroups: ["gateway.networking.k8s.io"]
