@@ -47,11 +47,23 @@ resource "proxmox_virtual_environment_vm" "this" {
     file_format  = "raw"
   }
 
+  # Primary NIC - Kubernetes network (VLAN 20)
   network_device {
     bridge      = var.network_bridge
     vlan_id     = var.vlan_id
     model       = "virtio"
     mac_address = var.mac_address
+  }
+
+  # Secondary NIC - Ceph storage network (VLAN 30)
+  dynamic "network_device" {
+    for_each = var.ceph_vlan_id != null ? [1] : []
+    content {
+      bridge      = var.network_bridge
+      vlan_id     = var.ceph_vlan_id
+      model       = "virtio"
+      mac_address = var.ceph_mac_address
+    }
   }
 
   # SCSI controller

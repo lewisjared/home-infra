@@ -29,3 +29,8 @@ output "worker_vm_ids" {
   description = "Worker VM IDs"
   value       = module.talos_cluster.worker_vm_ids
 }
+
+output "proxmox_vlan_interfaces" {
+  description = "VLAN interfaces on Proxmox hosts"
+  value       = module.proxmox_host_network.vlan_interfaces_by_host
+}

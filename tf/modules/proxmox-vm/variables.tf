@@ -52,7 +52,20 @@ variable "vlan_id" {
 
 variable "mac_address" {
   type        = string
-  description = "MAC address for the network interface (stable across recreates)"
+  description = "MAC address for the primary network interface (stable across recreates)"
+}
+
+# Secondary NIC for Ceph storage network
+variable "ceph_vlan_id" {
+  type        = number
+  description = "VLAN ID for Ceph storage network (null to disable)"
+  default     = null
+}
+
+variable "ceph_mac_address" {
+  type        = string
+  description = "MAC address for the Ceph network interface (null to disable)"
+  default     = null
 }
 
 variable "iso_file_id" {

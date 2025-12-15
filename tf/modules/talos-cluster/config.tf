@@ -78,14 +78,23 @@ data "talos_machine_configuration" "controlplane" {
       machine = {
         network = {
           hostname = each.key
-          interfaces = [{
-            interface = "eth0"
-            addresses = ["${each.value.ip_address}${var.network_cidr}"]
-            routes = [{
-              network = "0.0.0.0/0"
-              gateway = var.network_gateway
-            }]
-          }]
+          interfaces = concat(
+            # eth0 - Primary NIC (Kubernetes network)
+            [{
+              interface = "eth0"
+              addresses = ["${each.value.ip_address}${var.network_cidr}"]
+              routes = [{
+                network = "0.0.0.0/0"
+                gateway = var.network_gateway
+              }]
+            }],
+            # eth1 - Secondary NIC (Ceph storage network) - only if configured
+            each.value.ceph_ip_address != null ? [{
+              interface = "eth1"
+              addresses = ["${each.value.ceph_ip_address}${var.ceph_cidr}"]
+              # No routes - isolated L2 storage network
+            }] : []
+          )
         }
         install = {
           disk  = "/dev/sda"
@@ -112,14 +121,23 @@ data "talos_machine_configuration" "worker" {
       machine = {
         network = {
           hostname = each.key
-          interfaces = [{
-            interface = "eth0"
-            addresses = ["${each.value.ip_address}${var.network_cidr}"]
-            routes = [{
-              network = "0.0.0.0/0"
-              gateway = var.network_gateway
-            }]
-          }]
+          interfaces = concat(
+            # eth0 - Primary NIC (Kubernetes network)
+            [{
+              interface = "eth0"
+              addresses = ["${each.value.ip_address}${var.network_cidr}"]
+              routes = [{
+                network = "0.0.0.0/0"
+                gateway = var.network_gateway
+              }]
+            }],
+            # eth1 - Secondary NIC (Ceph storage network) - only if configured
+            each.value.ceph_ip_address != null ? [{
+              interface = "eth1"
+              addresses = ["${each.value.ceph_ip_address}${var.ceph_cidr}"]
+              # No routes - isolated L2 storage network
+            }] : []
+          )
         }
         install = {
           disk  = "/dev/sda"

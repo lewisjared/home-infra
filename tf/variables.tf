@@ -89,66 +89,188 @@ variable "network_cidr" {
 }
 
 # =============================================================================
-# Node Definitions
+# VLAN Definitions
+# =============================================================================
+
+variable "vlans" {
+  type = map(object({
+    id      = number
+    name    = string
+    comment = string
+  }))
+  description = "VLAN definitions for Proxmox host networking"
+  default = {
+    "vlan10" = {
+      id      = 10
+      name    = "vlan10"
+      comment = "Management network"
+    }
+    "vlan20" = {
+      id      = 20
+      name    = "vlan20"
+      comment = "Infrastructure network (K8s, VMs)"
+    }
+    "vlan30" = {
+      id      = 30
+      name    = "vlan30"
+      comment = "Storage network (isolated L2) for Ceph and NFS"
+    }
+    "vlan40" = {
+      id      = 40
+      name    = "vlan40"
+      comment = "LAN network for trusted devices"
+    }
+    "vlan50" = {
+      id      = 50
+      name    = "vlan50"
+      comment = "IOT network"
+    }
+    "vlan90" = {
+      id      = 90
+      name    = "vlan90"
+      comment = "Guest network"
+    }
+  }
+}
+
+variable "ceph_vlan_id" {
+  type        = number
+  description = "VLAN ID for Ceph storage network (for Talos VM NICs)"
+  default     = 30
+}
+
+# =============================================================================
+# Proxmox Host Definitions
+# =============================================================================
+
+variable "proxmox_hosts" {
+  type = map(object({
+    default_interface = string  # Default parent interface for VLANs (e.g., "vmbr0")
+    vlans = map(object({
+      ip        = string
+      interface = optional(string) # Override interface for this VLAN (e.g., dedicated NIC for storage)
+    }))
+  }))
+  description = "Proxmox host definitions with per-VLAN IP and optional interface override"
+  default = {
+    "churro" = {
+      default_interface = "vmbr0"
+      vlans = {
+        "10" = { ip = "10.10.10.10/24" }
+        "20" = { ip = "10.10.20.10/24" }
+        "30" = { ip = "10.10.30.10/24" }
+      }
+    }
+    "mole" = {
+      default_interface = "vmbr0"
+      vlans = {
+        "10" = { ip = "10.10.10.11/24" }
+        "20" = { ip = "10.10.20.11/24" }
+        "30" = { ip = "10.10.30.11/24" }
+      }
+    }
+    "taco" = {
+      default_interface = "vmbr0"
+      # Taco does not need VLAN 30 configured
+      # This will help keep all VLAN traffic over the 10GbE NICs
+      vlans = {
+        "10" = { ip = "10.10.10.12/24" }
+        "20" = { ip = "10.10.20.12/24" }
+      }
+    }
+    "nacho" = {
+      default_interface = "vmbr0"
+      vlans = {
+        "10" = { ip = "10.10.10.13/24" }
+        "20" = { ip = "10.10.20.13/24" }
+        "30" = { ip = "10.10.30.13/24" }
+      }
+    }
+    "tamale" = {
+      default_interface = "vmbr0"
+      vlans = {
+        "10" = { ip = "10.10.10.14/24" }
+        "20" = { ip = "10.10.20.14/24" }
+        "30" = { ip = "10.10.30.14/24" }
+      }
+    }
+  }
+}
+
+# =============================================================================
+# Talos Node Definitions
 # =============================================================================
 
 variable "control_plane_nodes" {
   type = map(object({
-    proxmox_node = string
-    ip_address   = string
-    mac_address  = string
-    vm_id        = optional(number)
-    cpu_cores    = optional(number)
-    memory_mb    = optional(number)
-    disk_gb      = optional(number)
+    proxmox_node     = string
+    ip_address       = string
+    mac_address      = string
+    ceph_ip_address  = optional(string) # IP on Ceph VLAN 30
+    ceph_mac_address = optional(string) # MAC for Ceph NIC
+    vm_id            = optional(number)
+    cpu_cores        = optional(number)
+    memory_mb        = optional(number)
+    disk_gb          = optional(number)
   }))
   description = "Control plane node definitions"
   default = {
-
     "talos-master-1" = {
-      proxmox_node = "nacho"
-      ip_address   = "10.10.20.51"
-      mac_address  = "BC:24:11:20:01:51"
-      vm_id        = 201
+      proxmox_node     = "nacho"
+      ip_address       = "10.10.20.51"
+      mac_address      = "BC:24:11:20:01:51"
+      ceph_ip_address  = "10.10.30.51"
+      ceph_mac_address = "BC:24:11:30:01:51"
+      vm_id            = 201
     }
     "talos-master-2" = {
-      proxmox_node = "tamale"
-      ip_address   = "10.10.20.52"
-      mac_address  = "BC:24:11:20:01:52"
-      vm_id        = 202
+      proxmox_node     = "tamale"
+      ip_address       = "10.10.20.52"
+      mac_address      = "BC:24:11:20:01:52"
+      ceph_ip_address  = "10.10.30.52"
+      ceph_mac_address = "BC:24:11:30:01:52"
+      vm_id            = 202
     }
     "talos-master-3" = {
-      proxmox_node = "churro"
-      ip_address   = "10.10.20.53"
-      mac_address  = "BC:24:11:20:01:53"
-      vm_id        = 203
+      proxmox_node     = "churro"
+      ip_address       = "10.10.20.53"
+      mac_address      = "BC:24:11:20:01:53"
+      ceph_ip_address  = "10.10.30.53"
+      ceph_mac_address = "BC:24:11:30:01:53"
+      vm_id            = 203
     }
   }
 }
 
 variable "worker_nodes" {
   type = map(object({
-    proxmox_node = string
-    ip_address   = string
-    mac_address  = string
-    vm_id        = optional(number)
-    cpu_cores    = optional(number)
-    memory_mb    = optional(number)
-    disk_gb      = optional(number)
+    proxmox_node     = string
+    ip_address       = string
+    mac_address      = string
+    ceph_ip_address  = optional(string) # IP on Ceph VLAN 30
+    ceph_mac_address = optional(string) # MAC for Ceph NIC
+    vm_id            = optional(number)
+    cpu_cores        = optional(number)
+    memory_mb        = optional(number)
+    disk_gb          = optional(number)
   }))
   description = "Worker node definitions"
   default = {
     "talos-worker-1" = {
-      proxmox_node = "nacho"
-      ip_address   = "10.10.20.61"
-      mac_address  = "BC:24:11:20:02:61"
-      vm_id        = 211
+      proxmox_node     = "nacho"
+      ip_address       = "10.10.20.61"
+      mac_address      = "BC:24:11:20:02:61"
+      ceph_ip_address  = "10.10.30.61"
+      ceph_mac_address = "BC:24:11:30:02:61"
+      vm_id            = 211
     }
     "talos-worker-2" = {
-      proxmox_node = "tamale"
-      ip_address   = "10.10.20.62"
-      mac_address  = "BC:24:11:20:02:62"
-      vm_id        = 212
+      proxmox_node     = "tamale"
+      ip_address       = "10.10.20.62"
+      mac_address      = "BC:24:11:20:02:62"
+      ceph_ip_address  = "10.10.30.62"
+      ceph_mac_address = "BC:24:11:30:02:62"
+      vm_id            = 212
     }
   }
 }

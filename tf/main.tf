@@ -1,4 +1,16 @@
+# =============================================================================
+# Proxmox Host Network Configuration (VLANs 10, 20, 30)
+# =============================================================================
+module "proxmox_host_network" {
+  source = "./modules/proxmox-host-network"
+
+  vlans         = var.vlans
+  proxmox_hosts = var.proxmox_hosts
+}
+
+# =============================================================================
 # Talos Kubernetes Cluster on Proxmox VE
+# =============================================================================
 module "talos_cluster" {
   source = "./modules/talos-cluster"
 
@@ -9,12 +21,16 @@ module "talos_cluster" {
   talos_version           = var.talos_version
   kubernetes_version      = var.kubernetes_version
 
-  # Network configuration
+  # Primary network configuration (Kubernetes - VLAN 20)
   network_gateway     = var.network_gateway
   network_nameservers = var.network_nameservers
   network_vlan_id     = var.network_vlan_id
   network_bridge      = var.network_bridge
   network_cidr        = var.network_cidr
+
+  # Ceph storage network configuration (VLAN 30)
+  ceph_vlan_id = var.ceph_vlan_id
+  ceph_cidr    = var.network_cidr # Same /24 CIDR for VLAN 30
 
   # Node definitions
   control_plane_nodes = var.control_plane_nodes
