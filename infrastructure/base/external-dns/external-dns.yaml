@@ -33,6 +33,7 @@ spec:
     - ingress
     - gateway-httproute
     logLevel: debug
+    registry: noop
     extraArgs:
     - --pihole-api-version=6
     - --pihole-server=http://10.16.0.21
