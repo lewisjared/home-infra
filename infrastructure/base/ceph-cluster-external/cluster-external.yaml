@@ -1,0 +1,21 @@
+# External CephCluster - consumes Proxmox-hosted Ceph cluster
+# This configuration deploys only CSI drivers, not MONs/OSDs
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph-external
+  namespace: rook-ceph
+spec:
+  external:
+    enable: true
+  # Must match the dataDirHostPath used by the external cluster
+  dataDirHostPath: /var/lib/rook
+  # Ceph version should match the external cluster version (Proxmox Ceph)
+  cephVersion:
+    # Proxmox VE 9.x uses Ceph Squid (19.2.x)
+    image: quay.io/ceph/ceph:v19.2
+  healthCheck:
+    daemonHealth:
+      mon:
+        interval: 45s
+        timeout: 600s
