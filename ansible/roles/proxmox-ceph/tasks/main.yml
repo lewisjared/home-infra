@@ -1,0 +1,222 @@
+---
+# =============================================================================
+# Proxmox Ceph Deployment
+# =============================================================================
+
+# =============================================================================
+# Ceph Repository Setup (Proxmox No-Subscription)
+# =============================================================================
+
+- name: Add Proxmox Ceph {{ ceph_release }} no-subscription repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/ceph.sources
+    content: |
+      Types: deb
+      URIs: http://download.proxmox.com/debian/ceph-{{ ceph_release }}
+      Suites: {{ ceph_debian_codename }}
+      Components: no-subscription
+      Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+    mode: '0644'
+  register: ceph_repo
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: ceph_repo.changed
+
+- name: Ensure Ceph packages are installed
+  ansible.builtin.apt:
+    name:
+      - ceph
+      - ceph-common
+      - ceph-volume
+    state: present
+
+# =============================================================================
+# LVM Setup for OSD Storage (Thin LV)
+# This isn't ideal, but I don't have infinite time to set up dedicated disks
+# for Ceph OSDs on all Proxmox hosts. 
+# Using LVM thin LVs on the existing Proxmox data pool should be sufficient for lab/testing purposes.
+# =============================================================================
+
+- name: Check if OSD logical volume exists
+  ansible.builtin.command:
+    cmd: "lvs pve/{{ ceph_osd.lv_name }} --noheadings -o lv_name"
+  register: lv_check
+  failed_when: false
+  changed_when: false
+
+- name: Create thin LV for Ceph OSD in data pool
+  ansible.builtin.command:
+    cmd: "lvcreate -V {{ ceph_osd.lv_size }} -T pve/{{ ceph_osd.thin_pool }} -n {{ ceph_osd.lv_name }}"
+  when: lv_check.rc != 0
+
+# =============================================================================
+# Ceph Cluster Initialization (First Monitor Only)
+# =============================================================================
+
+- name: Check if Ceph is already initialized
+  ansible.builtin.stat:
+    path: /etc/pve/ceph.conf
+  register: ceph_conf
+
+- name: Initialize Ceph cluster on first monitor
+  ansible.builtin.command:
+    cmd: >
+      pveceph init
+      --network {{ ceph_cluster_network }}
+      --cluster-network {{ ceph_cluster_network }}
+  when:
+    - inventory_hostname == ceph_first_monitor
+    - not ceph_conf.stat.exists
+
+# =============================================================================
+# Monitor Setup
+# =============================================================================
+
+- name: Check if monitor exists on this host
+  ansible.builtin.command:
+    cmd: "pveceph status"
+  register: ceph_status
+  failed_when: false
+  changed_when: false
+
+- name: Create Ceph monitor
+  ansible.builtin.command:
+    cmd: "pveceph mon create"
+  when:
+    - ceph_monitor | default(false)
+    - "'mon.' + inventory_hostname not in ceph_status.stdout"
+  register: mon_create
+  failed_when:
+    - mon_create.rc != 0
+    - "'already exists' not in mon_create.stderr"
+
+# =============================================================================
+# Manager Setup (runs on monitors)
+# =============================================================================
+
+- name: Create Ceph manager
+  ansible.builtin.command:
+    cmd: "pveceph mgr create"
+  when:
+    - ceph_monitor | default(false)
+  register: mgr_create
+  failed_when:
+    - mgr_create.rc != 0
+    - "'already exists' not in mgr_create.stderr"
+
+# =============================================================================
+# OSD Setup
+# =============================================================================
+
+- name: Check if OSD exists for this LV
+  ansible.builtin.shell:
+    cmd: "ceph-volume lvm list | grep '/dev/pve/{{ ceph_osd.lv_name }}'"
+  register: osd_check
+  failed_when: false
+  changed_when: false
+
+- name: Create Ceph OSD
+  ansible.builtin.command:
+    cmd: "pveceph osd create /dev/pve/{{ ceph_osd.lv_name }}"
+  when: osd_check.rc != 0
+  register: osd_create
+
+# =============================================================================
+# Pool and Client Setup (First Monitor Only)
+# =============================================================================
+
+- name: Check if kubernetes pool exists
+  ansible.builtin.command:
+    cmd: "ceph osd pool ls"
+  register: pool_list
+  changed_when: false
+  when: inventory_hostname == ceph_first_monitor
+
+- name: Create kubernetes RBD pool
+  ansible.builtin.command:
+    cmd: >
+      pveceph pool create {{ ceph_kubernetes_pool }}
+      --pg_autoscale_mode {{ 'on' if ceph_kubernetes_pool_pg_autoscale else 'off' }}
+      --application rbd
+  when:
+    - inventory_hostname == ceph_first_monitor
+    - ceph_kubernetes_pool not in pool_list.stdout
+
+- name: Configure 2x replication for kubernetes pool
+  ansible.builtin.shell:
+    cmd: |
+      ceph osd pool set {{ ceph_kubernetes_pool }} size 2
+      ceph osd pool set {{ ceph_kubernetes_pool }} min_size 1
+  when:
+    - inventory_hostname == ceph_first_monitor
+  changed_when: false
+
+- name: Check if kubernetes client user exists
+  ansible.builtin.command:
+    cmd: "ceph auth get {{ ceph_kubernetes_user }}"
+  register: client_check
+  failed_when: false
+  changed_when: false
+  when: inventory_hostname == ceph_first_monitor
+
+- name: Create kubernetes client user
+  ansible.builtin.command:
+    cmd: >
+      ceph auth get-or-create {{ ceph_kubernetes_user }}
+      mon 'profile rbd'
+      osd 'profile rbd pool={{ ceph_kubernetes_pool }}'
+      -o /etc/ceph/ceph.{{ ceph_kubernetes_user }}.keyring
+  when:
+    - inventory_hostname == ceph_first_monitor
+    - client_check.rc != 0
+
+# =============================================================================
+# Export Credentials (First Monitor Only)
+# =============================================================================
+
+- name: Get Ceph FSID
+  ansible.builtin.command:
+    cmd: "ceph fsid"
+  register: ceph_fsid
+  changed_when: false
+  when: inventory_hostname == ceph_first_monitor
+
+- name: Get admin keyring
+  ansible.builtin.command:
+    cmd: "ceph auth get client.admin"
+  register: admin_keyring
+  changed_when: false
+  when: inventory_hostname == ceph_first_monitor
+
+- name: Get kubernetes keyring
+  ansible.builtin.command:
+    cmd: "ceph auth get {{ ceph_kubernetes_user }}"
+  register: kubernetes_keyring
+  changed_when: false
+  when: inventory_hostname == ceph_first_monitor
+
+- name: Display Ceph credentials for Rook external cluster
+  ansible.builtin.debug:
+    msg: |
+      =================================================================
+      CEPH CREDENTIALS FOR ROOK EXTERNAL CLUSTER
+      =================================================================
+      FSID: {{ ceph_fsid.stdout }}
+
+      Monitor endpoints (VLAN 30):
+      {% for host in groups['proxmox'] if hostvars[host].ceph_monitor | default(false) %}
+      - {{ hostvars[host].ceph_ip }}:6789
+      {% endfor %}
+
+      Admin keyring:
+      {{ admin_keyring.stdout }}
+
+      Kubernetes client keyring:
+      {{ kubernetes_keyring.stdout }}
+      =================================================================
+      Save these credentials securely - you'll need them for the
+      SOPS-encrypted secret in infrastructure/production/ceph-cluster/
+      =================================================================
+  when: inventory_hostname == ceph_first_monitor

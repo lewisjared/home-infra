@@ -1,0 +1,21 @@
+---
+# Ceph release (squid = 19.x, reef = 18.x, quincy = 17.x)
+ceph_release: "squid"
+
+# Debian codename for Proxmox Ceph repository
+ceph_debian_codename: "trixie"
+
+# Ceph cluster configuration
+ceph_cluster_network: "10.10.30.0/24"
+ceph_public_network: "10.10.30.0/24"
+
+# RBD pool for Kubernetes
+ceph_kubernetes_pool: "k8s-prod"
+ceph_kubernetes_pool_pg_autoscale: true
+
+# Ceph client for Kubernetes (Rook)
+ceph_kubernetes_user: "client.kubernetes"
+
+# First monitor host (used for cluster initialization)
+# Mole is the data node with the most storage, so we'll use it as the first monitor
+ceph_first_monitor: "mole"

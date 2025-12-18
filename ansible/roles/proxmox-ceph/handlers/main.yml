@@ -1,0 +1,14 @@
+---
+# Handlers for proxmox-ceph role
+
+- name: Restart ceph-mon
+  ansible.builtin.systemd:
+    name: "ceph-mon@{{ inventory_hostname }}"
+    state: restarted
+    daemon_reload: true
+
+- name: Restart ceph-mgr
+  ansible.builtin.systemd:
+    name: "ceph-mgr@{{ inventory_hostname }}"
+    state: restarted
+    daemon_reload: true

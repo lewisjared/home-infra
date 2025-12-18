@@ -1,0 +1,80 @@
+---
+# =============================================================================
+# Phase 3: Monitor, Manager, and OSD Deployment
+# =============================================================================
+
+# Wait for ceph.conf to be available (synced via pmxcfs)
+- name: Wait for Ceph config to be available
+  ansible.builtin.wait_for:
+    path: /etc/pve/ceph.conf
+    state: present
+    timeout: 60
+
+# Ensure /etc/ceph/ceph.conf symlink exists (ceph-volume expects this location)
+- name: Ensure /etc/ceph directory exists
+  ansible.builtin.file:
+    path: /etc/ceph
+    state: directory
+    mode: '0755'
+
+- name: Symlink ceph.conf to standard location
+  ansible.builtin.file:
+    src: /etc/pve/ceph.conf
+    dest: /etc/ceph/ceph.conf
+    state: link
+    force: true
+
+# Ensure bootstrap-osd keyring is available locally (copied from shared /etc/pve/priv/)
+- name: Ensure bootstrap-osd directory exists
+  ansible.builtin.file:
+    path: /var/lib/ceph/bootstrap-osd
+    state: directory
+    owner: ceph
+    group: ceph
+    mode: '0755'
+
+- name: Copy bootstrap-osd keyring from shared storage
+  ansible.builtin.copy:
+    src: /etc/pve/priv/ceph.client.bootstrap-osd.keyring
+    dest: /var/lib/ceph/bootstrap-osd/ceph.keyring
+    remote_src: true
+    owner: ceph
+    group: ceph
+    mode: '0600'
+  failed_when: false
+
+# Monitor Setup
+- name: Create Ceph monitor
+  ansible.builtin.command:
+    cmd: "pveceph mon create"
+  when: ceph_monitor | default(false)
+  register: mon_create
+  failed_when:
+    - mon_create.rc != 0
+    - "'already' not in mon_create.stderr"
+  changed_when: mon_create.rc == 0
+
+# Manager Setup (runs on monitors)
+- name: Create Ceph manager
+  ansible.builtin.command:
+    cmd: "pveceph mgr create"
+  when: ceph_monitor | default(false)
+  register: mgr_create
+  failed_when:
+    - mgr_create.rc != 0
+    - "'already' not in mgr_create.stderr"
+  changed_when: mgr_create.rc == 0
+
+# OSD Setup
+- name: Check if OSD exists for this LV
+  ansible.builtin.shell:
+    cmd: "ceph-volume lvm list 2>/dev/null | grep -q '/dev/pve/{{ ceph_osd.lv_name }}'"
+  register: osd_check
+  failed_when: false
+  changed_when: false
+
+- name: Create Ceph OSD
+  ansible.builtin.command:
+    cmd: "ceph-volume lvm create --data /dev/pve/{{ ceph_osd.lv_name }}"
+  when: osd_check.rc != 0
+  register: osd_create

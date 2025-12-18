@@ -1,0 +1,63 @@
+---
+# =============================================================================
+# Proxmox Ceph Deployment Playbook
+# =============================================================================
+# Deploys a Ceph cluster on Proxmox hosts using LVM-backed OSDs.
+#
+# Prerequisites:
+# 1. VLAN 30 configured on all hosts
+# 2. SSH access to Proxmox hosts
+#
+# Usage:
+#   ansible-playbook playbooks/proxmox-ceph.yml
+# =============================================================================
+
+# Phase 1: Install packages and create LVs on all hosts
+- name: "Phase 1: Prepare all hosts"
+  hosts: proxmox
+  gather_facts: true
+  tasks:
+    - name: Include package and LVM tasks
+      ansible.builtin.include_role:
+        name: proxmox-ceph
+        tasks_from: prepare.yml
+
+# Phase 2: Initialize cluster on first monitor only
+- name: "Phase 2: Initialize Ceph cluster"
+  hosts: mole
+  gather_facts: false
+  tasks:
+    - name: Include cluster init tasks
+      ansible.builtin.include_role:
+        name: proxmox-ceph
+        tasks_from: init.yml
+
+# Phase 3: Create monitors, managers, and OSDs on all hosts (one at a time)
+- name: "Phase 3: Deploy Ceph services"
+  hosts: proxmox
+  gather_facts: false
+  serial: 1
+  tasks:
+    - name: Include service deployment tasks
+      ansible.builtin.include_role:
+        name: proxmox-ceph
+        tasks_from: services.yml
+
+# Phase 4: Configure pool and credentials on first monitor
+- name: "Phase 4: Configure pool and credentials"
+  hosts: mole
+  gather_facts: false
+  tasks:
+    - name: Include pool and credential tasks
+      ansible.builtin.include_role:
+        name: proxmox-ceph
+        tasks_from: finalize.yml
+
+    - name: Wait for Ceph cluster to be healthy
+      ansible.builtin.command:
+        cmd: "ceph health"
+      register: ceph_health
+      until: "'HEALTH_OK' in ceph_health.stdout or 'HEALTH_WARN' in ceph_health.stdout"
+      retries: 30
+      delay: 10
+      changed_when: false

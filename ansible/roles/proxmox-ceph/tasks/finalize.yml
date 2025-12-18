@@ -1,0 +1,85 @@
+---
+# =============================================================================
+# Phase 4: Pool and Credential Configuration
+# =============================================================================
+
+# Pool Setup
+- name: Check if kubernetes pool exists
+  ansible.builtin.command:
+    cmd: "ceph osd pool ls"
+  register: pool_list
+  changed_when: false
+
+- name: Create kubernetes RBD pool
+  ansible.builtin.command:
+    cmd: >
+      pveceph pool create {{ ceph_kubernetes_pool }}
+      --pg_autoscale_mode {{ 'on' if ceph_kubernetes_pool_pg_autoscale else 'off' }}
+      --application rbd
+  when: ceph_kubernetes_pool not in pool_list.stdout
+
+- name: Configure 2x replication for kubernetes pool
+  ansible.builtin.shell:
+    cmd: |
+      ceph osd pool set {{ ceph_kubernetes_pool }} size 2
+      ceph osd pool set {{ ceph_kubernetes_pool }} min_size 1
+  changed_when: false
+
+# Client User Setup
+- name: Check if kubernetes client user exists
+  ansible.builtin.command:
+    cmd: "ceph auth get {{ ceph_kubernetes_user }}"
+  register: client_check
+  failed_when: false
+  changed_when: false
+
+- name: Create kubernetes client user
+  ansible.builtin.command:
+    cmd: >
+      ceph auth get-or-create {{ ceph_kubernetes_user }}
+      mon 'profile rbd'
+      osd 'profile rbd pool={{ ceph_kubernetes_pool }}'
+      -o /etc/ceph/ceph.{{ ceph_kubernetes_user }}.keyring
+  when: client_check.rc != 0
+
+# Export Credentials
+- name: Get Ceph FSID
+  ansible.builtin.command:
+    cmd: "ceph fsid"
+  register: ceph_fsid
+  changed_when: false
+
+- name: Get admin keyring
+  ansible.builtin.command:
+    cmd: "ceph auth get client.admin"
+  register: admin_keyring
+  changed_when: false
+
+- name: Get kubernetes keyring
+  ansible.builtin.command:
+    cmd: "ceph auth get {{ ceph_kubernetes_user }}"
+  register: kubernetes_keyring
+  changed_when: false
+
+- name: Display Ceph credentials for Rook external cluster
+  ansible.builtin.debug:
+    msg: |
+      =================================================================
+      CEPH CREDENTIALS FOR ROOK EXTERNAL CLUSTER
+      =================================================================
+      FSID: {{ ceph_fsid.stdout }}
+
+      Monitor endpoints (VLAN 30):
+      {% for host in groups['proxmox'] if hostvars[host].ceph_monitor | default(false) %}
+      - {{ hostvars[host].ceph_ip }}:6789
+      {% endfor %}
+
+      Admin keyring:
+      {{ admin_keyring.stdout }}
+
+      Kubernetes client keyring:
+      {{ kubernetes_keyring.stdout }}
+      =================================================================
+      Save these credentials securely - you'll need them for the
+      SOPS-encrypted secret in infrastructure/production/ceph-cluster/
+      =================================================================
