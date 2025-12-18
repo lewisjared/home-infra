@@ -50,28 +50,45 @@ variable "network_cidr" {
   default     = "/24"
 }
 
+# Ceph storage network configuration
+variable "ceph_vlan_id" {
+  type        = number
+  description = "VLAN ID for Ceph storage network (null to disable)"
+  default     = null
+}
+
+variable "ceph_cidr" {
+  type        = string
+  description = "CIDR suffix for Ceph network"
+  default     = "/24"
+}
+
 variable "control_plane_nodes" {
   type = map(object({
-    proxmox_node = string
-    ip_address   = string
-    mac_address  = string
-    vm_id        = optional(number)
-    cpu_cores    = optional(number)
-    memory_mb    = optional(number)
-    disk_gb      = optional(number)
+    proxmox_node     = string
+    ip_address       = string
+    mac_address      = string
+    ceph_ip_address  = optional(string) # IP on Ceph VLAN (e.g., "10.10.30.51")
+    ceph_mac_address = optional(string) # MAC for Ceph NIC
+    vm_id            = optional(number)
+    cpu_cores        = optional(number)
+    memory_mb        = optional(number)
+    disk_gb          = optional(number)
   }))
   description = "Control plane node definitions"
 }
 
 variable "worker_nodes" {
   type = map(object({
-    proxmox_node = string
-    ip_address   = string
-    mac_address  = string
-    vm_id        = optional(number)
-    cpu_cores    = optional(number)
-    memory_mb    = optional(number)
-    disk_gb      = optional(number)
+    proxmox_node     = string
+    ip_address       = string
+    mac_address      = string
+    ceph_ip_address  = optional(string) # IP on Ceph VLAN (e.g., "10.10.30.61")
+    ceph_mac_address = optional(string) # MAC for Ceph NIC
+    vm_id            = optional(number)
+    cpu_cores        = optional(number)
+    memory_mb        = optional(number)
+    disk_gb          = optional(number)
   }))
   description = "Worker node definitions"
 }
