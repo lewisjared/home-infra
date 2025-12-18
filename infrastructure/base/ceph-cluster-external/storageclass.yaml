@@ -1,19 +1,10 @@
-# CephBlockPool for the external cluster's 'k8s-prod' pool
-apiVersion: ceph.rook.io/v1
-kind: CephBlockPool
-metadata:
-  name: k8s-prod
-  namespace: rook-ceph
-spec:
-  # Pool is managed externally by Proxmox Ceph
-  # This CRD only registers it with Rook
-  name: k8s-prod
----
 # StorageClass using the external Ceph k8s-prod pool
+# Note: CephBlockPool CRD is not needed for external clusters
+# The pool already exists in the external Proxmox Ceph cluster
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: ceph-rbd
+  name: rook-ceph-block
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
 provisioner: rook-ceph.rbd.csi.ceph.com
