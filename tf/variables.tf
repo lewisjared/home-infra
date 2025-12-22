@@ -68,6 +68,8 @@ variable "network_nameservers" {
   type        = list(string)
   description = "DNS nameservers"
   default     = ["10.10.20.1"]
+  # description = "DNS nameservers (Technitium HA cluster)"
+  # default     = ["10.10.20.71", "10.10.20.72"]
 }
 
 variable "network_vlan_id" {
@@ -171,11 +173,10 @@ variable "proxmox_hosts" {
     }
     "taco" = {
       default_interface = "vmbr0"
-      # Taco does not need VLAN 30 configured
-      # This will help keep all VLAN traffic over the 10GbE NICs
       vlans = {
         "10" = { ip = "10.10.10.12/24" }
         "20" = { ip = "10.10.20.12/24" }
+        "30" = { ip = "10.10.30.12/24" }
       }
     }
     "nacho" = {
