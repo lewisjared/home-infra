@@ -1,0 +1,13 @@
+# ConfigMap containing external Ceph monitor endpoints
+# This is required for Rook to locate the external Ceph cluster monitors
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-ceph-mon-endpoints
+  namespace: rook-ceph
+data:
+  # Format: <mon_name>=<ip>:<port>
+  # Monitor names match the Proxmox host names
+  data: churro=10.10.30.10:6789,mole=10.10.30.11:6789,nacho=10.10.30.13:6789
+  mapping: "{}"
+  maxMonId: "0"
