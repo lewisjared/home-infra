@@ -1,0 +1,182 @@
+---
+# =============================================================================
+# Technitium DNS Server Installation
+# =============================================================================
+# Installs Technitium DNS Server on Debian 13 LXC containers
+#
+# Requirements:
+# - Debian 13 (trixie) LXC container
+# - Internet access for package downloads
+#
+# Post-installation:
+# - Access web UI at http://<container-ip>:5380
+# - Configure zones, TSIG, and blocking via web UI
+# =============================================================================
+
+# =============================================================================
+# Prerequisites
+# =============================================================================
+
+- name: Install prerequisite packages
+  ansible.builtin.apt:
+    name:
+      - wget
+      - curl
+      - gnupg
+      - apt-transport-https
+      - ca-certificates
+    state: present
+    update_cache: true
+
+# =============================================================================
+# Microsoft .NET Repository Setup
+# =============================================================================
+# The Debian 13 repo uses a different signing key (EE4D7792F748182B)
+# than the standard microsoft.asc file. Fetch from keyserver.
+
+- name: Install gpg package
+  ansible.builtin.apt:
+    name: gpg
+    state: present
+
+- name: Check if Microsoft GPG key exists
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/microsoft.gpg
+  register: technitium_microsoft_key
+
+- name: Fetch Microsoft signing key from keyserver
+  ansible.builtin.shell:
+    cmd: |
+      gpg --keyserver keyserver.ubuntu.com --recv-keys EE4D7792F748182B
+      gpg --export EE4D7792F748182B > /usr/share/keyrings/microsoft.gpg
+  when: not technitium_microsoft_key.stat.exists
+
+- name: Add Microsoft .NET repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/microsoft-prod.sources
+    content: |
+      Types: deb
+      URIs: https://packages.microsoft.com/debian/13/prod
+      Suites: trixie
+      Components: main
+      Signed-By: /usr/share/keyrings/microsoft.gpg
+      Architectures: amd64
+    mode: '0644'
+  register: technitium_dotnet_repo
+
+- name: Update apt cache after adding repository
+  ansible.builtin.apt:
+    update_cache: true
+  when: technitium_dotnet_repo.changed
+
+# =============================================================================
+# ASP.NET Core Runtime Installation
+# =============================================================================
+
+- name: Install ASP.NET Core Runtime {{ technitium_dotnet_version }}
+  ansible.builtin.apt:
+    name: "aspnetcore-runtime-{{ technitium_dotnet_version }}"
+    state: present
+
+# =============================================================================
+# Technitium DNS Installation
+# =============================================================================
+
+- name: Create Technitium installation directory
+  ansible.builtin.file:
+    path: "{{ technitium_install_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Check if Technitium is already installed
+  ansible.builtin.stat:
+    path: "{{ technitium_install_dir }}/DnsServerApp.dll"
+  register: technitium_installed
+
+- name: Download and extract Technitium DNS
+  ansible.builtin.unarchive:
+    src: "{{ technitium_download_url }}"
+    dest: "{{ technitium_install_dir }}"
+    remote_src: true
+  when: not technitium_installed.stat.exists
+  notify: Restart technitium
+
+# =============================================================================
+# Systemd Service
+# =============================================================================
+
+- name: Create Technitium systemd service
+  ansible.builtin.template:
+    src: technitium-dns.service.j2
+    dest: /etc/systemd/system/{{ technitium_service_name }}.service
+    mode: '0644'
+  notify: Restart technitium
+
+- name: Enable and start Technitium DNS service
+  ansible.builtin.systemd:
+    name: "{{ technitium_service_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+
+# =============================================================================
+# Firewall (optional, if ufw is present)
+# =============================================================================
+
+- name: Check if ufw is installed
+  ansible.builtin.command:
+    cmd: which ufw
+  register: ufw_check
+  failed_when: false
+  changed_when: false
+
+- name: Allow DNS ports through firewall
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - { port: "{{ technitium_dns_port }}", proto: "tcp" }
+    - { port: "{{ technitium_dns_port }}", proto: "udp" }
+    - { port: "{{ technitium_web_port }}", proto: "tcp" }
+    - { port: "{{ technitium_web_https_port }}", proto: "tcp" }
+    - { port: "{{ technitium_dns_over_tls_port }}", proto: "tcp" }
+    - { port: "{{ technitium_dns_over_https_port }}", proto: "tcp" }
+  when: ufw_check.rc == 0
+
+# =============================================================================
+# Verification
+# =============================================================================
+
+- name: Wait for Technitium DNS to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ technitium_web_port }}/api/user/session/get"
+    method: GET
+    status_code: [200, 401]
+  register: technitium_ready
+  retries: 30
+  delay: 2
+  until: technitium_ready.status in [200, 401]
+
+- name: Include TLS certificate sync tasks
+  ansible.builtin.include_tasks:
+    file: tls.yml
+    apply:
+      tags:
+        - tls
+  when: technitium_tls_enabled
+  tags:
+    - tls
+
+- name: Display Technitium DNS information
+  vars:
+    info: |
+      =================================================================
+      TECHNITIUM DNS SERVER INSTALLED
+      =================================================================
+      Web UI: http://{{ ansible_host }}:{{ technitium_web_port }}
+      Web UI (HTTPS): https://{{ ansible_host }}:{{ technitium_web_https_port }}
+      DNS: {{ ansible_host }}:{{ technitium_dns_port }}
+      =================================================================
+  ansible.builtin.debug:
+    msg: "{{ info.split('\n') }}"

@@ -1,0 +1,43 @@
+---
+# =============================================================================
+# Technitium DNS Server Deployment Playbook
+# =============================================================================
+# Deploys Technitium DNS on LXC containers for HA DNS service.
+#
+# Prerequisites:
+# 1. LXC containers created via Terraform (tf/technitium.tf)
+# 2. SSH access to containers (via technitium_ssh_public_keys)
+#
+# Usage:
+#   ansible-playbook playbooks/technitium.yml
+#
+# Post-deployment manual configuration:
+# 1. Access Web UI at http://10.10.20.71:5380 (primary)
+# 2. Set admin password on first login
+# 3. Create primary zone: home.lewelly.com
+# 4. Configure TSIG key: external-dns (HMAC-SHA256)
+# 5. Enable Dynamic Updates with TSIG authentication
+# 6. On secondary (10.10.20.72): create secondary zone pointing to primary
+# 7. Install and configure ad blocking apps
+# =============================================================================
+      
+- name: Deploy Technitium DNS Servers
+  hosts: technitium
+  become: true
+  gather_facts: true
+  roles:
+    - technitium
+
+  post_tasks:
+    - name: Display post-deployment summary
+      vars:
+        summary: |
+          =================================================================
+          TECHNITIUM DNS CLUSTER DEPLOYED
+          =================================================================
+
+          Primary DNS:   http://10.10.20.71:5380
+          Secondary DNS: http://10.10.20.72:5380
+      ansible.builtin.debug:
+        msg: "{{ summary.split('\n') }}"
+      run_once: true

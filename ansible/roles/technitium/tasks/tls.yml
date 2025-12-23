@@ -1,0 +1,70 @@
+---
+# =============================================================================
+# TLS Certificate Sync from Kubernetes
+# =============================================================================
+# Pulls wildcard TLS cert from K8s and sets up cron to keep it updated.
+#
+# Prerequisites:
+# - kubectl installed on container
+# - kubeconfig with access to read the cert secret
+# - community.sops collection installed (ansible-galaxy collection install community.sops)
+# =============================================================================
+
+- name: Add Kubernetes apt key
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key
+    dest: /usr/share/keyrings/kubernetes-apt-keyring.asc
+    mode: '0644'
+
+- name: Add Kubernetes apt repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/kubernetes.sources
+    content: |
+      Types: deb
+      URIs: https://pkgs.k8s.io/core:/stable:/v1.31/deb/
+      Suites: /
+      Signed-By: /usr/share/keyrings/kubernetes-apt-keyring.asc
+    mode: '0644'
+  register: technitium_k8s_repo
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: technitium_k8s_repo.changed
+
+- name: Install kubectl and openssl
+  ansible.builtin.apt:
+    name:
+      - kubectl
+      - openssl
+    state: present
+
+- name: Create technitium config directory
+  ansible.builtin.file:
+    path: /etc/technitium
+    state: directory
+    mode: '0700'
+
+- name: Copy kubeconfig for cert access (decrypted from SOPS)
+  ansible.builtin.copy:
+    content: "{{ lookup('community.sops.sops', 'kubeconfig') }}"
+    dest: "{{ technitium_kubeconfig_path }}"
+    mode: '0600'
+
+- name: Install TLS sync script
+  ansible.builtin.template:
+    src: sync-tls-cert.sh.j2
+    dest: /usr/local/bin/sync-tls-cert.sh
+    mode: '0755'
+
+- name: Run initial TLS cert sync
+  ansible.builtin.command:
+    cmd: /usr/local/bin/sync-tls-cert.sh
+  register: technitium_tls_sync_result
+  changed_when: "'updated' in technitium_tls_sync_result.stdout"
+
+- name: Configure cron for TLS cert sync
+  ansible.builtin.cron:
+    name: "Sync TLS cert from Kubernetes"
+    job: "/usr/local/bin/sync-tls-cert.sh >> /var/log/tls-sync.log 2>&1"
+    special_time: daily

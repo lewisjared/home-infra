@@ -1,0 +1,29 @@
+---
+# =============================================================================
+# Technitium DNS Server Defaults
+# =============================================================================
+
+# Technitium installation
+technitium_install_dir: /opt/technitium/dns
+technitium_download_url: https://download.technitium.com/dns/DnsServerPortable.tar.gz
+technitium_service_name: technitium-dns
+
+# .NET runtime
+technitium_dotnet_version: "9.0"
+
+# Web UI settings
+technitium_web_port: 5380
+technitium_web_https_port: 53443
+
+# DNS settings
+technitium_dns_port: 53
+technitium_dns_over_tls_port: 853
+technitium_dns_over_https_port: 443
+
+# TLS certificate sync from Kubernetes
+technitium_tls_enabled: false
+technitium_kubeconfig_path: /etc/technitium/kubeconfig
+technitium_cert_namespace: cilium-gateway
+technitium_cert_secret: home-gateway-tls
+technitium_cert_sync_schedule: "0 */12 * * *"  # Every 12 hours
+technitium_pfx_password: technitium  # Password for PKCS#12 certificate file

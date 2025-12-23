@@ -10,3 +10,7 @@ creation_rules:
     encrypted_regex: ^client-key-data$
     pgp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
 
+  - path_regex: ansible/.*kubeconfig.*
+    encrypted_regex: ^token$
+    pgp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
+

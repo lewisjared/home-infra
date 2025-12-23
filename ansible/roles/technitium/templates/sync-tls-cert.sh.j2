@@ -1,0 +1,59 @@
+#!/bin/bash
+# Sync TLS certificate from Kubernetes
+# Pulls wildcard cert from K8s, converts to PKCS#12, and reloads Technitium
+
+set -euo pipefail
+
+KUBECONFIG="{{ technitium_kubeconfig_path }}"
+NAMESPACE="{{ technitium_cert_namespace }}"
+SECRET_NAME="{{ technitium_cert_secret }}"
+CERT_DIR="{{ technitium_install_dir }}"
+PFX_FILE="${CERT_DIR}/tls.pfx"
+PFX_PASSWORD="{{ technitium_pfx_password | default('technitium') }}"
+
+export KUBECONFIG
+
+# Fetch cert and key from K8s
+# tls.crt contains the full chain (server cert + intermediates)
+FULL_CHAIN=$(kubectl get secret -n "${NAMESPACE}" "${SECRET_NAME}" -o jsonpath='{.data.tls\.crt}' | base64 -d)
+PRIV_KEY=$(kubectl get secret -n "${NAMESPACE}" "${SECRET_NAME}" -o jsonpath='{.data.tls\.key}' | base64 -d)
+
+# Check if cert changed by comparing fingerprint
+NEW_FINGERPRINT=$(echo "${FULL_CHAIN}" | openssl x509 -noout -fingerprint -sha256 2>/dev/null || echo "")
+CURRENT_FINGERPRINT=""
+if [[ -f "${PFX_FILE}" ]]; then
+    CURRENT_FINGERPRINT=$(openssl pkcs12 -in "${PFX_FILE}" -passin "pass:${PFX_PASSWORD}" -clcerts -nokeys 2>/dev/null | openssl x509 -noout -fingerprint -sha256 2>/dev/null || echo "")
+fi
+
+if [[ "${NEW_FINGERPRINT}" != "${CURRENT_FINGERPRINT}" ]]; then
+    echo "Certificate changed, updating..."
+
+    # Split the chain: first cert is server cert, rest is chain
+    echo "${FULL_CHAIN}" > /tmp/fullchain.pem
+    echo "${PRIV_KEY}" > /tmp/privkey.pem
+
+    # Extract server cert (first one)
+    awk '/-----BEGIN CERTIFICATE-----/{i++} i==1' /tmp/fullchain.pem > /tmp/cert.pem
+
+    # Extract chain (everything after first cert)
+    awk '/-----BEGIN CERTIFICATE-----/{i++} i>1' /tmp/fullchain.pem > /tmp/chain.pem
+
+    # Create PKCS#12 file with full chain
+    openssl pkcs12 -export \
+        -out "${PFX_FILE}" \
+        -inkey /tmp/privkey.pem \
+        -in /tmp/cert.pem \
+        -certfile /tmp/chain.pem \
+        -passout "pass:${PFX_PASSWORD}"
+
+    # Clean up temp files
+    rm -f /tmp/fullchain.pem /tmp/privkey.pem /tmp/cert.pem /tmp/chain.pem
+
+    chmod 600 "${PFX_FILE}"
+
+    # Restart Technitium to pick up new cert
+    systemctl restart {{ technitium_service_name }}
+    echo "Certificate updated and Technitium restarted"
+else
+    echo "Certificate unchanged"
+fi

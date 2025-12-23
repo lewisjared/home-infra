@@ -1,0 +1,10 @@
+---
+# =============================================================================
+# Technitium DNS Server Handlers
+# =============================================================================
+
+- name: Restart technitium
+  ansible.builtin.systemd:
+    name: "{{ technitium_service_name }}"
+    state: restarted
+    daemon_reload: true

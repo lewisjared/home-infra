@@ -1,0 +1,23 @@
+[Unit]
+Description=Technitium DNS Server
+Documentation=https://technitium.com/dns/
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory={{ technitium_install_dir }}
+ExecStart=/usr/bin/dotnet {{ technitium_install_dir }}/DnsServerApp.dll
+Restart=always
+RestartSec=10
+
+# Resource limits
+LimitNOFILE=65535
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
