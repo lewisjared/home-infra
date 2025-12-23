@@ -59,7 +59,10 @@ variable "technitium_nodes" {
 variable "technitium_ssh_public_keys" {
   type        = list(string)
   description = "SSH public keys for Technitium container root access"
-  default     = []
+  default     = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK4zH1OrC8hroHDjHYOsmOkIALw3+a9yzXK6QeRLxx8y jared.lewis@climate-resource.com",
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6GbS2U0RBZKpCIX9Z+762qXw8LOgBau9xW4uOd2dXviE/VmjNnHH9TjZZJTiAhxCLJK+chyf1v9Ycf8RR55MDeHF1jNUSLg7KDnI6DkWbcEUPqPwOI/gDR8JsGZKU5WyaPHuQr79dnfE7ae2XypZ8qMozFnJXqlOyeSlVoTunsUXqFgcqVtzBws8Hc+rM1F8mtlvMSm/pLAqW2bdZ6Z70UU+CZku+lQQ+tBEXGg7HuMz2jqPa9u96Ke3ypJJJjQHuomNw77HUlMo4/m8DrqQCqeUgJaFOn8tOt+uusfiQWp1uwsxt9Nz0YHC4eHksHeaOXg46IeYuD6PMHIA+7W+pTci5peN/BUhDNU4VEOwAC7KNg/5EnM+jYTJ1sHeRje7VYWqbk/iK4BHSS0tW3LK0katQjdJOALsPyLl5v5KkB+dEFvn/zos5sp01/5p4Mb02gpGEVpd6HQV1SiMyBFbPCTdWm4+s0fsjtNwXerw8jMTynPQt3ANbskqJimJeZUDwJ10yJ5oe27mcFnDtKczyrzJL6xGZepYwXZ11nuhKBTv2vxhkVE+N/DrlvnvUyo1U1XXJTC6DevsxBJzVj86wcR2Em0gScHTWnhyMwgfotrL2Joimqd3sx3fumpaIssxG3DIM3MhBjCaoOj3nFk/VchNi81ACLL4lsAvn3Be58Q== jared@Jareds-Laptop.localdomain"
+  ]
 }
 
 module "technitium_lxc" {
