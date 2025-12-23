@@ -7,6 +7,10 @@ This directory contains documentation for the home-infra Kubernetes cluster.
 - **[Deployment Summary](../DEPLOYMENT_SUMMARY.md)** - Overview of Headlamp and Authelia deployment
 - **[Main README](../README.md)** - Repository overview and architecture
 
+## Infrastructure
+
+- **[DNS](./DNS.md)** - Technitium DNS cluster (authoritative DNS, ad blocking, external-dns integration)
+
 ## OIDC / SSO Integration
 
 Authelia is configured as the central OIDC provider for Single Sign-On across all applications.
