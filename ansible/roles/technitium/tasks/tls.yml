@@ -14,7 +14,7 @@
   ansible.builtin.get_url:
     url: https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key
     dest: /usr/share/keyrings/kubernetes-apt-keyring.asc
-    mode: '0644'
+    mode: "0644"
 
 - name: Add Kubernetes apt repository
   ansible.builtin.copy:
@@ -24,8 +24,8 @@
       URIs: https://pkgs.k8s.io/core:/stable:/v1.31/deb/
       Suites: /
       Signed-By: /usr/share/keyrings/kubernetes-apt-keyring.asc
-    mode: '0644'
-  notify: 
+    mode: "0644"
+  notify:
     - Update apt cache
 
 - name: Install kubectl and openssl
@@ -39,19 +39,19 @@
   ansible.builtin.file:
     path: /etc/technitium
     state: directory
-    mode: '0700'
+    mode: "0700"
 
 - name: Copy kubeconfig for cert access (decrypted from SOPS)
   ansible.builtin.copy:
     content: "{{ lookup('community.sops.sops', 'kubeconfig') }}"
     dest: "{{ technitium_kubeconfig_path }}"
-    mode: '0600'
+    mode: "0600"
 
 - name: Install TLS sync script
   ansible.builtin.template:
     src: sync-tls-cert.sh.j2
     dest: /usr/local/bin/sync-tls-cert.sh
-    mode: '0755'
+    mode: "0755"
 
 - name: Run initial TLS cert sync
   ansible.builtin.command:

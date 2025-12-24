@@ -29,12 +29,12 @@
     state: directory
     owner: ceph
     group: ceph
-    mode: '0755'
+    mode: "0755"
 
 - name: Check if bootstrap-osd keyring exists
   ansible.builtin.stat:
     path: /var/lib/ceph/bootstrap-osd/ceph.keyring
-  register: bootstrap_keyring
+  register: ceph_bootstrap_keyring
 
 - name: Create bootstrap-osd keyring
   ansible.builtin.shell:
@@ -43,4 +43,4 @@
         -o /var/lib/ceph/bootstrap-osd/ceph.keyring
       ceph auth get-or-create client.bootstrap-osd \
         -o /etc/pve/priv/ceph.client.bootstrap-osd.keyring
-  when: not bootstrap_keyring.stat.exists
+  when: not ceph_bootstrap_keyring.stat.exists

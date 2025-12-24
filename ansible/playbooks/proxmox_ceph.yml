@@ -9,7 +9,7 @@
 # 2. SSH access to Proxmox hosts
 #
 # Usage:
-#   ansible-playbook playbooks/proxmox-ceph.yml
+#   ansible-playbook playbooks/proxmox_ceph.yml
 # =============================================================================
 
 # Phase 1: Install packages and create LVs on all hosts
@@ -19,7 +19,7 @@
   tasks:
     - name: Include package and LVM tasks
       ansible.builtin.include_role:
-        name: proxmox-ceph
+        name: ceph
         tasks_from: prepare.yml
 
 # Phase 2: Initialize cluster on first monitor only
@@ -29,7 +29,7 @@
   tasks:
     - name: Include cluster init tasks
       ansible.builtin.include_role:
-        name: proxmox-ceph
+        name: ceph
         tasks_from: init.yml
 
 # Phase 3: Create monitors, managers, and OSDs on all hosts (one at a time)
@@ -40,7 +40,7 @@
   tasks:
     - name: Include service deployment tasks
       ansible.builtin.include_role:
-        name: proxmox-ceph
+        name: ceph
         tasks_from: services.yml
 
 # Phase 4: Configure pool and credentials on first monitor
@@ -50,7 +50,7 @@
   tasks:
     - name: Include pool and credential tasks
       ansible.builtin.include_role:
-        name: proxmox-ceph
+        name: ceph
         tasks_from: finalize.yml
 
     - name: Wait for Ceph cluster to be healthy

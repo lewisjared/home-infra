@@ -15,7 +15,7 @@
   ansible.builtin.file:
     path: /etc/ceph
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Symlink ceph.conf to standard location
   ansible.builtin.file:
@@ -31,7 +31,7 @@
     state: directory
     owner: ceph
     group: ceph
-    mode: '0755'
+    mode: "0755"
 
 - name: Copy bootstrap-osd keyring from shared storage
   ansible.builtin.copy:
@@ -40,7 +40,7 @@
     remote_src: true
     owner: ceph
     group: ceph
-    mode: '0600'
+    mode: "0600"
   failed_when: false
 
 # Monitor Setup
@@ -48,33 +48,33 @@
   ansible.builtin.command:
     cmd: "pveceph mon create"
   when: ceph_monitor | default(false)
-  register: mon_create
+  register: ceph_mon_create
   failed_when:
-    - mon_create.rc != 0
-    - "'already' not in mon_create.stderr"
-  changed_when: mon_create.rc == 0
+    - ceph_mon_create.rc != 0
+    - "'already' not in ceph_mon_create.stderr"
+  changed_when: ceph_mon_create.rc == 0
 
 # Manager Setup (runs on monitors)
 - name: Create Ceph manager
   ansible.builtin.command:
     cmd: "pveceph mgr create"
   when: ceph_monitor | default(false)
-  register: mgr_create
+  register: ceph_mgr_create
   failed_when:
-    - mgr_create.rc != 0
-    - "'already' not in mgr_create.stderr"
-  changed_when: mgr_create.rc == 0
+    - ceph_mgr_create.rc != 0
+    - "'already' not in ceph_mgr_create.stderr"
+  changed_when: ceph_mgr_create.rc == 0
 
 # OSD Setup
 - name: Check if OSD exists for this LV
   ansible.builtin.shell:
     cmd: "ceph-volume lvm list 2>/dev/null | grep -q '/dev/pve/{{ ceph_osd.lv_name }}'"
-  register: osd_check
+  register: ceph_osd_check
   failed_when: false
   changed_when: false
 
 - name: Create Ceph OSD
   ansible.builtin.command:
     cmd: "ceph-volume lvm create --data /dev/pve/{{ ceph_osd.lv_name }}"
-  when: osd_check.rc != 0
-  register: osd_create
+  when: ceph_osd_check.rc != 0
+  register: ceph_osd_create

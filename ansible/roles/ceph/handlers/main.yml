@@ -1,5 +1,5 @@
 ---
-# Handlers for proxmox-ceph role
+# Handlers for ceph role
 
 - name: Restart ceph-mon
   ansible.builtin.systemd:

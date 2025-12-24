@@ -61,7 +61,7 @@
       Components: main
       Signed-By: /usr/share/keyrings/microsoft.gpg
       Architectures: amd64
-    mode: '0644'
+    mode: "0644"
   register: technitium_dotnet_repo
 
 - name: Update apt cache after adding repository
@@ -86,7 +86,7 @@
   ansible.builtin.file:
     path: "{{ technitium_install_dir }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Check if Technitium is already installed
   ansible.builtin.stat:
@@ -109,7 +109,7 @@
   ansible.builtin.template:
     src: technitium-dns.service.j2
     dest: /etc/systemd/system/{{ technitium_service_name }}.service
-    mode: '0644'
+    mode: "0644"
   notify: Restart technitium
 
 - name: Enable and start Technitium DNS service
@@ -126,15 +126,13 @@
 - name: Check if ufw is installed
   ansible.builtin.command:
     cmd: which ufw
-  register: ufw_check
+  register: technitium_ufw_check
   failed_when: false
   changed_when: false
 
 - name: Allow DNS ports through firewall
-  community.general.ufw:
-    rule: allow
-    port: "{{ item.port }}"
-    proto: "{{ item.proto }}"
+  ansible.builtin.command:
+    cmd: "ufw allow {{ item.port }}/{{ item.proto }}"
   loop:
     - { port: "{{ technitium_dns_port }}", proto: "tcp" }
     - { port: "{{ technitium_dns_port }}", proto: "udp" }
@@ -142,7 +140,8 @@
     - { port: "{{ technitium_web_https_port }}", proto: "tcp" }
     - { port: "{{ technitium_dns_over_tls_port }}", proto: "tcp" }
     - { port: "{{ technitium_dns_over_https_port }}", proto: "tcp" }
-  when: ufw_check.rc == 0
+  when: technitium_ufw_check.rc == 0
+  changed_when: true
 
 # =============================================================================
 # Verification

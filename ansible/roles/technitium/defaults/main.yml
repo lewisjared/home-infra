@@ -25,5 +25,5 @@ technitium_tls_enabled: false
 technitium_kubeconfig_path: /etc/technitium/kubeconfig
 technitium_cert_namespace: cilium-gateway
 technitium_cert_secret: home-gateway-tls
-technitium_cert_sync_schedule: "0 */12 * * *"  # Every 12 hours
-technitium_pfx_password: technitium  # Password for PKCS#12 certificate file
+technitium_cert_sync_schedule: "0 */12 * * *" # Every 12 hours
+technitium_pfx_password: technitium # Password for PKCS#12 certificate file

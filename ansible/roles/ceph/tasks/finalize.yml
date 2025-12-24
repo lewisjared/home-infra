@@ -7,7 +7,7 @@
 - name: Check if kubernetes pool exists
   ansible.builtin.command:
     cmd: "ceph osd pool ls"
-  register: pool_list
+  register: ceph_pool_list
   changed_when: false
 
 - name: Create kubernetes RBD pool
@@ -16,7 +16,7 @@
       pveceph pool create {{ ceph_kubernetes_pool }}
       --pg_autoscale_mode {{ 'on' if ceph_kubernetes_pool_pg_autoscale else 'off' }}
       --application rbd
-  when: ceph_kubernetes_pool not in pool_list.stdout
+  when: ceph_kubernetes_pool not in ceph_pool_list.stdout
 
 - name: Configure 2x replication for kubernetes pool
   ansible.builtin.shell:
@@ -29,7 +29,7 @@
 - name: Check if kubernetes client user exists
   ansible.builtin.command:
     cmd: "ceph auth get {{ ceph_kubernetes_user }}"
-  register: client_check
+  register: ceph_client_check
   failed_when: false
   changed_when: false
 
@@ -40,7 +40,7 @@
       mon 'profile rbd'
       osd 'profile rbd pool={{ ceph_kubernetes_pool }}'
       -o /etc/ceph/ceph.{{ ceph_kubernetes_user }}.keyring
-  when: client_check.rc != 0
+  when: ceph_client_check.rc != 0
 
 # Export Credentials
 - name: Get Ceph FSID
@@ -52,13 +52,13 @@
 - name: Get admin keyring
   ansible.builtin.command:
     cmd: "ceph auth get client.admin"
-  register: admin_keyring
+  register: ceph_admin_keyring
   changed_when: false
 
 - name: Get kubernetes keyring
   ansible.builtin.command:
     cmd: "ceph auth get {{ ceph_kubernetes_user }}"
-  register: kubernetes_keyring
+  register: ceph_kubernetes_keyring
   changed_when: false
 
 - name: Display Ceph credentials for Rook external cluster
@@ -75,10 +75,10 @@
       {% endfor %}
 
       Admin keyring:
-      {{ admin_keyring.stdout }}
+      {{ ceph_admin_keyring.stdout }}
 
       Kubernetes client keyring:
-      {{ kubernetes_keyring.stdout }}
+      {{ ceph_kubernetes_keyring.stdout }}
       =================================================================
       Save these credentials securely - you'll need them for the
       SOPS-encrypted secret in infrastructure/production/ceph-cluster/

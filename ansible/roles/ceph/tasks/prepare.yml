@@ -4,7 +4,7 @@
 # =============================================================================
 
 # Ceph Repository Setup (Proxmox No-Subscription)
-- name: Add Proxmox Ceph {{ ceph_release }} no-subscription repository
+- name: Add Proxmox Ceph no-subscription repository
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/ceph.sources
     content: |
@@ -13,7 +13,7 @@
       Suites: {{ ceph_debian_codename }}
       Components: no-subscription
       Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
-    mode: '0644'
+    mode: "0644"
   register: ceph_repo
 
 - name: Update apt cache
@@ -33,11 +33,11 @@
 - name: Check if OSD logical volume exists
   ansible.builtin.command:
     cmd: "lvs pve/{{ ceph_osd.lv_name }} --noheadings -o lv_name"
-  register: lv_check
+  register: ceph_lv_check
   failed_when: false
   changed_when: false
 
 - name: Create thin LV for Ceph OSD in data pool
   ansible.builtin.command:
     cmd: "lvcreate -V {{ ceph_osd.lv_size }} -T pve/{{ ceph_osd.thin_pool }} -n {{ ceph_osd.lv_name }}"
-  when: lv_check.rc != 0
+  when: ceph_lv_check.rc != 0

@@ -20,7 +20,7 @@
 # 6. On secondary (10.10.20.72): create secondary zone pointing to primary
 # 7. Install and configure ad blocking apps
 # =============================================================================
-      
+
 - name: Deploy Technitium DNS Servers
   hosts: technitium
   become: true
