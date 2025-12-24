@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository contains the infrastructure-as-code for a personal home lab built on a Proxmox cluster. A Talos Kubernetes cluster runs on VMs across the compute nodes, managed via Terraform. The repository uses **Flux CD** as the GitOps continuous deployment system, making the repository the source of truth for cluster state.
+This repository contains the infrastructure-as-code for a personal home lab built on a Proxmox cluster.
+A Talos Kubernetes cluster runs on VMs across the compute nodes, managed via Terraform.
+The repository uses **Flux CD** as the GitOps continuous deployment system, making the repository the source of truth for cluster state.
 
 ## Essential Commands
 

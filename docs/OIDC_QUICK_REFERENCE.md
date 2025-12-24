@@ -4,7 +4,7 @@ Quick reference for integrating applications with Authelia OIDC.
 
 ## Authelia OIDC Endpoints
 
-```
+```raw
 Issuer:        https://auth.home.lewelly.com
 Discovery:     https://auth.home.lewelly.com/.well-known/openid-configuration
 Authorization: https://auth.home.lewelly.com/api/oidc/authorization
@@ -70,18 +70,17 @@ stringData:
 
 ## Common Callback URLs
 
-| Application | Callback URL Pattern |
-|-------------|----------------------|
-| Grafana | `https://HOST/login/generic_oauth` |
-| ArgoCD | `https://HOST/auth/callback` |
-| Harbor | `https://HOST/c/oidc/callback` |
-| Nextcloud | `https://HOST/apps/user_oidc/code` |
-| Portainer | `https://HOST/` |
-| GitLab | `https://HOST/users/auth/openid_connect/callback` |
-| Vault | `https://HOST/ui/vault/auth/oidc/oidc/callback` |
-| Proxmox | `https://HOST/api2/oidc/callback` |
-| Wekan | `https://HOST/_oauth/oidc` |
-| Mattermost | `https://HOST/signup/oidc/complete` |
+| Application | Callback URL Pattern                              |
+| ----------- | ------------------------------------------------- |
+| Grafana     | `https://HOST/login/generic_oauth`                |
+| Harbor      | `https://HOST/c/oidc/callback`                    |
+| Nextcloud   | `https://HOST/apps/user_oidc/code`                |
+| Portainer   | `https://HOST/`                                   |
+| GitLab      | `https://HOST/users/auth/openid_connect/callback` |
+| Vault       | `https://HOST/ui/vault/auth/oidc/oidc/callback`   |
+| Proxmox     | `https://HOST/api2/oidc/callback`                 |
+| Wekan       | `https://HOST/_oauth/oidc`                        |
+| Mattermost  | `https://HOST/signup/oidc/complete`               |
 
 ## Application-Specific Configurations
 
@@ -110,31 +109,6 @@ grafana:
       email_attribute_path: email
       role_attribute_path: contains(groups[*], 'admins') && 'Admin' || 'Viewer'
       allow_sign_up: true
-```
-
----
-
-### ArgoCD
-
-**Callback**: `https://argocd.home.lewelly.com/auth/callback`
-
-```yaml
-# In argocd-cm ConfigMap
-oidc.config: |
-  name: Authelia
-  issuer: https://auth.home.lewelly.com
-  clientID: argocd
-  clientSecret: $oidc.authelia.clientSecret
-  requestedScopes:
-    - openid
-    - profile
-    - email
-    - groups
-
-# Add to argocd-rbac-cm ConfigMap for group mapping
-policy.csv: |
-  g, admins, role:admin
-  g, developers, role:readonly
 ```
 
 ---
@@ -347,16 +321,19 @@ sops infrastructure/authelia/authelia-secrets.yaml
 ## Troubleshooting Quick Checks
 
 ### ✓ Client ID exists in Authelia config
+
 ```bash
 grep -A 5 "client_id: app-name" infrastructure/authelia/authelia.yaml
 ```
 
 ### ✓ Secret exists in Authelia secrets
+
 ```bash
 sops -d infrastructure/authelia/authelia-secrets.yaml | grep "app-name-client-secret"
 ```
 
 ### ✓ Redirect URI matches exactly
+
 ```bash
 # Compare application logs with Authelia config
 kubectl logs -n app-namespace app-pod | grep redirect_uri
@@ -364,11 +341,13 @@ grep -A 10 "client_id: app-name" infrastructure/authelia/authelia.yaml
 ```
 
 ### ✓ Access control allows domain
+
 ```bash
 grep -A 5 "domain: app.home.lewelly.com" infrastructure/authelia/authelia.yaml
 ```
 
 ### ✓ Scopes include required claims
+
 ```bash
 # Should include: openid (required), profile, email, groups (if needed)
 grep -A 15 "client_id: app-name" infrastructure/authelia/authelia.yaml | grep scopes -A 5
@@ -389,18 +368,18 @@ grep -A 15 "client_id: app-name" infrastructure/authelia/authelia.yaml | grep sc
 
 ## Common Error Messages
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| "invalid redirect_uri" | URI mismatch | Check redirect_uris in client config |
-| "invalid client credentials" | Secret mismatch | Verify secret in both places |
-| "access forbidden" | Access control | Check access_control rules |
-| "invalid scope" | Unsupported scope | Use: openid, profile, email, groups |
-| "unable to verify token" | JWKS issue | Verify /jwks.json is accessible |
-| CORS error | Missing CORS config | Add cors.allowed_origins in Authelia |
+| Error                        | Cause               | Solution                             |
+| ---------------------------- | ------------------- | ------------------------------------ |
+| "invalid redirect_uri"       | URI mismatch        | Check redirect_uris in client config |
+| "invalid client credentials" | Secret mismatch     | Verify secret in both places         |
+| "access forbidden"           | Access control      | Check access_control rules           |
+| "invalid scope"              | Unsupported scope   | Use: openid, profile, email, groups  |
+| "unable to verify token"     | JWKS issue          | Verify /jwks.json is accessible      |
+| CORS error                   | Missing CORS config | Add cors.allowed_origins in Authelia |
 
 ## File Locations Quick Reference
 
-```
+```raw
 infrastructure/authelia/
   ├── authelia.yaml              # Add clients here
   └── authelia-secrets.yaml      # Add client secrets here (SOPS encrypted)
@@ -441,6 +420,7 @@ curl https://app.home.lewelly.com
 ---
 
 **Quick Links:**
+
 - Full Guide: [`OIDC_INTEGRATION_GUIDE.md`](./OIDC_INTEGRATION_GUIDE.md)
 - Grafana Setup: [`GRAFANA_OIDC_QUICKSTART.md`](./GRAFANA_OIDC_QUICKSTART.md)
 - Main Deployment: [`../DEPLOYMENT_SUMMARY.md`](../DEPLOYMENT_SUMMARY.md)

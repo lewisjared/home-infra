@@ -13,7 +13,7 @@ Two Technitium DNS servers run as LXC containers on Proxmox, providing:
 
 ## Architecture
 
-```
+```raw
 ┌─────────────────────────────────────────────────────────────┐
 │                    Kubernetes Cluster                        │
 │  ┌─────────────────────────────────────────────────────┐    │
@@ -64,9 +64,11 @@ TLS certificates are automatically synced from Kubernetes (Let's Encrypt wildcar
 
 ### Cluster Replication
 
-Technitium v14 cluster feature handles automatic zone synchronization between nodes. Both servers maintain identical zone data without manual primary/secondary configuration.
+Technitium v14 cluster feature handles automatic zone synchronization between nodes.
+Both servers maintain identical zone data without manual primary/secondary configuration.
 
 **Cluster endpoints:**
+
 - `https://ns1.home.lewelly.com:53443/`
 - `https://ns2.home.lewelly.com:53443/`
 
@@ -75,6 +77,7 @@ A dedicated TSIG key (`cluster-catalog`) authenticates replication between nodes
 ### Upstream DNS
 
 Cloudflare DNS over HTTPS:
+
 - `https://cloudflare-dns.com/dns-query` (1.1.1.1)
 - `https://cloudflare-dns.com/dns-query` (1.0.0.1)
 
@@ -100,6 +103,7 @@ extraArgs:
 The shared secret is stored in `infrastructure/base/external-dns/tsig-secret.yaml` (SOPS encrypted).
 
 To view the current secret:
+
 ```bash
 sops -d infrastructure/base/external-dns/tsig-secret.yaml | grep tsig-secret
 ```
@@ -143,7 +147,7 @@ ansible-playbook playbooks/technitium.yml --tags tls
 
 ## Key Files
 
-```
+```raw
 tf/
 ├── technitium.tf                    # LXC container definitions
 └── modules/proxmox-lxc/             # LXC module
@@ -223,9 +227,9 @@ Ad blocking is configured via the Technitium blocklist feature. The cluster auto
 
 **Active blocklists:**
 
-| List | URL |
-|------|-----|
-| Hagezi Pro | `https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro-onlydomains.txt` |
+| List                            | URL                                                                                             |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Hagezi Pro                      | `https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro-onlydomains.txt`         |
 | StevenBlack (fakenews+gambling) | `https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts` |
 
 To add/remove blocklists: Settings > Blocking > Block List URLs

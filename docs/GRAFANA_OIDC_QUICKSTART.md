@@ -159,6 +159,7 @@ values:
 ```
 
 **Role Mapping Explained:**
+
 - Users in `admins` group → Grafana Admin (full access)
 - Users in `developers` group → Grafana Editor (can create dashboards)
 - All other authenticated users → Grafana Viewer (read-only)
@@ -233,7 +234,8 @@ make validate
 ```
 
 You should see:
-```
+
+```raw
 ✓ All 13 Helm charts validated successfully
 ✓ All Kustomize overlays valid
 ```
@@ -271,12 +273,14 @@ make watch
 ### 10. Test the Integration
 
 1. **Wait for Grafana to restart** (~1-2 minutes):
+
    ```bash
    kubectl rollout status deployment -n monitoring prometheus-grafana
    ```
 
 2. **Navigate to Grafana**:
-   ```
+
+   ```raw
    https://grafana.home.lewelly.com
    ```
 
@@ -328,11 +332,11 @@ role_attribute_path: |
   'Viewer'
 ```
 
-| Authelia Group | Grafana Role | Permissions |
-|----------------|--------------|-------------|
-| `admins` | Admin | Full access, manage users, datasources |
-| `developers` | Editor | Create/edit dashboards, no user management |
-| Others | Viewer | Read-only access |
+| Authelia Group | Grafana Role | Permissions                                |
+| -------------- | ------------ | ------------------------------------------ |
+| `admins`       | Admin        | Full access, manage users, datasources     |
+| `developers`   | Editor       | Create/edit dashboards, no user management |
+| Others         | Viewer       | Read-only access                           |
 
 ### Alternative: Everyone is Editor
 
@@ -424,6 +428,7 @@ kubectl logs -n monitoring -l app.kubernetes.io/name=grafana --tail=100 | grep -
 
 1. Secret in `authelia-secrets.yaml` matches secret in `grafana-oidc-secret.yaml`
 2. Authelia pod restarted after secret change:
+
    ```bash
    kubectl rollout restart deployment -n authelia authelia
    ```
@@ -436,11 +441,14 @@ kubectl logs -n monitoring -l app.kubernetes.io/name=grafana --tail=100 | grep -
 
 1. `groups` scope is in client config ✓
 2. User has groups in `users-database.yaml`:
+
    ```bash
    sops infrastructure/authelia/users-database.yaml
    # Verify user has: groups: [admins]
    ```
+
 3. Test UserInfo endpoint:
+
    ```bash
    # Login to Grafana, then check browser dev tools → Network
    # Find call to /api/oidc/userinfo
@@ -536,7 +544,7 @@ Now that Grafana has SSO:
 
 1. ✅ Add more users in Authelia (see main docs)
 2. ✅ Configure group-based dashboard permissions
-3. ✅ Integrate other applications (Harbor, ArgoCD, etc.)
+3. ✅ Integrate other applications (Harbor, etc.)
 4. ✅ Set up Grafana alerting with proper user context
 
 ---

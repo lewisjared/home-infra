@@ -1,0 +1,22 @@
+# Default state for all rules
+default: true
+
+# MD013 - Line length
+MD013:
+  line_length: 150
+  code_blocks: false
+  tables: false
+
+# MD033 - Allow inline HTML
+MD033: false
+
+# MD041 - First line should be a heading (disabled for flexibility)
+MD041: false
+
+# MD024 - Multiple headings with same content
+MD024:
+  siblings_only: true
+
+# MD060 - Table Column Style
+MD060:
+  style: aligned

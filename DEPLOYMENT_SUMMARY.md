@@ -52,11 +52,11 @@ The default admin user belongs to two groups:
    ```bash
    # Watch Flux reconcile
    make watch
-   
+
    # Check DNS records
    nslookup auth.home.lewelly.com
    nslookup headlamp.home.lewelly.com
-   
+
    # Verify certificates
    kubectl get certificate -n authelia
    kubectl get certificate -n headlamp
@@ -74,7 +74,7 @@ The default admin user belongs to two groups:
 
 ## Architecture
 
-```
+```raw
 User → https://headlamp.home.lewelly.com
   ↓
 Headlamp redirects to Authelia
@@ -92,7 +92,7 @@ Kubernetes RBAC enforces permissions based on group membership
 
 ## File Structure Created
 
-```
+```raw
 .sops.yaml                              # Updated to encrypt apps/ directory
 clusters/home/authelia.yaml             # Flux Kustomization for Authelia
 

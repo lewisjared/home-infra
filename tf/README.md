@@ -76,7 +76,7 @@ kubectl get nodes
 
 ## Directory Structure
 
-```
+```raw
 tf/
 ├── versions.tf              # Provider version constraints
 ├── providers.tf             # Provider configuration
@@ -109,13 +109,13 @@ tf/
 
 ### Default Topology
 
-| VM Name | Role | Proxmox Host | IP Address |
-|---------|------|--------------|------------|
-| talos-master-1 | Control Plane | churro | 10.10.20.11 |
-| talos-master-2 | Control Plane | nacho | 10.10.20.12 |
-| talos-master-3 | Control Plane | tamale | 10.10.20.13 |
-| talos-worker-1 | Worker | nacho | 10.10.20.21 |
-| talos-worker-2 | Worker | tamale | 10.10.20.22 |
+| VM Name        | Role          | Proxmox Host | IP Address  |
+| -------------- | ------------- | ------------ | ----------- |
+| talos-master-1 | Control Plane | churro       | 10.10.20.11 |
+| talos-master-2 | Control Plane | nacho        | 10.10.20.12 |
+| talos-master-3 | Control Plane | tamale       | 10.10.20.13 |
+| talos-worker-1 | Worker        | nacho        | 10.10.20.21 |
+| talos-worker-2 | Worker        | tamale       | 10.10.20.22 |
 
 ### Customization
 

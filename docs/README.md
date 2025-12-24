@@ -40,7 +40,7 @@ Authelia is configured as the central OIDC provider for Single Sign-On across al
 
 ### Integration Workflow
 
-```
+```raw
 ┌─────────────────────────────────────────────────────┐
 │ 1. Read Integration Guide                          │
 │    → Understand the process                        │
@@ -110,7 +110,7 @@ cat docs/GRAFANA_OIDC_QUICKSTART.md
 
 ### Current OIDC Setup
 
-```
+```raw
 ┌─────────────────────────────────────────────────────────┐
 │                    User Browser                         │
 └──────────────┬──────────────────────────────────────────┘
@@ -153,18 +153,17 @@ cat docs/GRAFANA_OIDC_QUICKSTART.md
 
 ### Integrated Applications
 
-| Application | Status | URL | Groups Supported |
-|-------------|--------|-----|------------------|
-| Headlamp | ✅ Deployed | `https://headlamp.home.lewelly.com` | ✅ Yes |
-| Grafana | 📝 Guide Available | `https://grafana.home.lewelly.com` | ✅ Yes |
-| ArgoCD | 📖 See Quick Ref | - | ✅ Yes |
-| Harbor | 📖 See Quick Ref | - | ✅ Yes |
+| Application | Status              | URL                                 | Groups Supported |
+| ----------- | ------------------- | ----------------------------------- | ---------------- |
+| Headlamp    | ✅ Deployed         | `https://headlamp.home.lewelly.com` | ✅ Yes           |
+| Grafana     | 📝 Guide Available  | `https://grafana.home.lewelly.com`  | ✅ Yes           |
+| Harbor      | 📖 See Quick Ref    | -                                   | ✅ Yes           |
 
 ## Authelia Configuration
 
 ### Key Files
 
-```
+```raw
 infrastructure/authelia/
 ├── authelia.yaml              # Main config (OIDC clients, access control)
 ├── authelia-secrets.yaml      # Secrets (SOPS encrypted)

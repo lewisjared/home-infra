@@ -14,7 +14,8 @@ This guide explains how to integrate applications with Authelia for Single Sign-
 
 ## Overview
 
-Authelia is configured as an OIDC provider at `https://auth.home.lewelly.com`. Any application that supports OIDC/OAuth2 can authenticate users through Authelia.
+Authelia is configured as an OIDC provider at `https://auth.home.lewelly.com`.
+Any application that supports OIDC/OAuth2 can authenticate users through Authelia.
 
 ### What You Get
 
@@ -95,6 +96,7 @@ configMap:
 ```
 
 **Important Fields:**
+
 - `client_id`: Unique identifier (use app name in lowercase)
 - `client_secret.path`: Key name in the Authelia secrets (Step 3)
 - `redirect_uris`: Callback URL(s) from your application
@@ -141,6 +143,7 @@ configMap:
 ```
 
 **Policy Options:**
+
 - `bypass`: No authentication required
 - `one_factor`: Requires login + 2FA
 - `two_factor`: Same as one_factor
@@ -373,19 +376,19 @@ For applications that support standard OIDC:
 
 Provide these to your application:
 
-| Setting | Value |
-|---------|-------|
-| **Discovery URL** | `https://auth.home.lewelly.com/.well-known/openid-configuration` |
-| **Issuer URL** | `https://auth.home.lewelly.com` |
-| **Authorization Endpoint** | `https://auth.home.lewelly.com/api/oidc/authorization` |
-| **Token Endpoint** | `https://auth.home.lewelly.com/api/oidc/token` |
-| **UserInfo Endpoint** | `https://auth.home.lewelly.com/api/oidc/userinfo` |
-| **JWKS URI** | `https://auth.home.lewelly.com/jwks.json` |
-| **Client ID** | `your-app-name` |
-| **Client Secret** | (generated in Step 1) |
-| **Scopes** | `openid profile email groups` |
-| **Response Type** | `code` |
-| **Grant Type** | `authorization_code` |
+| Setting                    | Value                                                            |
+| -------------------------- | ---------------------------------------------------------------- |
+| **Discovery URL**          | `https://auth.home.lewelly.com/.well-known/openid-configuration` |
+| **Issuer URL**             | `https://auth.home.lewelly.com`                                  |
+| **Authorization Endpoint** | `https://auth.home.lewelly.com/api/oidc/authorization`           |
+| **Token Endpoint**         | `https://auth.home.lewelly.com/api/oidc/token`                   |
+| **UserInfo Endpoint**      | `https://auth.home.lewelly.com/api/oidc/userinfo`                |
+| **JWKS URI**               | `https://auth.home.lewelly.com/jwks.json`                        |
+| **Client ID**              | `your-app-name`                                                  |
+| **Client Secret**          | (generated in Step 1)                                            |
+| **Scopes**                 | `openid profile email groups`                                    |
+| **Response Type**          | `code`                                                           |
+| **Grant Type**             | `authorization_code`                                             |
 
 ### Testing OIDC Discovery
 
@@ -396,6 +399,7 @@ curl https://auth.home.lewelly.com/.well-known/openid-configuration | jq
 ```
 
 Expected response includes:
+
 ```json
 {
   "issuer": "https://auth.home.lewelly.com",
@@ -430,12 +434,15 @@ Check your application's logs to see what redirect URI it's sending.
 **Error**: "Invalid client credentials"
 
 **Solution**:
+
 1. Verify the secret in `authelia-secrets.yaml` matches what you configured in the app
 2. Ensure the secret path in the client config matches:
+
    ```yaml
    client_secret:
      path: app-name-client-secret  # Must match key in authelia-secrets.yaml
    ```
+
 3. Check Authelia pod has restarted after secret changes
 
 ### User Not Logged In / Session Issues
@@ -443,13 +450,16 @@ Check your application's logs to see what redirect URI it's sending.
 **Error**: Redirects to Authelia login repeatedly
 
 **Solution**:
+
 1. Check browser console for CORS errors
 2. Verify session cookie domain matches:
+
    ```yaml
    session:
      cookies:
        - domain: home.lewelly.com  # Should cover *.home.lewelly.com
    ```
+
 3. Clear browser cookies for `*.home.lewelly.com`
 4. Check application and Authelia are both using HTTPS
 
@@ -476,7 +486,9 @@ Check user's groups in `users-database.yaml`.
 **Problem**: Application doesn't see user groups
 
 **Solution**:
+
 1. Ensure `groups` scope is included in client config:
+
    ```yaml
    scopes:
      - openid
@@ -484,8 +496,10 @@ Check user's groups in `users-database.yaml`.
      - email
      - groups  # Required for group info
    ```
+
 2. Application must request groups scope
 3. Check UserInfo endpoint response:
+
    ```bash
    # Get access token from browser dev tools, then:
    curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
@@ -501,6 +515,7 @@ kubectl logs -n authelia -l app.kubernetes.io/name=authelia --tail=100 -f
 ```
 
 Look for:
+
 - Client registration errors
 - Redirect URI mismatches
 - Access control denials
@@ -509,6 +524,7 @@ Look for:
 #### Check Application Logs
 
 Most applications log OIDC errors. Look for:
+
 - OAuth/OIDC error messages
 - Token validation failures
 - Network connection issues
@@ -555,6 +571,7 @@ redirect_uris:
 ### 3. Use HTTPS Only
 
 Never use OIDC over HTTP in production:
+
 - All redirect URIs must be HTTPS
 - Authelia must be accessible over HTTPS
 - Cookies are marked `secure`
@@ -589,6 +606,7 @@ configMap:
 ### 6. Audit Access Regularly
 
 Review Authelia logs for:
+
 - Failed login attempts
 - Unusual access patterns
 - Token misuse
@@ -628,6 +646,7 @@ role_mapping:
 ### 10. Monitor Failed Authentications
 
 Set up alerts for:
+
 - Multiple failed login attempts
 - Access denials
 - Invalid client credentials
@@ -640,22 +659,20 @@ Set up alerts for:
 
 Here are other common applications that can integrate with Authelia:
 
-| Application | Callback Path | Notes |
-|-------------|---------------|-------|
-| **Grafana** | `/login/generic_oauth` | Supports group-based roles |
-| **Harbor** | `/c/oidc/callback` | Container registry |
-| **ArgoCD** | `/auth/callback` | GitOps deployment |
-| **Vault** | `/ui/vault/auth/oidc/oidc/callback` | Secrets management |
-| **GitLab** | `/users/auth/openid_connect/callback` | Git platform |
-| **Nextcloud** | `/apps/user_oidc/code` | File sharing |
-| **Portainer** | `/` | Container management |
-| **Proxmox** | `/api2/oidc/callback` | Virtualization |
+| Application   | Callback Path                         | Notes                      |
+| ------------- | ------------------------------------- | -------------------------- |
+| **Grafana**   | `/login/generic_oauth`                | Supports group-based roles |
+| **Harbor**    | `/c/oidc/callback`                    | Container registry         |
+| **Vault**     | `/ui/vault/auth/oidc/oidc/callback`   | Secrets management         |
+| **GitLab**    | `/users/auth/openid_connect/callback` | Git platform               |
+| **Nextcloud** | `/apps/user_oidc/code`                | File sharing               |
+| **Portainer** | `/`                                   | Container management       |
+| **Proxmox**   | `/api2/oidc/callback`                 | Virtualization             |
 
 ### Quick Reference: Common Callback URLs
 
-```
+```raw
 Grafana:     https://<host>/login/generic_oauth
-ArgoCD:      https://<host>/auth/callback
 Harbor:      https://<host>/c/oidc/callback
 Nextcloud:   https://<host>/apps/user_oidc/code
 Portainer:   https://<host>/
@@ -673,8 +690,8 @@ GitLab:      https://<host>/users/auth/openid_connect/callback
 
 ### Community Resources
 
-- Authelia Discord: https://discord.gg/authelia
-- GitHub Issues: https://github.com/authelia/authelia/issues
+- Authelia Discord: <https://discord.gg/authelia>
+- GitHub Issues: <https://github.com/authelia/authelia/issues>
 
 ### Common Issues Repository
 
