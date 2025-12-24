@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage
+  namespace: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+    app.kubernetes.io/part-of: home-infra
+data:
+  kubernetes.yaml: |
+    mode: cluster
+
+  settings.yaml: |
+    title: Home Lab Dashboard
+    theme: dark
+    color: slate
+    headerStyle: clean
+    layout:
+      Home Automation:
+        style: row
+        columns: 2
+      Monitoring:
+        style: row
+        columns: 3
+      Cluster Management:
+        style: row
+        columns: 3
+      Applications:
+        style: row
+        columns: 2
+
+  services.yaml: |
+    - Home Automation:
+        - Home Assistant:
+            icon: home-assistant.png
+            href: https://ha.home.lewelly.com
+            description: Smart home automation
+            ping: ha.home.lewelly.com
+        - Code Server:
+            icon: vscode.png
+            href: https://code-server.home.lewelly.com
+            description: Home Assistant config editor
+
+    - Monitoring:
+        - Grafana:
+            icon: grafana.png
+            href: https://grafana.home.lewelly.com
+            description: Metrics visualization
+            ping: grafana.home.lewelly.com
+        - Prometheus:
+            icon: prometheus.png
+            href: https://prometheus.home.lewelly.com
+            description: Metrics collection
+            ping: prometheus.home.lewelly.com
+        - AlertManager:
+            icon: alertmanager.png
+            href: https://alertmanager.home.lewelly.com
+            description: Alert management
+            ping: alertmanager.home.lewelly.com
+
+    - Cluster Management:
+        - Kubernetes Dashboard:
+            icon: kubernetes-dashboard.png
+            href: https://k8s.home.lewelly.com
+            description: Kubernetes web UI
+            ping: k8s.home.lewelly.com
+        - Headlamp:
+            icon: headlamp.png
+            href: https://headlamp.home.lewelly.com
+            description: Kubernetes IDE
+            ping: headlamp.home.lewelly.com
+        - Authelia:
+            icon: authelia.png
+            href: https://auth.home.lewelly.com
+            description: Authentication portal
+            ping: auth.home.lewelly.com
+
+    - Applications:
+        - Podinfo:
+            icon: podinfo.png
+            href: https://podinfo.home.lewelly.com
+            description: Test application
+            ping: podinfo.home.lewelly.com
+
+  widgets.yaml: |
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "home-cluster"
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - search:
+        provider: google
+        target: _blank
+    - datetime:
+        text_size: xl
+        format:
+          dateStyle: long
+          timeStyle: short
+          hourCycle: h23
+
+  bookmarks.yaml: |
+    - Infrastructure:
+        - GitHub Repo:
+            - abbr: GH
+              href: https://github.com/lewisjared/home-infra
+
+  docker.yaml: ""
+  custom.css: ""
+  custom.js: ""
