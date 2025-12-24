@@ -88,8 +88,8 @@ module "technitium_lxc" {
   swap_mb      = 512
   disk_size_gb = 8
 
-  # DNS - use self after initial setup, fallback to gateway
-  dns_servers = ["10.10.20.1"]
+  # DNS settings
+  dns_servers = ["10.10.20.71", "10.10.20.72"]
   dns_domain  = "home.lewelly.com"
 
   # Container settings
