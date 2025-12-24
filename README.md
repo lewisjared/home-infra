@@ -101,4 +101,3 @@ tofu apply
 Environment variables (including `KUBECONFIG` and `TALOSCONFIG`) are auto-loaded via [direnv](https://direnv.net/) when entering the directory.
 
 After applying, the `kubeconfig` and `talosconfig` files will be generated in `./tf/output`.
-

@@ -1,6 +1,38 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "docker:pinDigests",
+    ":semanticCommits"
+  ],
+  "kubernetes": {
+    "fileMatch": [
+      "infrastructure/.+\\.yaml$",
+      "apps/.+\\.yaml$",
+      "clusters/.+\\.yaml$"
+    ]
+  },
+  "helm-values": {
+    "fileMatch": [
+      "infrastructure/.+\\.yaml$",
+      "apps/.+\\.yaml$"
+    ]
+  },
+  "flux": {
+    "fileMatch": [
+      "clusters/.+\\.yaml$"
+    ]
+  },
+  "packageRules": [
+    {
+      "description": "Group Flux updates",
+      "matchPackagePatterns": ["^flux"],
+      "groupName": "Flux"
+    },
+    {
+      "description": "Group monitoring stack updates",
+      "matchPackagePatterns": ["prometheus", "grafana", "loki", "tempo", "alloy"],
+      "groupName": "Monitoring Stack"
+    }
   ]
 }
