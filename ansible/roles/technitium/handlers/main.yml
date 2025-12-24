@@ -8,3 +8,7 @@
     name: "{{ technitium_service_name }}"
     state: restarted
     daemon_reload: true
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true

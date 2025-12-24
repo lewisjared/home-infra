@@ -25,12 +25,8 @@
       Suites: /
       Signed-By: /usr/share/keyrings/kubernetes-apt-keyring.asc
     mode: '0644'
-  register: technitium_k8s_repo
-
-- name: Update apt cache
-  ansible.builtin.apt:
-    update_cache: true
-  when: technitium_k8s_repo.changed
+  notify: 
+    - Update apt cache
 
 - name: Install kubectl and openssl
   ansible.builtin.apt:
