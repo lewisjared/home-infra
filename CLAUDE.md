@@ -4,13 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository contains the infrastructure-as-code for a personal home lab built on a 3-node Proxmox cluster:
-
-- **taco**: Router (edge network node)
-- **churro**: Compute (hosts primary workloads and agent VMs)
-- **mole**: NAS (storage)
-
-A K3S Kubernetes cluster runs across these physical hosts with 3 master nodes (one per host) and additional agent VMs on Churro. The repository uses **Flux CD** as the GitOps continuous deployment system, making the repository the source of truth for cluster state.
+This repository contains the infrastructure-as-code for a personal home lab built on a Proxmox cluster. A Talos Kubernetes cluster runs on VMs across the compute nodes, managed via Terraform. The repository uses **Flux CD** as the GitOps continuous deployment system, making the repository the source of truth for cluster state.
 
 ## Essential Commands
 
@@ -52,27 +46,6 @@ flux get kustomizations          # List all Flux Kustomization resources
 flux get helmreleases            # List all Helm releases managed by Flux
 flux reconcile kustomization     # Force a manual sync of a specific kustomization
 ```
-
-### Multi-Cluster Context Switching
-
-Two Kubernetes clusters are managed from this repository:
-
-- **home-staging**: K3S cluster (staging environment)
-- **home-prod**: Talos cluster (production environment)
-
-```bash
-# Environment auto-loads via direnv when entering directory
-# (KUBECONFIG is automatically merged)
-
-# Switch contexts
-make ctx-staging    # Switch to K3S staging cluster
-make ctx-prod       # Switch to Talos production cluster
-
-# Check current context
-kubectl config current-context
-```
-
-Before running cluster-specific commands, verify the active context matches the target cluster.
 
 ## Architecture
 
