@@ -16,6 +16,8 @@ validation-results/
 # Temporary files
 .DS_Store
 
-
 # Ansible
 .ansible
+
+# SOPS
+.decrypted*
