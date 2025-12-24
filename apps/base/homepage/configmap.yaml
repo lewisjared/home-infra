@@ -9,6 +9,7 @@ metadata:
 data:
   kubernetes.yaml: |
     mode: cluster
+    gateway: true
 
   settings.yaml: |
     title: Home Lab Dashboard
@@ -89,7 +90,7 @@ data:
           cpu: true
           memory: true
           showLabel: true
-          label: "home-cluster"
+          label: "home-prod"
         nodes:
           show: true
           cpu: true
