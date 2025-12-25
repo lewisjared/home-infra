@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: usenet-nfs
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: usenet-nfs
+  nfs:
+    server: 10.16.0.20
+    path: /mnt/tank/media/usenet
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: usenet-downloads
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: usenet-nfs
+  resources:
+    requests:
+      storage: 500Gi

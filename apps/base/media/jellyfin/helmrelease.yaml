@@ -1,0 +1,106 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: jellyfin
+  namespace: media
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        fsGroup: 3000
+        fsGroupChangePolicy: OnRootMismatch
+
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: jellyfin/jellyfin
+              tag: 10.10.6
+            env:
+              TZ: Australia/Melbourne
+              JELLYFIN_PublishedServerUrl: https://jellyfin.home.lewelly.com
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: &port 8096
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 1Gi
+              limits:
+                memory: 8Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: *port
+
+    persistence:
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: rook-ceph-block
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        globalMounts:
+          - path: /config
+      cache:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: rook-ceph-block
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        globalMounts:
+          - path: /cache
+      media:
+        existingClaim: media-library
+        globalMounts:
+          - path: /data/media
+            subPath: media
+      transcode:
+        type: emptyDir
+        globalMounts:
+          - path: /transcode
