@@ -38,8 +38,10 @@ spec:
     recreate: true
     cleanupOnFail: true
   values:
-    # Pod configuration
+    # Use Deployment (SQLite + RWO storage only works on single node)
     pod:
+      kind: Deployment
+      replicas: 1
       resources:
         requests:
           cpu: 50m
