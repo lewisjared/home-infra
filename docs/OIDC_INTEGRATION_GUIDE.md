@@ -72,19 +72,19 @@ configMap:
         # ... existing clients (like headlamp)
 
         # Your new application
-        - client_id: your-app-name        # Unique identifier (e.g., "grafana")
+        - client_id: your-app-name # Unique identifier (e.g., "grafana")
           client_name: Your App Display Name
           client_secret:
-            path: your-app-client-secret  # Must match Step 3 secret name
+            path: your-app-client-secret # Must match Step 3 secret name
           public: false
-          authorization_policy: one_factor  # Requires login + 2FA
+          authorization_policy: one_factor # Requires login + 2FA
           redirect_uris:
-            - https://your-app.home.lewelly.com/login/generic_oauth  # App's callback URL
+            - https://your-app.home.lewelly.com/login/generic_oauth # App's callback URL
           scopes:
             - openid
             - profile
             - email
-            - groups                      # Include if app needs group info
+            - groups # Include if app needs group info
           grant_types:
             - authorization_code
           response_types:
@@ -136,7 +136,7 @@ configMap:
 
       # Your application
       - domain: your-app.home.lewelly.com
-        policy: one_factor  # Requires authentication
+        policy: one_factor # Requires authentication
         # Optional: restrict to specific groups
         # subject:
         #   - "group:admins"
@@ -282,7 +282,7 @@ values:
         enabled: true
         name: Authelia
         client_id: grafana
-        client_secret: ${GRAFANA_OIDC_CLIENT_SECRET}  # From secret
+        client_secret: ${GRAFANA_OIDC_CLIENT_SECRET} # From secret
         scopes: openid profile email groups
         auth_url: https://auth.home.lewelly.com/api/oidc/authorization
         token_url: https://auth.home.lewelly.com/api/oidc/token
@@ -293,7 +293,7 @@ values:
         email_attribute_path: email
         role_attribute_path: contains(groups[*], 'admins') && 'Admin' || 'Viewer'
         allow_sign_up: true
-        auto_login: false  # Set to true to skip Grafana login page
+        auto_login: false # Set to true to skip Grafana login page
 
     # Mount the OIDC client secret as environment variable
     envFromSecret: grafana-oidc-secret
@@ -423,8 +423,8 @@ Expected response includes:
 
 ```yaml
 redirect_uris:
-  - https://app.home.lewelly.com/callback        # Exact match required
-  - https://app.home.lewelly.com/oauth/callback  # Can have multiple
+  - https://app.home.lewelly.com/callback # Exact match required
+  - https://app.home.lewelly.com/oauth/callback # Can have multiple
 ```
 
 Check your application's logs to see what redirect URI it's sending.
@@ -440,7 +440,7 @@ Check your application's logs to see what redirect URI it's sending.
 
    ```yaml
    client_secret:
-     path: app-name-client-secret  # Must match key in authelia-secrets.yaml
+     path: app-name-client-secret # Must match key in authelia-secrets.yaml
    ```
 
 3. Check Authelia pod has restarted after secret changes
@@ -457,7 +457,7 @@ Check your application's logs to see what redirect URI it's sending.
    ```yaml
    session:
      cookies:
-       - domain: home.lewelly.com  # Should cover *.home.lewelly.com
+       - domain: home.lewelly.com # Should cover *.home.lewelly.com
    ```
 
 3. Clear browser cookies for `*.home.lewelly.com`
@@ -476,7 +476,7 @@ access_control:
       policy: one_factor
       # If you have subject restrictions:
       subject:
-        - "group:admins"  # User must be in admins group
+        - "group:admins" # User must be in admins group
 ```
 
 Check user's groups in `users-database.yaml`.
@@ -494,7 +494,7 @@ Check user's groups in `users-database.yaml`.
      - openid
      - profile
      - email
-     - groups  # Required for group info
+     - groups # Required for group info
    ```
 
 2. Application must request groups scope
@@ -628,7 +628,7 @@ Configure short-lived tokens in application:
 ```yaml
 # Example for Grafana
 auth.generic_oauth:
-  token_expiration: 3600  # 1 hour
+  token_expiration: 3600 # 1 hour
 ```
 
 ### 9. Use Groups for RBAC

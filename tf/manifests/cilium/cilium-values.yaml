@@ -43,6 +43,11 @@ securityContext:
 # Enable Hubble for observability
 hubble:
   enabled: true
+  tls:
+    auto:
+      # Use cronJob method so CA is created once in-cluster and persists across upgrades
+      # This avoids storing secrets in git and ensures mTLS continuity
+      method: cronJob
   relay:
     enabled: true
   ui:

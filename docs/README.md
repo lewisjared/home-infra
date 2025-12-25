@@ -9,6 +9,7 @@ This directory contains documentation for the home-infra Kubernetes cluster.
 
 ## Infrastructure
 
+- **[Cilium](./CILIUM.md)** - CNI plugin (networking, security, Hubble observability, upgrade process)
 - **[DNS](./DNS.md)** - Technitium DNS cluster (authoritative DNS, ad blocking, external-dns integration)
 
 ## OIDC / SSO Integration
@@ -153,11 +154,11 @@ cat docs/GRAFANA_OIDC_QUICKSTART.md
 
 ### Integrated Applications
 
-| Application | Status              | URL                                 | Groups Supported |
-| ----------- | ------------------- | ----------------------------------- | ---------------- |
-| Headlamp    | ✅ Deployed         | `https://headlamp.home.lewelly.com` | ✅ Yes           |
-| Grafana     | 📝 Guide Available  | `https://grafana.home.lewelly.com`  | ✅ Yes           |
-| Harbor      | 📖 See Quick Ref    | -                                   | ✅ Yes           |
+| Application | Status             | URL                                 | Groups Supported |
+| ----------- | ------------------ | ----------------------------------- | ---------------- |
+| Headlamp    | ✅ Deployed        | `https://headlamp.home.lewelly.com` | ✅ Yes           |
+| Grafana     | 📝 Guide Available | `https://grafana.home.lewelly.com`  | ✅ Yes           |
+| Harbor      | 📖 See Quick Ref   | -                                   | ✅ Yes           |
 
 ## Authelia Configuration
 
@@ -228,8 +229,8 @@ Example:
 users:
   alice:
     groups:
-      - admins           # Full access everywhere
-      - grafana-editors  # Can edit in Grafana specifically
+      - admins # Full access everywhere
+      - grafana-editors # Can edit in Grafana specifically
 
 # Access control (who can access)
 access_control:
@@ -238,13 +239,14 @@ access_control:
       policy: one_factor
       subject:
         - "group:admins"
-        - "group:grafana-editors"  # Alice can access
+        - "group:grafana-editors" # Alice can access
 
 # Role mapping in Grafana (what they can do)
 role_attribute_path: |
   contains(groups[*], 'admins') && 'Admin' ||
   contains(groups[*], 'grafana-editors') && 'Editor' ||
   'Viewer'
+
 # Result: Alice is Editor in Grafana
 ```
 

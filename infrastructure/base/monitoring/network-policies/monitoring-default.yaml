@@ -17,7 +17,7 @@ metadata:
   name: allow-prometheus-scraping
   namespace: monitoring
 spec:
-  podSelector: {}  # Apply to all pods in monitoring
+  podSelector: {} # Apply to all pods in monitoring
   policyTypes:
     - Ingress
   ingress:
@@ -28,18 +28,18 @@ spec:
               app.kubernetes.io/name: prometheus
       ports:
         - protocol: TCP
-          port: 3000  # Grafana metrics
+          port: 3000 # Grafana metrics
         - protocol: TCP
-          port: 3100  # Loki
+          port: 3100 # Loki
         - protocol: TCP
-          port: 3200  # Tempo metrics
+          port: 3200 # Tempo metrics
         - protocol: TCP
-          port: 8080  # kube-state-metrics
+          port: 8080 # kube-state-metrics
         - protocol: TCP
-          port: 8081  # Config reloader
+          port: 8081 # Config reloader
         - protocol: TCP
-          port: 9093  # AlertManager
+          port: 9093 # AlertManager
         - protocol: TCP
-          port: 9100  # node-exporter
+          port: 9100 # node-exporter
         - protocol: TCP
-          port: 10250  # Kubelet
+          port: 10250 # Kubelet

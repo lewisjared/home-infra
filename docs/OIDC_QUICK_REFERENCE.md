@@ -229,7 +229,7 @@ role_attribute_path: |
 access_control:
   rules:
     - domain: app.home.lewelly.com
-      policy: one_factor  # Any authenticated user
+      policy: one_factor # Any authenticated user
 ```
 
 ### Restricted to Admins Only
@@ -275,7 +275,7 @@ access_control:
     - domain: internal-app.home.lewelly.com
       policy: one_factor
       networks:
-        - 192.168.1.0/24  # Home network only
+        - 192.168.1.0/24 # Home network only
 ```
 
 ## Useful Commands

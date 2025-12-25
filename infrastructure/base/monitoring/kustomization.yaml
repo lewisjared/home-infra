@@ -11,7 +11,7 @@ resources:
   - loki/
   - tempo/
   - prometheus/
-  
+
   # Alloy for ingestion
   - alloy/
 

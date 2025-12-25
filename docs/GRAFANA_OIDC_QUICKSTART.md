@@ -140,7 +140,7 @@ values:
         # Map Authelia groups to Grafana roles
         role_attribute_path: contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'developers') && 'Editor' || 'Viewer'
         allow_sign_up: true
-        auto_login: false  # Set to true to skip Grafana login screen
+        auto_login: false # Set to true to skip Grafana login screen
 
       # Keep analytics disabled
       analytics:
@@ -220,7 +220,7 @@ resources:
   - sources/kustomization.yaml
   - ingresses/kustomization.yaml
   - network-policies/kustomization.yaml
-  - grafana-oidc-secret.yaml  # Add this line
+  - grafana-oidc-secret.yaml # Add this line
 ```
 
 ---
@@ -463,10 +463,10 @@ kubectl logs -n monitoring -l app.kubernetes.io/name=grafana --tail=100 | grep -
 
 ```yaml
 auth.generic_oauth:
-  auto_login: true  # Auto-redirect to Authelia
+  auto_login: true # Auto-redirect to Authelia
 
 auth:
-  disable_login_form: true  # Hide username/password fields
+  disable_login_form: true # Hide username/password fields
 ```
 
 ⚠️ **Warning**: This means you can ONLY login via OIDC. If Authelia is down, you can't access Grafana!
@@ -475,13 +475,13 @@ auth:
 
 ```yaml
 auth:
-  disable_login_form: false  # Keep local login available
+  disable_login_form: false # Keep local login available
 
 # But disable sign-up
 auth.generic_oauth:
   allow_sign_up: true
   auto_assign_org: true
-  auto_assign_org_role: Viewer  # Default role for new users
+  auto_assign_org_role: Viewer # Default role for new users
 ```
 
 ---

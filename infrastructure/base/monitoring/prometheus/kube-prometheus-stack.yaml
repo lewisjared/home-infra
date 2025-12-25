@@ -11,7 +11,7 @@ spec:
   chart:
     spec:
       chart: kube-prometheus-stack
-      version: ">=79.0.0 <80.0.0"  # Pin to v79.x (latest stable)
+      version: ">=79.0.0 <80.0.0" # Pin to v79.x (latest stable)
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
@@ -19,7 +19,7 @@ spec:
       interval: 12h
   # Installation options
   install:
-    createNamespace: false  # Namespace created by infrastructure kustomization
+    createNamespace: false # Namespace created by infrastructure kustomization
     remediation:
       retries: 3
   # Upgrade options
@@ -73,21 +73,27 @@ spec:
 
         # Enable Prometheus metrics for trading platform
         additionalScrapeConfigs:
-          - job_name: 'vela-trading'
+          - job_name: "vela-trading"
             kubernetes_sd_configs:
               - role: pod
                 namespaces:
                   names:
                     - vela-trading
             relabel_configs:
-              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              - source_labels:
+                  [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
                 action: keep
                 regex: true
-              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              - source_labels:
+                  [__meta_kubernetes_pod_annotation_prometheus_io_path]
                 action: replace
                 target_label: __metrics_path__
                 regex: (.+)
-              - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+              - source_labels:
+                  [
+                    __address__,
+                    __meta_kubernetes_pod_annotation_prometheus_io_port,
+                  ]
                 action: replace
                 regex: ([^:]+)(?::\d+)?;(\d+)
                 replacement: $1:$2
@@ -96,7 +102,7 @@ spec:
     # Grafana configuration
     grafana:
       enabled: true
-      adminPassword: "admin"  # TODO: Change this or use secret
+      adminPassword: "admin" # TODO: Change this or use secret
 
       # Pod annotations for Reloader
       podAnnotations:

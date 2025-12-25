@@ -20,7 +20,7 @@ spec:
         - protocol: TCP
           port: 3100
         - protocol: TCP
-          port: 7946  # Memberlist
+          port: 7946 # Memberlist
         - protocol: TCP
           port: 9095
 ---
@@ -43,4 +43,4 @@ spec:
               app.kubernetes.io/name: alloy
       ports:
         - protocol: TCP
-          port: 3100  # Loki HTTP API
+          port: 3100 # Loki HTTP API

@@ -18,7 +18,7 @@ spec:
               app.kubernetes.io/name: grafana
       ports:
         - protocol: TCP
-          port: 9090  # Prometheus
+          port: 9090 # Prometheus
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -38,7 +38,7 @@ spec:
               app.kubernetes.io/name: grafana
       ports:
         - protocol: TCP
-          port: 3100  # Loki HTTP API
+          port: 3100 # Loki HTTP API
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -58,7 +58,7 @@ spec:
               app.kubernetes.io/name: grafana
       ports:
         - protocol: TCP
-          port: 3200  # Tempo metrics and query frontend
+          port: 3200 # Tempo metrics and query frontend
 ---
 # Allow access to Grafana from ingress/gateway (for dashboards)
 apiVersion: networking.k8s.io/v1
@@ -76,4 +76,4 @@ spec:
     # Allow from anywhere (ingress controller will handle auth)
     - ports:
         - protocol: TCP
-          port: 80  # Grafana service port (not container port 3000)
+          port: 80 # Grafana service port (not container port 3000)

@@ -37,21 +37,21 @@ spec:
       - name: local-prometheus
         type: prometheus
         url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
-        metrics: {enabled: true}
-        
+        metrics: { enabled: true }
+
       - name: local-loki
         type: loki
         url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
-        logs: {enabled: true}
+        logs: { enabled: true }
 
       - name: local-tempo
         type: otlp
         protocol: grpc
         url: http://tempo.monitoring.svc.cluster.local:4317
         # Only enable traces for tempo
-        metrics: {enabled: false}
-        logs: {enabled: false}
-        traces: {enabled: true}
+        metrics: { enabled: false }
+        logs: { enabled: false }
+        traces: { enabled: true }
 
     # Feature configuration
     clusterMetrics:
@@ -60,7 +60,7 @@ spec:
         - local-prometheus
 
     nodeMetrics:
-      enabled: false  # Disabled - using kube-prometheus-stack node-exporter instead
+      enabled: false # Disabled - using kube-prometheus-stack node-exporter instead
 
     clusterEvents:
       enabled: true
@@ -113,7 +113,6 @@ spec:
     # Alloy configuration
     alloy-logs:
       enabled: true
-
 
       # Mount audit log directory from host
       extraVolumes:
@@ -184,11 +183,8 @@ spec:
     alloy-metrics:
       enabled: true
 
-
     alloy-singleton:
       enabled: true
 
-
     alloy-receiver:
       enabled: true
-   

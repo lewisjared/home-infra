@@ -1,27 +1,27 @@
 apiVersion: v1
 data:
-    .dockerconfigjson: ENC[AES256_GCM,data:WTzrcnGxUEjLu+gU6ZWUcz+CTKhTRO3CFjhiKutpk5mW84cZjnX7zHShqHJkcIOX54RXgObB9Y0aFYIH9jMOZY65QtpX/EGugAHEdG6Wc1ZnTFvjgEgAJiDh1rwcHElRVeBuRNcKfj0FQaKl1lfqDUlxng3302b+Cec1RpbZBCN9SaXM0pgN/vyEG1R5q0cH6n6Nlaj1acPzwkwMzq/lTCG4XY1i19iLH7UwFEWTvrEJ2fW7ROcmuY74rb7onNNWikSGQJDWH9CuXWWyvX1y9ShBaEyjrUOHUYPFQLqz6xr6/PVhYkg7+mf2kQdyyPDi03Ywu+lpP84=,iv:SQAiInOHxheW/BSXS72iDiNFJqcpFIQ26dRCiJmDCfY=,tag:8yuJVBKms614vV1ijNoYUA==,type:str]
+  .dockerconfigjson: ENC[AES256_GCM,data:WTzrcnGxUEjLu+gU6ZWUcz+CTKhTRO3CFjhiKutpk5mW84cZjnX7zHShqHJkcIOX54RXgObB9Y0aFYIH9jMOZY65QtpX/EGugAHEdG6Wc1ZnTFvjgEgAJiDh1rwcHElRVeBuRNcKfj0FQaKl1lfqDUlxng3302b+Cec1RpbZBCN9SaXM0pgN/vyEG1R5q0cH6n6Nlaj1acPzwkwMzq/lTCG4XY1i19iLH7UwFEWTvrEJ2fW7ROcmuY74rb7onNNWikSGQJDWH9CuXWWyvX1y9ShBaEyjrUOHUYPFQLqz6xr6/PVhYkg7+mf2kQdyyPDi03Ywu+lpP84=,iv:SQAiInOHxheW/BSXS72iDiNFJqcpFIQ26dRCiJmDCfY=,tag:8yuJVBKms614vV1ijNoYUA==,type:str]
 kind: Secret
 metadata:
-    creationTimestamp: null
-    name: docker-hub-pull-secret
-    namespace: default
+  creationTimestamp: null
+  name: docker-hub-pull-secret
+  namespace: default
 type: kubernetes.io/dockerconfigjson
 sops:
-    lastmodified: "2025-07-08T11:57:15Z"
-    mac: ENC[AES256_GCM,data:N0F4iPfZlbflAS2TgSwPloN7Vbu4ATYKrXR81yGRyk+F1x9H2r1dy/XRGq7Hfq3GhzWtOXIUBPhtX9zQg8QUBDP32eYl5G46A0we2XRGMc8DcixtHp0P1GbawLvf9oDpPtrfLlzYLsydCtMkf8K9Gr+s0f482iJLnwEyDfsOQjE=,iv:P9P0i8LeJdNT8Pw6O/A52NCU3UaanOrVKIbnw+nWFy4=,tag:rCyS7Yqz4k4pcDAXb2IXQA==,type:str]
-    pgp:
-        - created_at: "2025-07-08T11:57:15Z"
-          enc: |-
-            -----BEGIN PGP MESSAGE-----
+  lastmodified: "2025-07-08T11:57:15Z"
+  mac: ENC[AES256_GCM,data:N0F4iPfZlbflAS2TgSwPloN7Vbu4ATYKrXR81yGRyk+F1x9H2r1dy/XRGq7Hfq3GhzWtOXIUBPhtX9zQg8QUBDP32eYl5G46A0we2XRGMc8DcixtHp0P1GbawLvf9oDpPtrfLlzYLsydCtMkf8K9Gr+s0f482iJLnwEyDfsOQjE=,iv:P9P0i8LeJdNT8Pw6O/A52NCU3UaanOrVKIbnw+nWFy4=,tag:rCyS7Yqz4k4pcDAXb2IXQA==,type:str]
+  pgp:
+    - created_at: "2025-07-08T11:57:15Z"
+      enc: |-
+        -----BEGIN PGP MESSAGE-----
 
-            hF4DG75A0M95pbgSAQdAGa8QmHXs/SvdkyAk6tc0jpgyQ9zZsxs/QdhfWD138VAw
-            n5eAaVMvmeyR/x1hbCtva1Xb45JQZ0B1QFKLLTW6kfBHwhwIxuB7/R0+Hpw9LciY
-            1GgBCQIQ3GwrJJ7gEu5YSZNAoJvKRBipLkXzvN5vAJwf5c+MivTmfIw9L09zCXH8
-            vuW8jHBqne3g5c/YczcqFqC3DZ9OO2a0V7Kb9F/WgZa74mTjgLSWg2ICYDhapVnD
-            HCjjhAvVeeVxbA==
-            =4E7F
-            -----END PGP MESSAGE-----
-          fp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
-    encrypted_regex: ^(data|stringData)$
-    version: 3.10.2
+        hF4DG75A0M95pbgSAQdAGa8QmHXs/SvdkyAk6tc0jpgyQ9zZsxs/QdhfWD138VAw
+        n5eAaVMvmeyR/x1hbCtva1Xb45JQZ0B1QFKLLTW6kfBHwhwIxuB7/R0+Hpw9LciY
+        1GgBCQIQ3GwrJJ7gEu5YSZNAoJvKRBipLkXzvN5vAJwf5c+MivTmfIw9L09zCXH8
+        vuW8jHBqne3g5c/YczcqFqC3DZ9OO2a0V7Kb9F/WgZa74mTjgLSWg2ICYDhapVnD
+        HCjjhAvVeeVxbA==
+        =4E7F
+        -----END PGP MESSAGE-----
+      fp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
+  encrypted_regex: ^(data|stringData)$
+  version: 3.10.2

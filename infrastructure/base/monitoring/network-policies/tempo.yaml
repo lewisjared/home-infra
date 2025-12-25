@@ -19,10 +19,10 @@ spec:
               app.kubernetes.io/name: alloy
       ports:
         - protocol: TCP
-          port: 4317  # OTLP gRPC
+          port: 4317 # OTLP gRPC
         - protocol: TCP
-          port: 4318  # OTLP HTTP
+          port: 4318 # OTLP HTTP
         - protocol: TCP
-          port: 9411  # Zipkin
+          port: 9411 # Zipkin
         - protocol: TCP
-          port: 14268  # Jaeger HTTP
+          port: 14268 # Jaeger HTTP

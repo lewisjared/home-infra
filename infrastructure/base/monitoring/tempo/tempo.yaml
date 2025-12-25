@@ -61,7 +61,7 @@ spec:
             path: /var/tempo/traces
 
       # Retention configuration
-      retention: 168h  # 7 days
+      retention: 168h # 7 days
 
     # Monitoring
     serviceMonitor:

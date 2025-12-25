@@ -29,7 +29,7 @@ parameters:
   # You need to specify the replicated pool here in the `pool` parameter, it is
   # used for the metadata of the images.
   # The erasure coded pool must be set as the `dataPool` parameter below.
-  #dataPool: ec-data-pool
+  # dataPool: ec-data-pool
   pool: replicapool
 
   # (optional) mapOptions is a comma-separated list of map options.

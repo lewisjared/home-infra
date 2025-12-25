@@ -1,10 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "docker:pinDigests",
-    ":semanticCommits"
-  ],
+  "extends": ["config:recommended", "docker:pinDigests", ":semanticCommits"],
   "kubernetes": {
     "fileMatch": [
       "infrastructure/.+\\.yaml$",
@@ -13,15 +9,10 @@
     ]
   },
   "helm-values": {
-    "fileMatch": [
-      "infrastructure/.+\\.yaml$",
-      "apps/.+\\.yaml$"
-    ]
+    "fileMatch": ["infrastructure/.+\\.yaml$", "apps/.+\\.yaml$"]
   },
   "flux": {
-    "fileMatch": [
-      "clusters/.+\\.yaml$"
-    ]
+    "fileMatch": ["clusters/.+\\.yaml$"]
   },
   "packageRules": [
     {
@@ -31,7 +22,13 @@
     },
     {
       "description": "Group monitoring stack updates",
-      "matchPackagePatterns": ["prometheus", "grafana", "loki", "tempo", "alloy"],
+      "matchPackagePatterns": [
+        "prometheus",
+        "grafana",
+        "loki",
+        "tempo",
+        "alloy"
+      ],
       "groupName": "Monitoring Stack"
     }
   ]

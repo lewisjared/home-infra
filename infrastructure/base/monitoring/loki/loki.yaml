@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: loki
-      version: ">=6.0.0 <7.0.0"  # Pin to v6.x (latest stable)
+      version: ">=6.0.0 <7.0.0" # Pin to v6.x (latest stable)
       sourceRef:
         kind: HelmRepository
         name: grafana
@@ -67,7 +67,7 @@ spec:
       # Limits configuration
       limits_config:
         retention_period: 30d
-        max_query_length: 721h  # 30 days
+        max_query_length: 721h # 30 days
 
       # Schema configuration
       schemaConfig:

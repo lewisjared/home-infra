@@ -74,9 +74,7 @@
         "target": {
           "limit": 100,
           "matchAny": false,
-          "tags": [
-            "terraform"
-          ],
+          "tags": ["terraform"],
           "type": "tags"
         }
       },
@@ -92,9 +90,7 @@
         "target": {
           "limit": 100,
           "matchAny": false,
-          "tags": [
-            "oncall"
-          ],
+          "tags": ["oncall"],
           "type": "tags"
         }
       }
@@ -168,9 +164,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -243,9 +237,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -341,11 +333,7 @@
       "id": 32,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
@@ -509,9 +497,7 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -611,9 +597,7 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -967,11 +951,7 @@
       "id": 68,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
@@ -1085,11 +1065,7 @@
       "id": 70,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
@@ -1202,11 +1178,7 @@
       "id": 72,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
@@ -1308,11 +1280,7 @@
       "id": 74,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
@@ -1414,11 +1382,7 @@
       "id": 75,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
@@ -2057,11 +2021,7 @@
       "id": 82,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "last"
-          ],
+          "calcs": ["min", "max", "last"],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
@@ -2880,10 +2840,7 @@
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": [
-    "Kubernetes",
-    "Prometheus"
-  ],
+  "tags": ["Kubernetes", "Prometheus"],
   "templating": {
     "list": [
       {

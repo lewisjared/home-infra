@@ -72,14 +72,14 @@ graph TD
 
 Average amount of VLANs
 
-| VLAN ID | Name    | Subnet         | Purpose                        | Typical devices / endpoints               |
-|:--------|:--------|:---------------|:-------------------------------|:------------------------------------------|
-| 10      | MGMT    | 10.10.10.0/24  | Infrastructure management      | Proxmox hosts, switches, APs, firewall    |
-| 20      | SERVERS | 10.10.20.0/24  | K8s nodes and services         | compute-001/002/003 node IPs, VMs         |
-| 30      | STORAGE | 10.10.30.0/24  | Ceph + NFS traffic             | compute-001/002/003, data-001             |
-| 40      | LAN     | 10.10.40.0/24  | Trusted client network         | PCs, laptops, consoles, main Wi‑Fi SSID   |
-| 50      | IOT     | 10.10.50.0/24  | IoT / smart devices            | IoT Wi‑Fi SSID, wired IoT, cameras        |
-| 90      | GUEST   | 10.10.90.0/24  | Guest Wi‑Fi, internet‑only     | Guest SSID clients                        |
+| VLAN ID | Name    | Subnet        | Purpose                    | Typical devices / endpoints             |
+| :------ | :------ | :------------ | :------------------------- | :-------------------------------------- |
+| 10      | MGMT    | 10.10.10.0/24 | Infrastructure management  | Proxmox hosts, switches, APs, firewall  |
+| 20      | SERVERS | 10.10.20.0/24 | K8s nodes and services     | compute-001/002/003 node IPs, VMs       |
+| 30      | STORAGE | 10.10.30.0/24 | Ceph + NFS traffic         | compute-001/002/003, data-001           |
+| 40      | LAN     | 10.10.40.0/24 | Trusted client network     | PCs, laptops, consoles, main Wi‑Fi SSID |
+| 50      | IOT     | 10.10.50.0/24 | IoT / smart devices        | IoT Wi‑Fi SSID, wired IoT, cameras      |
+| 90      | GUEST   | 10.10.90.0/24 | Guest Wi‑Fi, internet‑only | Guest SSID clients                      |
 
 ### IP Addresses
 

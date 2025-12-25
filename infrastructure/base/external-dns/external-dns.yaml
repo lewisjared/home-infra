@@ -27,30 +27,30 @@ spec:
     provider:
       name: rfc2136
     domainFilters:
-    - home.lewelly.com
+      - home.lewelly.com
     sources:
-    - service
-    - ingress
-    - gateway-httproute
+      - service
+      - ingress
+      - gateway-httproute
     extraArgs:
-    # Technitium DNS primary server
-    - --rfc2136-host=10.10.20.71
-    - --rfc2136-port=53
-    - --rfc2136-zone=home.lewelly.com
-    # TSIG authentication
-    - --rfc2136-tsig-secret-alg=hmac-sha256
-    - --rfc2136-tsig-keyname=external-dns
-    - --rfc2136-tsig-axfr
-    # Timeouts
-    - --request-timeout=120s
+      # Technitium DNS primary server
+      - --rfc2136-host=10.10.20.71
+      - --rfc2136-port=53
+      - --rfc2136-zone=home.lewelly.com
+      # TSIG authentication
+      - --rfc2136-tsig-secret-alg=hmac-sha256
+      - --rfc2136-tsig-keyname=external-dns
+      - --rfc2136-tsig-axfr
+      # Timeouts
+      - --request-timeout=120s
     env:
-    - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: external-dns-tsig
-          key: tsig-secret
+      - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: external-dns-tsig
+            key: tsig-secret
     rbac:
       additionalPermissions:
-      - apiGroups: ["gateway.networking.k8s.io"]
-        resources: ["gateways", "httproutes"]
-        verbs: ["get", "list", "watch"]
+        - apiGroups: ["gateway.networking.k8s.io"]
+          resources: ["gateways", "httproutes"]
+          verbs: ["get", "list", "watch"]

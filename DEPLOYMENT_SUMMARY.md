@@ -152,10 +152,10 @@ To add more users, update `infrastructure/authelia/users-database.yaml`:
        # ... existing admin user
      newuser:
        displayname: "New User"
-       password: "$argon2id$v=19$m=65536,t=3,p=4$..."  # Your generated hash
+       password: "$argon2id$v=19$m=65536,t=3,p=4$..." # Your generated hash
        email: newuser@home.local
        groups:
-         - developers  # or admins for full access
+         - developers # or admins for full access
    ```
 
 4. Save (SOPS will auto-encrypt) and commit

@@ -1,0 +1,3 @@
+tf/.terraform
+tf/output
+tf/terraform.tfstate*
