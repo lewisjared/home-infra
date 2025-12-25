@@ -112,12 +112,31 @@ spec:
       access_control:
         default_policy: deny
         rules:
-          # Headlamp access
-          - domain: headlamp.home.lewelly.com
-            policy: one_factor
           # Auth portal itself
           - domain: auth.home.lewelly.com
             policy: bypass
+
+          # Headlamp access
+          - domain: headlamp.home.lewelly.com
+            policy: one_factor
+
+          # Media apps - one_factor required
+          - domain: jellyfin.home.lewelly.com
+            policy: one_factor
+          - domain: requests.home.lewelly.com
+            policy: one_factor
+          - domain: radarr.home.lewelly.com
+            policy: one_factor
+          - domain: sonarr.home.lewelly.com
+            policy: one_factor
+          - domain: bazarr.home.lewelly.com
+            policy: one_factor
+          - domain: prowlarr.home.lewelly.com
+            policy: one_factor
+          - domain: sabnzbd.home.lewelly.com
+            policy: one_factor
+          - domain: deluge.home.lewelly.com
+            policy: one_factor
 
       # OIDC Provider Configuration
       identity_providers:
