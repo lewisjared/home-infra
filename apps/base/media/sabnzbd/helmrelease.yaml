@@ -93,9 +93,10 @@ spec:
         globalMounts:
           - path: /config
       data:
-        existingClaim: usenet-downloads
+        existingClaim: media-library
         globalMounts:
           - path: /data
+            subPath: usenet
       tmp:
         type: emptyDir
         globalMounts:
