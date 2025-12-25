@@ -10,7 +10,7 @@ spec:
       namespace: cilium-gateway
       sectionName: https
   hostnames:
-    - requests.home.lewelly.com
+    - jellyseerr.home.lewelly.com
   rules:
     - backendRefs:
         - name: jellyseerr
