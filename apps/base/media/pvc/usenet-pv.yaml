@@ -11,7 +11,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: usenet-nfs
   nfs:
-    server: 10.16.0.20
+    server: 10.10.10.20
     path: /mnt/tank/media/usenet
   mountOptions:
     - nfsvers=4.2
