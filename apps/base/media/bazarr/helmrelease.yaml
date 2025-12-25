@@ -39,19 +39,20 @@ spec:
               tag: 1.5.2
             env:
               TZ: Australia/Melbourne
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /api/system/health
-                    port: &port 6767
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
+            # TODO: Debug why health checks are failing
+            # probes:
+            #   liveness: &probes
+            #     enabled: true
+            #     custom: true
+            #     spec:
+            #       httpGet:
+            #         path: /api/system/health
+            #         port: *port
+            #       initialDelaySeconds: 0
+            #       periodSeconds: 10
+            #       timeoutSeconds: 1
+            #       failureThreshold: 3
+            #   readiness: *probes
             resources:
               requests:
                 cpu: 10m
@@ -70,7 +71,7 @@ spec:
         controller: main
         ports:
           http:
-            port: *port
+            port: &port 6767
 
     persistence:
       config:

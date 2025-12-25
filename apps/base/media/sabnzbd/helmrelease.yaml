@@ -39,10 +39,6 @@ spec:
               tag: 4.5.5
             env:
               TZ: Australia/Melbourne
-              HOST_WHITELIST_ENTRIES: >-
-                sabnzbd,
-                sabnzbd.lewelly.com,
-                sabnzbd.home.lewelly.com
             envFrom:
               - secretRef:
                   name: sabnzbd-secret
