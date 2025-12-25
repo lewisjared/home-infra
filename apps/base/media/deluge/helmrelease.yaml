@@ -71,8 +71,8 @@ spec:
           main:
             dependsOn: gluetun
             image:
-              repository: lscr.io/linuxserver/deluge
-              tag: 2.1.1
+              repository: ghcr.io/linuxserver/deluge
+              tag: 2.2.0
             env:
               TZ: Australia/Melbourne
               PUID: "3000"

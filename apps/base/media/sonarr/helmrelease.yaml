@@ -35,8 +35,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/home-operations/sonarr
-              tag: 4.0.14.2939
+              repository: ghcr.io/linuxserver/sonarr
+              tag: 4.0.16
             env:
               TZ: Australia/Melbourne
               SONARR__APP__INSTANCENAME: Sonarr

@@ -35,8 +35,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/home-operations/radarr
-              tag: 5.23.0
+              repository: ghcr.io/linuxserver/radarr
+              tag: 5.28.0
             env:
               TZ: Australia/Melbourne
               RADARR__APP__INSTANCENAME: Radarr

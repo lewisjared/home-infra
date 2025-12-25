@@ -35,24 +35,25 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/home-operations/bazarr
+              repository: ghcr.io/linuxserver/bazarr
               tag: 1.5.2
             env:
               TZ: Australia/Melbourne
               BAZARR__PORT: &port 6767
-            probes:
-              liveness: &probes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /api/system/health
-                    port: *port
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
+            # Disable probes until I can figure out why they fail
+            # probes:
+            #   liveness: &probes
+            #     enabled: true
+            #     custom: true
+            #     spec:
+            #       httpGet:
+            #         path: /api/system/health
+            #         port: *port
+            #       initialDelaySeconds: 0
+            #       periodSeconds: 10
+            #       timeoutSeconds: 1
+            #       failureThreshold: 3
+            #   readiness: *probes
             resources:
               requests:
                 cpu: 10m
