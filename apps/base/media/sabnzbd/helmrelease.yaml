@@ -35,16 +35,12 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/linuxserver/sabnzbd
+              repository: ghcr.io/home-operations/sabnzbd
               tag: 4.5.5
             env:
               TZ: Australia/Melbourne
               HOST_WHITELIST_ENTRIES: >-
                 sabnzbd,
-                sabnzbd.media,
-                sabnzbd.media.svc,
-                sabnzbd.media.svc.cluster,
-                sabnzbd.media.svc.cluster.local,
                 sabnzbd.lewelly.com,
                 sabnzbd.home.lewelly.com
             envFrom:
