@@ -27,3 +27,5 @@ spec:
     crds:
       enabled: true
     enableDiscoveryDaemon: true
+    csi:
+      enableCephfsDriver: false

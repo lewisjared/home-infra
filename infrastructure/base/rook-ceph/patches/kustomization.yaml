@@ -7,24 +7,6 @@ namespace: rook-ceph
 resources: []
 
 patches:
-  # Patch cephfs provisioner to tolerate control-plane nodes
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: csi-cephfsplugin-provisioner
-      namespace: rook-ceph
-    patch: |-
-      - op: add
-        path: /spec/template/spec/tolerations
-        value:
-          - key: node-role.kubernetes.io/master
-            operator: Exists
-            effect: NoSchedule
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists
-            effect: NoSchedule
-
   # Patch rbd provisioner to tolerate control-plane nodes
   - target:
       group: apps
@@ -49,22 +31,6 @@ patches:
       version: v1
       kind: DaemonSet
       name: csi-rbdplugin
-      namespace: rook-ceph
-    patch: |-
-      - op: add
-        path: /spec/template/spec/tolerations
-        value:
-          - key: node-role.kubernetes.io/master
-            operator: Exists
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists
-
-  # Patch CephFS plugin daemonset to run on all nodes including control-plane
-  - target:
-      group: apps
-      version: v1
-      kind: DaemonSet
-      name: csi-cephfsplugin
       namespace: rook-ceph
     patch: |-
       - op: add
