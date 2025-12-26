@@ -5,14 +5,14 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m0s
-  path: ./infrastructure/base/monitoring
+  path: ./apps/production/monitoring
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: rook-ceph
-    - name: ceph-cluster
+    - name: core
+    - name: storage
   healthChecks:
     - apiVersion: apps/v1
       kind: Deployment

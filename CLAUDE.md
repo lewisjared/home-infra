@@ -35,11 +35,11 @@ Continuously watch Flux Kustomization resources and their sync status. Useful fo
 ### Manual Kustomize Build (for debugging)
 
 ```bash
-kustomize build apps/home/
-kustomize build clusters/home/
+kustomize build apps/production/core
+kustomize build apps/production/apps
 ```
 
-Builds the complete manifest from a kustomization overlay. Useful for debugging template expansion.
+Builds the complete manifest from a kustomization. Useful for debugging template expansion.
 
 ### Flux CLI Operations
 
@@ -53,39 +53,47 @@ flux reconcile kustomization     # Force a manual sync of a specific kustomizati
 
 ### GitOps Structure
 
-The repository is organized into three main directories:
+The repository is organized into two main directories:
 
-**1. `/clusters/home/`** - Flux CD Kustomization definitions
+**1. `/clusters/production/`** - Flux CD Kustomization definitions
 
-- Defines which Kustomize overlays and Helm releases should be deployed
-- Each `.yaml` file represents a Flux Kustomization resource
+- 6 Flux Kustomizations organized by category
+- Defines deployment order via `dependsOn` relationships
 - Flux uses these to continuously reconcile cluster state with the repository
 
-**2. `/infrastructure/`** - Core infrastructure components
+**2. `/apps/production/`** - All deployable components organized by category
 
-- `cert-manager/`: TLS certificate management (Let's Encrypt integration)
-- `external-dns/`: Automatic DNS updates to Cloudflare
-- `ingress-nginx/`: Ingress controller for HTTP(S) routing
-- `monitoring/`: Complete observability stack (Prometheus, Grafana, Loki, Tempo, Alloy, AlertManager)
-- `rook-ceph/`: Distributed storage via Ceph with Rook operator
-- `pull-secrets/`: Docker image pull secrets for private registries
+| Category         | Purpose                    | Components                                                                                          |
+| ---------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `cert-manager/`  | TLS certificate management | cert-manager HelmRelease                                                                            |
+| `core/`          | Foundation services        | cert-issuers, cilium-gateway, external-dns, metrics-server, pull-secrets, technitium-rbac, reloader |
+| `storage/`       | Distributed storage        | rook-ceph operator, ceph-cluster (external)                                                         |
+| `security/`      | Authentication             | authelia                                                                                            |
+| `monitoring/`    | Observability stack        | Prometheus, Grafana, Loki, Tempo, Alloy, network-policies, hubble-ui                                |
+| `apps/`          | User applications          | homepage, podinfo, media stack                                                                      |
+| `apps/disabled/` | Inactive apps              | home-assistant, kubernetes-dashboard, headlamp                                                      |
 
-**3. `/apps/home/`** - User applications
+### Flux Kustomization Dependencies
 
-- `base/`: Base Kustomize definitions for apps
-- `home/`: Home environment-specific overlays
-- Applications include Home Assistant, Podinfo (test app), and others
+```raw
+cert-manager (no deps)
+    └── core (depends: cert-manager)
+        ├── storage (depends: core)
+        ├── security (depends: core, storage)
+        ├── monitoring (depends: core, storage)
+        └── apps (depends: core, storage, security)
+```
 
 ### Key Technical Patterns
 
-**Templating**: Uses Kustomize for templating, composition, and environment-specific overlays (base → home overlay pattern)
+**Templating**: Uses Kustomize for composition within each category
 
 **Package Management**: External packages (cert-manager, ingress-nginx) are managed via Helm charts, integrated with Flux via HelmRelease resources
 
 **Secrets Management**: Uses SOPS (Secrets Operations) with PGP encryption:
 
 - `.sops.yaml` defines encryption rules
-- Files matching `(infrastructure|clusters)/.*.yaml` have their `data` and `stringData` fields encrypted
+- Files matching `(infrastructure|clusters|apps)/.*.yaml` have their `data` and `stringData` fields encrypted
 - kubeconfig file has `client-key-data` field encrypted
 - Decryption happens in the cluster via Flux's SOPS integration (requires PGP private key)
 
@@ -106,26 +114,105 @@ Always run `make validate` before committing changes. Invalid manifests will fai
 
 - Encrypted fields are stored in files but appear plaintext in the cluster
 - Use `sops` CLI to edit encrypted files: `sops path/to/file.yaml`
-- New secrets in infrastructure/clusters directories are automatically encrypted on save if configured in `.sops.yaml`
+- New secrets in apps/clusters directories are automatically encrypted on save if configured in `.sops.yaml`
 - The kubeconfig file has its PEM private key encrypted
 
 ### Adding New Applications
 
-1. Create base definitions in `apps/base/your-app/`
-2. Add kustomization overlay in `apps/home/`
-3. Reference in `clusters/home/app.yaml` via a Flux Kustomization resource
+1. Create app directory in `apps/production/apps/your-app/`
+2. Add kustomization.yaml listing your resources
+3. Reference in `apps/production/apps/kustomization.yaml`
 4. Run validation before committing
+
+To enable a disabled app, move it from `apps/production/apps/disabled/` to `apps/production/apps/` and add to the kustomization.
+
+### App-Template Pattern for Simple Containers
+
+For deploying Docker containers without a dedicated Helm chart,
+use the [bjw-s/app-template](https://github.com/bjw-s-labs/helm-charts) chart.
+The media apps use this pattern.
+
+**Shared OCI Repository** (defined in `apps/production/apps/media/oci-repository.yaml`):
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: app-template
+  namespace: flux-system
+spec:
+  url: oci://ghcr.io/bjw-s-labs/helm/app-template
+  ref:
+    tag: 4.5.0
+```
+
+**Example HelmRelease** (see `apps/production/apps/media/radarr/helmrelease.yaml`):
+
+```yaml
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: radarr
+  namespace: media
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/home-operations/radarr
+              tag: 5.28.0@sha256:...
+            env:
+              TZ: Australia/Melbourne
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: &port 7878
+              readiness: *probes
+            resources:
+              requests:
+                cpu: 10m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: *port
+
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: rook-ceph-block
+        size: 5Gi
+      data:
+        existingClaim: media-library
+```
+
+Key features: single chart for all apps, YAML anchors for DRY config, pinned image digests, shared PVCs.
 
 ### Adding Infrastructure Components
 
-1. Create definitions in `infrastructure/component-name/`
-2. Create Flux Kustomization in `clusters/home/component-name.yaml`
-3. Reference in `clusters/home/` kustomization.yaml if needed
+1. Determine the appropriate category (core, storage, security, monitoring)
+2. Create definitions in `apps/production/<category>/component-name/`
+3. Reference in the category's `kustomization.yaml`
 4. Ensure SOPS encryption rules are appropriate for any secrets
 
 ### Monitoring Stack Details
 
-The monitoring infrastructure (`/infrastructure/monitoring/`) includes:
+The monitoring stack (`/apps/production/monitoring/`) includes:
 
 - **Prometheus**: Metrics collection and storage
 - **Grafana**: Visualization and dashboards

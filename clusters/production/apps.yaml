@@ -9,15 +9,14 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./apps/production
+  path: ./apps/production/apps
   prune: true
   wait: true
   timeout: 5m0s
   dependsOn:
-    - name: cilium-gateway
-    - name: cert-manager
-    - name: authelia
-    - name: ceph-cluster
+    - name: core
+    - name: storage
+    - name: security
   decryption:
     provider: sops
     secretRef:

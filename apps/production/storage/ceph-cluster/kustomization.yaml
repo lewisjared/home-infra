@@ -7,3 +7,4 @@ resources:
   - cluster-external.yaml
   - storageclass.yaml
   - mon-endpoints-configmap.yaml
+  - ceph-external-secrets.yaml

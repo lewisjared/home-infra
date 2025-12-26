@@ -1,14 +1,19 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: hubble-ui
+  name: security
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: ./infrastructure/base/hubble-ui
+  path: ./apps/production/security
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: cilium-gateway
+    - name: core
+    - name: storage
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
