@@ -1,5 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - alertmanager-secret.yaml
+  - alerting-rules.yaml
   - grafana-secret.yaml
   - kube-prometheus-stack.yaml
