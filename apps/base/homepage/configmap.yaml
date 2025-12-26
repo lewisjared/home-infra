@@ -57,34 +57,34 @@ data:
             icon: radarr.png
             href: https://radarr.home.lewelly.com
             description: Movie management
-            # widget:
-            #   type: radarr
-            #   url: http://radarr.media.svc.cluster.local:7878
-            #   key: "{{HOMEPAGE_VAR_RADARR_KEY}}"
+            widget:
+              type: radarr
+              url: http://radarr.media.svc.cluster.local:7878
+              key: "{{HOMEPAGE_VAR_RADARR_KEY}}"
         - Sonarr:
             icon: sonarr.png
             href: https://sonarr.home.lewelly.com
             description: TV show management
-            # widget:
-            #   type: sonarr
-            #   url: http://sonarr.media.svc.cluster.local:8989
-            #   key: "{{HOMEPAGE_VAR_SONARR_KEY}}"
+            widget:
+              type: sonarr
+              url: http://sonarr.media.svc.cluster.local:8989
+              key: "{{HOMEPAGE_VAR_SONARR_KEY}}"
         - Prowlarr:
             icon: prowlarr.png
             href: https://prowlarr.home.lewelly.com
             description: Indexer management
-            # widget:
-            #   type: prowlarr
-            #   url: http://prowlarr.media.svc.cluster.local:9696
-            #   key: "{{HOMEPAGE_VAR_PROWLARR_KEY}}"
+            widget:
+              type: prowlarr
+              url: http://prowlarr.media.svc.cluster.local:9696
+              key: "{{HOMEPAGE_VAR_PROWLARR_KEY}}"
         - Bazarr:
             icon: bazarr.png
             href: https://bazarr.home.lewelly.com
             description: Subtitle management
-            # widget:
-            #   type: bazarr
-            #   url: http://bazarr.media.svc.cluster.local:6767
-            #   key: "{{HOMEPAGE_VAR_BAZARR_KEY}}"
+            widget:
+              type: bazarr
+              url: http://bazarr.media.svc.cluster.local:6767
+              key: "{{HOMEPAGE_VAR_BAZARR_KEY}}"
         - SABnzbd:
             icon: sabnzbd.png
             href: https://sabnzbd.home.lewelly.com
