@@ -6,6 +6,12 @@ metadata:
   namespace: monitoring
 spec:
   interval: 30m
+  timeout: 15m
+  # Wait for destinations to be ready before deploying Alloy
+  dependsOn:
+    - name: kube-prometheus-stack
+    - name: loki
+    - name: tempo
   chart:
     spec:
       chart: k8s-monitoring
@@ -20,10 +26,13 @@ spec:
     remediation:
       retries: 3
   upgrade:
+    force: true
     remediation:
       retries: 3
       remediateLastFailure: true
     cleanupOnFail: true
+  uninstall:
+    keepHistory: false
   rollback:
     recreate: true
     cleanupOnFail: true

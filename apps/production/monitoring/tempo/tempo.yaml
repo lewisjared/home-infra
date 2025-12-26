@@ -6,6 +6,7 @@ metadata:
   namespace: monitoring
 spec:
   interval: 30m
+  timeout: 15m
   chart:
     spec:
       chart: tempo
@@ -22,10 +23,14 @@ spec:
       retries: 3
   # Upgrade options
   upgrade:
+    force: true
     remediation:
       retries: 3
       remediateLastFailure: true
     cleanupOnFail: true
+  # Uninstall options
+  uninstall:
+    keepHistory: false
   # Rollback on failure
   rollback:
     recreate: true
