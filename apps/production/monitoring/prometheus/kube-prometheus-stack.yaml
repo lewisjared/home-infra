@@ -49,6 +49,9 @@ spec:
     # Prometheus configuration
     prometheus:
       prometheusSpec:
+        # Enable remote write receiver for k8s-monitoring (Alloy)
+        enableRemoteWriteReceiver: true
+
         # Resource limits for Prometheus
         resources:
           requests:
