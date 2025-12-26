@@ -42,6 +42,8 @@ spec:
     # CRD Management - Enable automated CRD updates for chart upgrades
     crds:
       enabled: true
+      upgradeJob:
+        enabled: true
 
     # Global settings
     fullnameOverride: prometheus
@@ -79,33 +81,7 @@ spec:
         serviceMonitorSelectorNilUsesHelmValues: false
         podMonitorSelectorNilUsesHelmValues: false
 
-        # Enable Prometheus metrics for trading platform
-        additionalScrapeConfigs:
-          - job_name: "vela-trading"
-            kubernetes_sd_configs:
-              - role: pod
-                namespaces:
-                  names:
-                    - vela-trading
-            relabel_configs:
-              - source_labels:
-                  [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-                action: keep
-                regex: true
-              - source_labels:
-                  [__meta_kubernetes_pod_annotation_prometheus_io_path]
-                action: replace
-                target_label: __metrics_path__
-                regex: (.+)
-              - source_labels:
-                  [
-                    __address__,
-                    __meta_kubernetes_pod_annotation_prometheus_io_port,
-                  ]
-                action: replace
-                regex: ([^:]+)(?::\d+)?;(\d+)
-                replacement: $1:$2
-                target_label: __address__
+        additionalScrapeConfigs: {}
 
     # Grafana configuration
     grafana:
@@ -146,10 +122,6 @@ spec:
             derivedFields:
               - datasourceUid: tempo
                 matcherRegex: '"traceId":"([a-f0-9]+)"'
-                name: TraceID
-                url: "$${__value.raw}"
-              - datasourceUid: tempo
-                matcherRegex: "trace_id=([a-f0-9]+)"
                 name: TraceID
                 url: "$${__value.raw}"
         - name: Tempo
@@ -245,9 +217,8 @@ spec:
     # Disable components already provided by k8s-monitoring
     kubeStateMetrics:
       enabled: false # Using k8s-monitoring kube-state-metrics
-
     nodeExporter:
-      enabled: false # Using k8s-monitoring node-exporter (avoids port 9100 conflict)
+      enabled: false # Using k8s-monitoring node-exporter
 
     # Prometheus Operator settings
     prometheusOperator:
