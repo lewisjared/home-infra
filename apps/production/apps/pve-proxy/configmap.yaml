@@ -41,9 +41,9 @@ data:
         # If a server fails, traffic redistributes to remaining servers
         upstream proxmox {
             ip_hash;
-            server 10.10.10.10:8006;
-            server 10.10.10.11:8006;
-            server 10.10.10.12:8006;
+            server 10.10.20.10:8006;
+            server 10.10.20.11:8006;
+            server 10.10.20.12:8006;
         }
 
         server {
