@@ -37,7 +37,6 @@ spec:
       - --rfc2136-host=10.10.20.71
       - --rfc2136-port=53
       - --rfc2136-zone=home.lewelly.com
-      - --rfc2136-min-ttl=300s
       # Use prefix for TXT ownership records to avoid conflicts
       - --txt-prefix=_externaldns.
       # TSIG authentication
