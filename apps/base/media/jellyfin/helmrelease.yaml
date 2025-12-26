@@ -36,7 +36,7 @@ spec:
           main:
             image:
               repository: jellyfin/jellyfin
-              tag: 10.11.2
+              tag: 10.11.2@sha256:d43a8878689311f841a1967f899f54db56877bf6b426fd7ff870ac1a6fd1dce4
             env:
               TZ: Australia/Melbourne
               JELLYFIN_PublishedServerUrl: https://jellyfin.home.lewelly.com

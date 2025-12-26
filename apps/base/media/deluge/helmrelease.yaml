@@ -33,7 +33,7 @@ spec:
           gluetun:
             image:
               repository: qmcgaw/gluetun
-              tag: v3.40.0
+              tag: v3.40.0@sha256:2b42bfa046757145a5155acece417b65b4443c8033fb88661a8e9dcf7fda5a00
             env:
               TZ: Australia/Melbourne
               VPN_SERVICE_PROVIDER: nordvpn
@@ -72,7 +72,7 @@ spec:
             dependsOn: gluetun
             image:
               repository: ghcr.io/linuxserver/deluge
-              tag: 2.2.0
+              tag: 2.2.0@sha256:448ed924f3479ae175c936c9693b4c4df52ebcb193e05d805c9f16c88112fe45
             env:
               TZ: Australia/Melbourne
               PUID: "3000"
