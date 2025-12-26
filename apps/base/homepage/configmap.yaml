@@ -47,7 +47,7 @@ data:
               enableNowPlaying: true
         - Jellyseerr:
             icon: jellyseerr.png
-            href: https://requests.home.lewelly.com
+            href: https://jellyseerr.home.lewelly.com
             description: Media requests
             widget:
               type: jellyseerr

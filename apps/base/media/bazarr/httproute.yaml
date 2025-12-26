@@ -6,8 +6,8 @@ metadata:
   namespace: media
 spec:
   parentRefs:
-    - name: internal-gateway
-      namespace: network
+    - name: home-gateway
+      namespace: cilium-gateway
       sectionName: https
   hostnames:
     - bazarr.home.lewelly.com
