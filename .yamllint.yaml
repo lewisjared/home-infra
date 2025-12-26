@@ -26,3 +26,4 @@ rules:
 ignore: |
   kubeconfig
   tf/manifests/cilium/cilium-install.yaml
+  clusters/production/flux-system
