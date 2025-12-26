@@ -38,9 +38,17 @@ spec:
     - Ingress
   ingress:
     - from:
+        # Match all Alloy components (alloy-metrics, alloy-logs, alloy-singleton, etc.)
         - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: alloy
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - alloy
+                  - alloy-metrics
+                  - alloy-logs
+                  - alloy-singleton
+                  - alloy-receiver
       ports:
         - protocol: TCP
           port: 3100 # Loki HTTP API
