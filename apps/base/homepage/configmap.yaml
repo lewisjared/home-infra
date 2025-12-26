@@ -17,6 +17,9 @@ data:
     color: slate
     headerStyle: clean
     layout:
+      Media:
+        style: row
+        columns: 4
       Home Automation:
         style: row
         columns: 2
@@ -31,6 +34,43 @@ data:
         columns: 2
 
   services.yaml: |
+    - Media:
+        - Jellyfin:
+            icon: jellyfin.png
+            href: https://jellyfin.home.lewelly.com
+            description: Media streaming server
+            ping: jellyfin.home.lewelly.com
+        - Jellyseerr:
+            icon: jellyseerr.png
+            href: https://requests.home.lewelly.com
+            description: Media requests
+            ping: requests.home.lewelly.com
+        - Radarr:
+            icon: radarr.png
+            href: https://radarr.home.lewelly.com
+            description: Movie management
+            ping: radarr.home.lewelly.com
+        - Sonarr:
+            icon: sonarr.png
+            href: https://sonarr.home.lewelly.com
+            description: TV show management
+            ping: sonarr.home.lewelly.com
+        - Prowlarr:
+            icon: prowlarr.png
+            href: https://prowlarr.home.lewelly.com
+            description: Indexer management
+            ping: prowlarr.home.lewelly.com
+        - Bazarr:
+            icon: bazarr.png
+            href: https://bazarr.home.lewelly.com
+            description: Subtitle management
+            ping: bazarr.home.lewelly.com
+        - SABnzbd:
+            icon: sabnzbd.png
+            href: https://sabnzbd.home.lewelly.com
+            description: Usenet downloader
+            ping: sabnzbd.home.lewelly.com
+
     - Home Automation:
         - Home Assistant:
             icon: home-assistant.png
