@@ -13,5 +13,5 @@ spec:
     - sonarr.home.lewelly.com
   rules:
     - backendRefs:
-        - name: sonarr-main
+        - name: sonarr
           port: 8989

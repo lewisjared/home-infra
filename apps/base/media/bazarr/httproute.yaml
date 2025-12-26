@@ -13,5 +13,5 @@ spec:
     - bazarr.home.lewelly.com
   rules:
     - backendRefs:
-        - name: bazarr-main
+        - name: bazarr
           port: 6767

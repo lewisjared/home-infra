@@ -13,5 +13,5 @@ spec:
     - prowlarr.home.lewelly.com
   rules:
     - backendRefs:
-        - name: prowlarr-main
+        - name: prowlarr
           port: 9696
