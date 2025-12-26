@@ -76,4 +76,4 @@ spec:
     # Allow from anywhere (ingress controller will handle auth)
     - ports:
         - protocol: TCP
-          port: 80 # Grafana service port (not container port 3000)
+          port: 3000 # Grafana container port
