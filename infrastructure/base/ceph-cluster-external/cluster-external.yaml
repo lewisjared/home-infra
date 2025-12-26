@@ -13,7 +13,7 @@ spec:
   # Ceph version should match the external cluster version (Proxmox Ceph)
   cephVersion:
     # Proxmox VE 9.x uses Ceph Squid (19.2.x)
-    image: quay.io/ceph/ceph:v19.2
+    image: quay.io/ceph/ceph:v19.2@sha256:af0c5903e901e329adabe219dfc8d0c3efc1f05102a753902f33ee16c26b6cee
   healthCheck:
     daemonHealth:
       mon:

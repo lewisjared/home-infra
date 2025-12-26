@@ -36,7 +36,7 @@ spec:
           main:
             image:
               repository: ghcr.io/home-operations/sonarr
-              tag: 4.0.16
+              tag: 4.0.16@sha256:3597fd572f4599c67abbeb8afd3cb85bce8a9e389f0779b7ea1273781544d15c
             env:
               TZ: Australia/Melbourne
               SONARR__APP__INSTANCENAME: Sonarr
