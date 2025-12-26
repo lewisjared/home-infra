@@ -45,7 +45,7 @@ spec:
     destinations:
       - name: local-prometheus
         type: prometheus
-        url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
+        url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
         metrics: { enabled: true }
 
       - name: local-loki
