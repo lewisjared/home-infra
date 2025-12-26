@@ -4,6 +4,7 @@ namespace: homepage
 resources:
   - namespace.yaml
   - homepage.yaml
+  - homepage-secret.yaml
   - configmap.yaml
   - rbac.yaml
   - httproute.yaml

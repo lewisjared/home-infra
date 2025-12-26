@@ -50,6 +50,9 @@ spec:
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: "home.lewelly.com"
+          envFrom:
+            - secretRef:
+                name: homepage-media-keys
           ports:
             - name: http
               containerPort: 3000
