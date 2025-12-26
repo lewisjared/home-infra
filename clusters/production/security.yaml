@@ -5,8 +5,11 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
+  timeout: 5m0s
+  retryInterval: 2m0s
   path: ./apps/production/security
   prune: true
+  wait: true
   sourceRef:
     kind: GitRepository
     name: flux-system
@@ -17,3 +20,8 @@ spec:
     provider: sops
     secretRef:
       name: sops-gpg
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: authelia
+      namespace: authelia

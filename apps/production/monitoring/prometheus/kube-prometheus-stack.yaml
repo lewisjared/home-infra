@@ -102,7 +102,10 @@ spec:
     # Grafana configuration
     grafana:
       enabled: true
-      adminPassword: "admin" # TODO: Change this or use secret
+      admin:
+        existingSecret: grafana-admin-credentials
+        userKey: admin-user
+        passwordKey: admin-password
 
       # Pod annotations for Reloader
       podAnnotations:

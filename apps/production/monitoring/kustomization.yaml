@@ -22,7 +22,7 @@ resources:
   - ingresses/
 
   # Grafana dashboards
-  # - dashboards/
+  - dashboards/
 
   # Hubble UI (Cilium network observability)
   - hubble-ui/
