@@ -239,12 +239,12 @@ spec:
                 requests:
                   storage: 10Gi
 
-    # Disable components we don't need
+    # Disable components already provided by k8s-monitoring
     kubeStateMetrics:
-      enabled: true
+      enabled: false # Using k8s-monitoring kube-state-metrics
 
     nodeExporter:
-      enabled: true
+      enabled: false # Using k8s-monitoring node-exporter (avoids port 9100 conflict)
 
     # Prometheus Operator settings
     prometheusOperator:
