@@ -26,6 +26,7 @@ spec:
   values:
     crds:
       enabled: true
-    enableDiscoveryDaemon: true
+    # Disable discovery daemon - not needed for external cluster
+    enableDiscoveryDaemon: false
     csi:
       enableCephfsDriver: false
