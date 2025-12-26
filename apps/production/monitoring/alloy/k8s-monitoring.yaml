@@ -69,7 +69,9 @@ spec:
         - local-prometheus
 
     nodeMetrics:
-      enabled: false # Disabled - using kube-prometheus-stack node-exporter instead
+      enabled: true
+      destinations:
+        - local-prometheus
 
     clusterEvents:
       enabled: true
