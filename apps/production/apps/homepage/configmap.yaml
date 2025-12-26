@@ -28,7 +28,7 @@ data:
         columns: 3
       Cluster Management:
         style: row
-        columns: 3
+        columns: 4
       Applications:
         style: row
         columns: 2
@@ -123,6 +123,15 @@ data:
             ping: alertmanager.home.lewelly.com
 
     - Cluster Management:
+        - Proxmox:
+            icon: proxmox.png
+            href: https://pve.home.lewelly.com
+            description: Hypervisor cluster
+            widget:
+              type: proxmox
+              url: http://pve-proxy.pve-proxy.svc.cluster.local:8080
+              username: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_PROXMOX_PASSWORD}}"
         - Kubernetes Dashboard:
             icon: kubernetes-dashboard.png
             href: https://k8s.home.lewelly.com
