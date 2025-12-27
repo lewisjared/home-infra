@@ -230,11 +230,13 @@ spec:
                 requests:
                   storage: 10Gi
 
-    # Disable components already provided by k8s-monitoring
+    # Re-enable kube-state-metrics for proper dashboard/recording rule integration
     kubeStateMetrics:
-      enabled: false # Using k8s-monitoring kube-state-metrics
+      enabled: true
+
+    # Keep node-exporter disabled - using k8s-monitoring's version
     nodeExporter:
-      enabled: false # Using k8s-monitoring node-exporter
+      enabled: false
 
     # Prometheus Operator settings
     prometheusOperator:
