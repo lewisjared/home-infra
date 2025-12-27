@@ -6,7 +6,7 @@ metadata:
   namespace: podinfo
 spec:
   forwardAuth:
-    address: http://authelia.authelia.svc.cluster.local:9091/api/authz/forward-auth
+    address: http://authelia.authelia.svc.cluster.local:80/api/authz/forward-auth
     trustForwardHeader: true
     authResponseHeaders:
       - Remote-User
