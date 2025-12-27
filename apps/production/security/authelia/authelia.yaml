@@ -140,6 +140,9 @@ spec:
               use: "sig"
               key:
                 path: "/secrets/authelia-secrets/identity_providers.oidc.jwks.RS256.key"
+          claims_policies:
+            grafana:
+              id_token: ["email", "name", "groups", "preferred_username"]
           clients:
             # Headlamp OIDC Client
             - client_id: headlamp
@@ -168,6 +171,7 @@ spec:
             - client_id: grafana
               client_name: Grafana
               client_secret: "$pbkdf2-sha512$310000$VekURqf0ljXCjHjMddpYvQ$Rn64VnakGxo2DiXDofbLrMRianuKKbi7wlz9CzcQvapqNuultRE9QpvM7b5Kv3tOMLJM91uYGHovZwB/.UmtcA"
+              claims_policy: "grafana"
               public: false
               authorization_policy: one_factor
               redirect_uris:
