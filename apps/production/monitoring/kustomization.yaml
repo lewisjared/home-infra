@@ -4,6 +4,9 @@ resources:
   # Namespace
   - namespace.yaml
 
+  # Authelia ForwardAuth middleware
+  - middleware.yaml
+
   # Helm sources
   - sources/
 

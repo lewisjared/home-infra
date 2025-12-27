@@ -25,7 +25,7 @@ spec:
           extensionRef:
             group: traefik.io
             kind: Middleware
-            name: traefik-authelia-forwardauth
+            name: authelia-forwardauth
       backendRefs:
         - name: prometheus-alertmanager
           port: 9093

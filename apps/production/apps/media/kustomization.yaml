@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - oci-repository.yaml
+  - middleware.yaml
   - pvc/
   - sabnzbd/
   - radarr/

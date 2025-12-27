@@ -25,7 +25,7 @@ spec:
           extensionRef:
             group: traefik.io
             kind: Middleware
-            name: traefik-authelia-forwardauth
+            name: authelia-forwardauth
       backendRefs:
         - name: kube-prometheus-stack-grafana
           port: 80

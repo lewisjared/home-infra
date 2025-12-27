@@ -17,7 +17,7 @@ spec:
           extensionRef:
             group: traefik.io
             kind: Middleware
-            name: traefik-authelia-forwardauth
+            name: authelia-forwardauth
       backendRefs:
         - name: prowlarr
           port: 9696

@@ -8,3 +8,4 @@ resources:
   - configmap.yaml
   - rbac.yaml
   - httproute.yaml
+  - middleware.yaml

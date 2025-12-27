@@ -44,6 +44,7 @@ spec:
       kubernetesCRD:
         enabled: true
         allowCrossNamespace: true
+        allowExternalNameServices: true
 
     # Gateway configuration
     gateway:
