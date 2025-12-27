@@ -11,13 +11,13 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: cert-manager
+    - name: bootstrap
   decryption:
     provider: sops
     secretRef:
       name: sops-gpg
   healthChecks:
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: Gateway
-      name: home-gateway
-      namespace: cilium-gateway
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: traefik
+      namespace: traefik
