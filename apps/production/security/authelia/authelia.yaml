@@ -218,6 +218,8 @@ spec:
               pkce_challenge_method: S256
               redirect_uris:
                 - https://jellyfin.home.lewelly.com/sso/OID/redirect/authelia
+                # TODO: Force HTTPS
+                - http://jellyfin.home.lewelly.com/sso/OID/redirect/authelia
               scopes:
                 - openid
                 - profile
