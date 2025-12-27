@@ -45,5 +45,12 @@ configMapGenerator:
       labels:
         grafana_dashboard: "1"
 
+  - name: grafana-dashboard-authelia
+    files:
+      - authelia.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+
 generatorOptions:
   disableNameSuffixHash: true
