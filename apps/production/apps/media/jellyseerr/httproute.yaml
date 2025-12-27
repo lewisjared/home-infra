@@ -17,8 +17,7 @@ spec:
           extensionRef:
             group: traefik.io
             kind: Middleware
-            name: authelia-forwardauth
-            namespace: traefik
+            name: traefik-authelia-forwardauth
       backendRefs:
         - name: jellyseerr
           port: 5055

@@ -108,7 +108,12 @@ spec:
       access:
         enabled: true
 
-    # Disable dashboard in production
+    # Enable dashboard with auth via separate IngressRoute
     ingressRoute:
       dashboard:
-        enabled: false
+        enabled: false  # We create our own with auth
+
+    # Enable the API/dashboard
+    api:
+      dashboard: true
+      insecure: true  # Accessible internally, auth via IngressRoute

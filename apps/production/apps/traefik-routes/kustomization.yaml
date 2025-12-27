@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - middleware-authelia.yaml
   - proxmox.yaml
+  - dashboard.yaml

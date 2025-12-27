@@ -1,0 +1,21 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: traefik
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: traefik.home.lewelly.com
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`traefik.home.lewelly.com`)
+      kind: Rule
+      middlewares:
+        - name: authelia-forwardauth
+      services:
+        - name: api@internal
+          kind: TraefikService
+  tls:
+    secretName: home-gateway-tls
