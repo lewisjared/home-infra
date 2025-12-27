@@ -165,9 +165,11 @@ spec:
           name: Authelia
           client_id: grafana
           scopes: openid profile email groups
+          # auth_url is browser-side, must be external
           auth_url: https://auth.home.lewelly.com/api/oidc/authorization
-          token_url: https://auth.home.lewelly.com/api/oidc/token
-          api_url: https://auth.home.lewelly.com/api/oidc/userinfo
+          # token_url and api_url are server-side, use internal service
+          token_url: http://authelia.authelia.svc.cluster.local/api/oidc/token
+          api_url: http://authelia.authelia.svc.cluster.local/api/oidc/userinfo
           login_attribute_path: preferred_username
           groups_attribute_path: groups
           role_attribute_path: "contains(groups[*], 'admins') && 'Admin' || 'Viewer'"
