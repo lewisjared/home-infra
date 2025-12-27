@@ -176,6 +176,46 @@ spec:
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
 
+            # Jellyfin OIDC Client (requires jellyfin-plugin-sso)
+            - client_id: jellyfin
+              client_name: Jellyfin
+              client_secret: "$pbkdf2-sha512$310000$6B7mThunhhQg20922LQs8g$euZpnFHArggO/lnQrts2nFZsf.39GJQCOcUjC9JeKrAzmr720QPDeh2Duai2x04ntJ9OHUs8PRMWQl2CaR.SXQ"
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://jellyfin.home.lewelly.com/sso/OID/redirect/authelia
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              grant_types:
+                - authorization_code
+              response_types:
+                - code
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_post
+
+            # Jellyseerr OIDC Client
+            - client_id: jellyseerr
+              client_name: Jellyseerr
+              client_secret: "$pbkdf2-sha512$310000$21WDSLdCdMMkQIi2tP/I.w$YrqV6sdkWdf/NHmpZWlzzdfxBniAqZX8eeAZO4uWUPqaet75xtJtfS2vD/onJYWpwwGMuRFnMYaoWEOgsRuZFg"
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://jellyseerr.home.lewelly.com/api/v1/auth/oidc-callback
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              grant_types:
+                - authorization_code
+              response_types:
+                - code
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_basic
+
     # Secret configuration
     secret:
       existingSecret: authelia-secrets
