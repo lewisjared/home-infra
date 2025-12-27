@@ -95,6 +95,11 @@ spec:
       deploymentStrategy:
         type: Recreate
 
+      # Sidecar configuration - ensure datasources reload on startup
+      sidecar:
+        datasources:
+          skipReload: false
+
       # Pod annotations for Reloader
       podAnnotations:
         configmap.reloader.stakater.com/reload: "prometheus-grafana-datasource"
