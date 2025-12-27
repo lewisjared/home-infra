@@ -114,9 +114,9 @@ spec:
     # Enable dashboard with auth via separate IngressRoute
     ingressRoute:
       dashboard:
-        enabled: false  # We create our own with auth
+        enabled: false # We create our own with auth
 
     # Enable the API/dashboard
     api:
       dashboard: true
-      insecure: true  # Accessible internally, auth via IngressRoute
+      insecure: true # Accessible internally, auth via IngressRoute
