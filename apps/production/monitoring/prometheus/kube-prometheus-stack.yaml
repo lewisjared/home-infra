@@ -91,6 +91,10 @@ spec:
         userKey: admin-user
         passwordKey: admin-password
 
+      # Use Recreate strategy for RWO PVC
+      deploymentStrategy:
+        type: Recreate
+
       # Pod annotations for Reloader
       podAnnotations:
         configmap.reloader.stakater.com/reload: "prometheus-grafana-datasource"
