@@ -127,6 +127,9 @@ spec:
             policy: bypass
 
           # All protected apps - one_factor required
+          # Note: *.domain matches subdomains but not apex, so both are needed
+          - domain: home.lewelly.com
+            policy: one_factor
           - domain: "*.home.lewelly.com"
             policy: one_factor
 
