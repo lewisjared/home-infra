@@ -4,4 +4,5 @@ resources:
   - alertmanager-secret.yaml
   - alerting-rules.yaml
   - grafana-secret.yaml
+  - grafana-oidc-secret.yaml
   - kube-prometheus-stack.yaml

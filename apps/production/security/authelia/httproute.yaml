@@ -1,4 +1,5 @@
 ---
+# Authelia portal - NO auth filter (this IS the auth portal)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -11,7 +12,8 @@ metadata:
 spec:
   parentRefs:
     - name: home-gateway
-      namespace: cilium-gateway
+      namespace: traefik
+      sectionName: websecure
   hostnames:
     - auth.home.lewelly.com
   rules:

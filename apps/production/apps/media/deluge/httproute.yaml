@@ -7,11 +7,18 @@ metadata:
 spec:
   parentRefs:
     - name: home-gateway
-      namespace: cilium-gateway
-      sectionName: https
+      namespace: traefik
+      sectionName: websecure
   hostnames:
     - deluge.home.lewelly.com
   rules:
-    - backendRefs:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia-forwardauth
+            namespace: traefik
+      backendRefs:
         - name: deluge-main
           port: 8112

@@ -1,0 +1,112 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 24h
+  url: https://traefik.github.io/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: traefik
+      version: ">=34.0.0 <35.0.0"
+      sourceRef:
+        kind: HelmRepository
+        name: traefik
+        namespace: traefik
+      interval: 12h
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  values:
+    # Enable Gateway API provider
+    providers:
+      kubernetesGateway:
+        enabled: true
+      kubernetesCRD:
+        enabled: true
+        allowCrossNamespace: true
+
+    # Gateway configuration
+    gateway:
+      enabled: true
+      name: home-gateway
+      listeners:
+        web:
+          port: 8000
+          protocol: HTTP
+          namespacePolicy: All
+        websecure:
+          port: 8443
+          protocol: HTTPS
+          namespacePolicy: All
+          certificateRefs:
+            - name: home-gateway-tls
+              namespace: traefik
+
+    # GatewayClass
+    gatewayClass:
+      enabled: true
+      name: traefik
+
+    # Service configuration (LoadBalancer for Cilium L2)
+    service:
+      type: LoadBalancer
+      spec:
+        externalTrafficPolicy: Local
+
+    # Ports configuration
+    ports:
+      web:
+        port: 8000
+        exposedPort: 80
+        expose:
+          default: true
+        protocol: TCP
+      websecure:
+        port: 8443
+        exposedPort: 443
+        expose:
+          default: true
+        protocol: TCP
+        tls:
+          enabled: true
+
+    # Resource limits
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+    # Logging
+    logs:
+      general:
+        level: INFO
+      access:
+        enabled: true
+
+    # Disable dashboard in production
+    ingressRoute:
+      dashboard:
+        enabled: false

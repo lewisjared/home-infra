@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/part-of: home-infra

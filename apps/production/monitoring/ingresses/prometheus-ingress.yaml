@@ -11,7 +11,8 @@ metadata:
 spec:
   parentRefs:
     - name: home-gateway
-      namespace: cilium-gateway
+      namespace: traefik
+      sectionName: websecure
   hostnames:
     - prometheus.home.lewelly.com
   rules:
@@ -19,6 +20,13 @@ spec:
         - path:
             type: PathPrefix
             value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia-forwardauth
+            namespace: traefik
       backendRefs:
         - name: prometheus-prometheus
           port: 9090

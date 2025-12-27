@@ -109,33 +109,17 @@ spec:
           filename: /config/notification.txt
 
       # Access control
+      # ForwardAuth is enforced at gateway level via Traefik middleware
+      # These rules define the auth policy when ForwardAuth calls Authelia
       access_control:
         default_policy: deny
         rules:
-          # Auth portal itself
+          # Auth portal - bypass (Traefik doesn't add auth filter to this route)
           - domain: auth.home.lewelly.com
             policy: bypass
 
-          # Headlamp access
-          - domain: headlamp.home.lewelly.com
-            policy: one_factor
-
-          # Media apps - one_factor required
-          - domain: jellyfin.home.lewelly.com
-            policy: one_factor
-          - domain: requests.home.lewelly.com
-            policy: one_factor
-          - domain: radarr.home.lewelly.com
-            policy: one_factor
-          - domain: sonarr.home.lewelly.com
-            policy: one_factor
-          - domain: bazarr.home.lewelly.com
-            policy: one_factor
-          - domain: prowlarr.home.lewelly.com
-            policy: one_factor
-          - domain: sabnzbd.home.lewelly.com
-            policy: one_factor
-          - domain: deluge.home.lewelly.com
+          # All protected apps - one_factor required
+          - domain: "*.home.lewelly.com"
             policy: one_factor
 
       # OIDC Provider Configuration
@@ -169,6 +153,26 @@ spec:
                 - code
               response_modes:
                 - form_post
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_basic
+
+            # Grafana OIDC Client
+            - client_id: grafana
+              client_name: Grafana
+              client_secret: "$pbkdf2-sha512$310000$VekURqf0ljXCjHjMddpYvQ$Rn64VnakGxo2DiXDofbLrMRianuKKbi7wlz9CzcQvapqNuultRE9QpvM7b5Kv3tOMLJM91uYGHovZwB/.UmtcA"
+              public: false
+              authorization_policy: one_factor
+              redirect_uris:
+                - https://grafana.home.lewelly.com/login/generic_oauth
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              grant_types:
+                - authorization_code
+              response_types:
+                - code
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_basic
 

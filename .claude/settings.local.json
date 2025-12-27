@@ -15,7 +15,8 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "Bash(sops:*)",
-      "Bash(kustomize build:*)"
+      "Bash(kustomize build:*)",
+      "Bash(make validate:*)"
     ],
     "deny": [],
     "ask": []

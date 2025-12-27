@@ -4,5 +4,4 @@ resources:
   - homepage/
   - podinfo/
   - media/
-  - pve-proxy/
   # Disabled apps in ./disabled/ directory

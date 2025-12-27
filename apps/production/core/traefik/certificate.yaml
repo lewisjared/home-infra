@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: home-gateway-tls
+  namespace: traefik
+spec:
+  secretName: home-gateway-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.home.lewelly.com"
+    - "home.lewelly.com"
