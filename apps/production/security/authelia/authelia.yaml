@@ -71,6 +71,16 @@ spec:
       theme: dark
       default_2fa_method: totp
 
+      # Enable Prometheus metrics
+      telemetry:
+        metrics:
+          enabled: true
+          port: 9959
+          serviceMonitor:
+            enabled: true
+            labels:
+              release: kube-prometheus-stack
+
       log:
         level: info
         format: text
