@@ -71,10 +71,12 @@ spec:
       name: traefik
 
     # Service configuration (LoadBalancer for Cilium L2)
+    # Note: Using Cluster policy because L2 announcement is on control-plane nodes
+    # but Traefik pod may run on worker nodes
     service:
       type: LoadBalancer
       spec:
-        externalTrafficPolicy: Local
+        externalTrafficPolicy: Cluster
 
     # Ports configuration
     ports:
