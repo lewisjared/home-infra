@@ -88,6 +88,18 @@ find . -type f -name $kustomize_config -print0 | while IFS= read -r -d $'\0' fil
 done
 
 echo "INFO - Validating Helm charts"
+
+# Add all Helm repositories from helmfile.yaml
+echo "INFO - Adding Helm repositories from helmfile.yaml"
+if [[ -f "${REPO_DIR}/helmfile.yaml" ]]; then
+  yq '.repositories[] | .name + " " + .url' "${REPO_DIR}/helmfile.yaml" | while read -r name url; do
+    helm repo add "$name" "$url" --force-update 2>/dev/null || true
+  done
+  helm repo update 2>/dev/null || true
+else
+  echo "WARNING - helmfile.yaml not found, Helm validation may fail"
+fi
+
 # Process each HelmRelease file
 helm_release_files=$(find . -type f -name '*.yaml' -exec grep -l "kind: HelmRelease" {} \;)
 
@@ -117,39 +129,10 @@ for helm_file in $helm_release_files; do
     echo "{}" > "$values_file"
   fi
 
-  # Try to add the repo if it exists and construct full chart reference
+  # Construct full chart reference
   chart_reference="$chart_name"
   if [[ -n "$repo_name" && "$repo_name" != "null" ]]; then
     chart_reference="$repo_name/$chart_name"
-    case "$repo_name" in
-      "grafana")
-        helm repo add grafana https://grafana.github.io/helm-charts --force-update 2>/dev/null || true
-        ;;
-      "prometheus-community")
-        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update 2>/dev/null || true
-        ;;
-      "jetstack")
-        helm repo add jetstack https://charts.jetstack.io --force-update 2>/dev/null || true
-        ;;
-      "ingress-nginx")
-        helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx --force-update 2>/dev/null || true
-        ;;
-      "rook-release")
-        helm repo add rook-release https://charts.rook.io/release --force-update 2>/dev/null || true
-        ;;
-      "kubernetes-dashboard")
-        helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/ --force-update 2>/dev/null || true
-        ;;
-      "podinfo")
-        helm repo add podinfo https://stefanprodan.github.io/podinfo --force-update 2>/dev/null || true
-        ;;
-      "pajikos")
-        helm repo add pajikos https://pajikos.github.io/home-assistant-helm-chart/ --force-update 2>/dev/null || true
-        ;;
-      "external-dns")
-        helm repo add external-dns https://kubernetes-sigs.github.io/external-dns --force-update 2>/dev/null || true
-        ;;
-    esac
   fi
 
   # Validate Helm template

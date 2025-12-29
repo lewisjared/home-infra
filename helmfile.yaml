@@ -1,0 +1,31 @@
+# Helmfile - Declarative Helm repository configuration
+# Used by validation scripts to add all required Helm repositories
+# Keep this in sync with HelmRepository resources in apps/production/
+
+repositories:
+  - name: authelia
+    url: https://charts.authelia.com
+  - name: external-dns
+    url: https://kubernetes-sigs.github.io/external-dns
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: headlamp
+    url: https://kubernetes-sigs.github.io/headlamp/
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: kubernetes-dashboard
+    url: https://kubernetes.github.io/dashboard
+  - name: metrics-server
+    url: https://kubernetes-sigs.github.io/metrics-server/
+  - name: pajikos
+    url: https://pajikos.github.io/home-assistant-helm-chart/
+  - name: podinfo
+    url: https://stefanprodan.github.io/podinfo
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: rook-release
+    url: https://charts.rook.io/release
+  - name: stakater
+    url: https://stakater.github.io/stakater-charts
+  - name: traefik
+    url: https://traefik.github.io/charts

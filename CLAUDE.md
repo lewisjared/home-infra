@@ -122,7 +122,8 @@ Always run `make validate` before committing changes. Invalid manifests will fai
 1. Create app directory in `apps/production/apps/your-app/`
 2. Add kustomization.yaml listing your resources
 3. Reference in `apps/production/apps/kustomization.yaml`
-4. Run validation before committing
+4. If using a new Helm repository, add it to `helmfile.yaml`
+5. Run validation before committing
 
 To enable a disabled app, move it from `apps/production/apps/disabled/` to `apps/production/apps/` and add to the kustomization.
 
@@ -238,6 +239,7 @@ Install via package manager or from upstream releases.
 ## Repository Configuration
 
 - **`.sops.yaml`**: Encryption rules for PGP-based secret management
+- **`helmfile.yaml`**: Helm repository definitions used by validation scripts
 - **`Makefile`**: Simple make targets for common operations
-- **`.github/`**: Currently empty, available for GitHub Actions/automation
+- **`.github/`**: GitHub Actions for CI validation
 - **`kubeconfig`**: Encrypted Kubernetes config (client-key-data encrypted)
