@@ -144,7 +144,7 @@ for helm_file in $helm_release_files; do
         helm repo add podinfo https://stefanprodan.github.io/podinfo --force-update 2>/dev/null || true
         ;;
       "pajikos")
-        helm repo add pajikos https://pajikos.github.io/helm-charts/ --force-update 2>/dev/null || true
+        helm repo add pajikos https://pajikos.github.io/home-assistant-helm-chart/ --force-update 2>/dev/null || true
         ;;
       "external-dns")
         helm repo add external-dns https://kubernetes-sigs.github.io/external-dns --force-update 2>/dev/null || true
