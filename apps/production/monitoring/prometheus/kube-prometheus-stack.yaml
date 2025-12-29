@@ -82,6 +82,43 @@ spec:
         podMonitorSelectorNilUsesHelmValues: false
 
         additionalScrapeConfigs: {}
+  defaultRules:
+    create: true
+    rules:
+      alertmanager: true
+      etcd: true
+      configReloaders: true
+      general: true
+      k8sContainerCpuUsageSecondsTotal: true
+      k8sContainerMemoryCache: true
+      k8sContainerMemoryRss: true
+      k8sContainerMemorySwap: true
+      k8sContainerResource: true
+      k8sContainerMemoryWorkingSetBytes: true
+      k8sPodOwner: true
+      kubeApiserverAvailability: true
+      kubeApiserverBurnrate: true
+      kubeApiserverHistogram: true
+      kubeApiserverSlos: true
+      kubeControllerManager: true
+      kubelet: true
+      kubeProxy: false
+      kubePrometheusGeneral: true
+      kubePrometheusNodeRecording: true
+      kubernetesApps: true
+      kubernetesResources: true
+      kubernetesStorage: true
+      kubernetesSystem: true
+      kubeSchedulerAlerting: true
+      kubeSchedulerRecording: true
+      kubeStateMetrics: true
+      network: true
+      node: true
+      nodeExporterAlerting: true
+      nodeExporterRecording: true
+      prometheus: true
+      prometheusOperator: true
+      windows: true
 
     # Grafana configuration
     grafana:
