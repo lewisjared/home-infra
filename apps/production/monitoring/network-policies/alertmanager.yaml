@@ -1,4 +1,21 @@
 ---
+# Allow access to Alertmanager from ingress/gateway (for web UI)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-alertmanager-ingress
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 9093
+---
 # Allow Prometheus to scrape Alertmanager
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
