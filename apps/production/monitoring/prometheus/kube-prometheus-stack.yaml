@@ -95,10 +95,10 @@ spec:
       deploymentStrategy:
         type: Recreate
 
-      # Sidecar configuration - ensure datasources reload on startup
+      # Sidecar configuration - use initContainer to load datasources before Grafana starts
       sidecar:
         datasources:
-          skipReload: false
+          initDatasources: true
 
       # Pod annotations for Reloader
       podAnnotations:
