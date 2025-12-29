@@ -27,5 +27,6 @@ spec:
             kind: Middleware
             name: authelia-forwardauth
       backendRefs:
-        - name: kube-prometheus-stack-grafana
-          port: 80
+        # Service created by Grafana Operator for grafana.monitoring CR
+        - name: grafana-service
+          port: 3000

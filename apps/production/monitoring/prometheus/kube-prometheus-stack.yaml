@@ -120,106 +120,10 @@ spec:
         prometheusOperator: true
         windows: true
 
-    # Grafana configuration
+    # Grafana - DISABLED in favor of Grafana Operator
+    # See apps/production/monitoring/grafana/ for the new Grafana deployment
     grafana:
-      enabled: true
-      admin:
-        existingSecret: grafana-admin-credentials
-        userKey: admin-user
-        passwordKey: admin-password
-
-      # Use Recreate strategy for RWO PVC
-      deploymentStrategy:
-        type: Recreate
-
-      # Sidecar configuration - use initContainer to load datasources before Grafana starts
-      sidecar:
-        datasources:
-          initDatasources: true
-
-      # Pod annotations for Reloader
-      podAnnotations:
-        configmap.reloader.stakater.com/reload: "prometheus-grafana-datasource"
-
-      # Resource limits for Grafana
-      resources:
-        requests:
-          cpu: 100m
-          memory: 256Mi
-        limits:
-          cpu: 500m
-          memory: 512Mi
-
-      # Persistence for Grafana dashboards
-      persistence:
-        enabled: true
-        storageClassName: rook-ceph-block
-        size: 10Gi
-
-      # Grafana datasources with trace-log correlation
-      prune: true
-      additionalDataSources:
-        - name: Loki
-          type: loki
-          url: http://loki.monitoring.svc.cluster.local:3100
-          access: proxy
-          isDefault: false
-          jsonData:
-            derivedFields:
-              - datasourceUid: tempo
-                matcherRegex: '"traceId":"([a-f0-9]+)"'
-                name: TraceID
-                url: "$${__value.raw}"
-        - name: Tempo
-          type: tempo
-          url: http://tempo.monitoring.svc.cluster.local:3200
-          access: proxy
-          isDefault: false
-          uid: tempo
-          jsonData:
-            tracesToLogsV2:
-              datasourceUid: loki
-              spanStartTimeShift: "-1h"
-              spanEndTimeShift: "1h"
-              filterByTraceID: true
-              filterBySpanID: false
-            tracesToMetrics:
-              datasourceUid: prometheus
-              spanStartTimeShift: "-1h"
-              spanEndTimeShift: "1h"
-            serviceMap:
-              datasourceUid: prometheus
-            nodeGraph:
-              enabled: true
-            lokiSearch:
-              datasourceUid: loki
-
-      # Grafana configuration
-      grafana.ini:
-        analytics:
-          check_for_updates: false
-        security:
-          allow_embedding: true
-        server:
-          root_url: "https://grafana.home.lewelly.com"
-        auth.generic_oauth:
-          enabled: true
-          name: Authelia
-          client_id: grafana
-          scopes: openid profile email groups
-          # auth_url is browser-side, must be external
-          auth_url: https://auth.home.lewelly.com/api/oidc/authorization
-          # token_url and api_url are server-side, use internal service
-          token_url: http://authelia.authelia.svc.cluster.local/api/oidc/token
-          api_url: http://authelia.authelia.svc.cluster.local/api/oidc/userinfo
-          login_attribute_path: preferred_username
-          groups_attribute_path: groups
-          role_attribute_path: "contains(groups[*], 'admins') && 'Admin' || 'Viewer'"
-          allow_sign_up: true
-
-      # Load OIDC secret from environment
-      envFromSecrets:
-        - name: grafana-oidc-secret
+      enabled: false
 
     # AlertManager configuration
     alertmanager:
