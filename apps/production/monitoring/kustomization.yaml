@@ -15,6 +15,9 @@ resources:
   - tempo/
   - prometheus/
 
+  # Grafana (via Grafana Operator)
+  - grafana/
+
   # Alloy for ingestion
   - alloy/
 
