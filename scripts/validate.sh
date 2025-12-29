@@ -151,6 +151,17 @@ for helm_file in $helm_release_files; do
   chart_reference="$chart_name"
   if [[ -n "$repo_name" && "$repo_name" != "null" ]]; then
     chart_reference="$repo_name/$chart_name"
+
+    # Check if repo exists
+    if ! helm repo list 2>/dev/null | grep -q "^${repo_name}[[:space:]]"; then
+      echo -e "  ${RED}✗${NC} Repository '${BOLD}$repo_name${NC}' not found"
+      echo -e "  ${YELLOW}Add it to helmfile.yaml:${NC}"
+      echo -e "    - name: $repo_name"
+      echo -e "      url: <repository-url>"
+      ((HELM_ERRORS++))
+      rm -f "$values_file"
+      continue
+    fi
   fi
 
   # Validate Helm template
