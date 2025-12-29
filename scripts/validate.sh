@@ -41,6 +41,24 @@ HELM_ERRORS=0
 KUSTOMIZE_ERRORS=0
 YAML_ERRORS=0
 
+# Colors (disabled if not a terminal or NO_COLOR is set)
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  CYAN='\033[0;36m'
+  BOLD='\033[1m'
+  NC='\033[0m' # No Color
+else
+  RED='' GREEN='' YELLOW='' BLUE='' CYAN='' BOLD='' NC=''
+fi
+
+info()    { echo -e "${BLUE}INFO${NC} - $*"; }
+success() { echo -e "${GREEN}SUCCESS${NC} - $*"; }
+warn()    { echo -e "${YELLOW}WARNING${NC} - $*"; }
+error()   { echo -e "${RED}ERROR${NC} - $*"; }
+
 # mirror kustomize-controller build options
 kustomize_flags=("--load-restrictor=LoadRestrictionsNone")
 kustomize_config="kustomization.yaml"
@@ -53,21 +71,21 @@ kubeconform_config=("-strict" "-ignore-missing-schemas" "-schema-location" "defa
 rm -rf "$RESULTS_DIR"
 mkdir -p "$HELM_TEMPLATES_DIR" "$HELM_ERRORS_DIR"
 
-echo "INFO - Downloading Flux OpenAPI schemas"
+info "Downloading Flux OpenAPI schemas"
 mkdir -p /tmp/flux-crd-schemas/master-standalone-strict
 curl -sL https://github.com/fluxcd/flux2/releases/latest/download/crd-schemas.tar.gz | tar zxf - -C /tmp/flux-crd-schemas/master-standalone-strict
 
-echo "INFO - Validating YAML syntax"
+info "Validating YAML syntax"
 find . -type f -name '*.yaml' -print0 | while IFS= read -r -d $'\0' file;
   do
-    echo "INFO - Validating $file"
+    echo -e "  ${CYAN}Validating${NC} $file"
     if ! yq e 'true' "$file" > /dev/null; then
-      echo "ERROR - YAML validation failed: $file"
+      error "YAML validation failed: $file"
       exit 1
     fi
 done
 
-echo "INFO - Validating clusters"
+info "Validating clusters"
 find ./clusters -maxdepth 2 -type f -name '*.yaml' -print0 | while IFS= read -r -d $'\0' file;
   do
     kubeconform "${kubeconform_flags[@]}" "${kubeconform_config[@]}" "${file}"
@@ -76,10 +94,10 @@ find ./clusters -maxdepth 2 -type f -name '*.yaml' -print0 | while IFS= read -r 
     fi
 done
 
-echo "INFO - Validating kustomize overlays"
+info "Validating kustomize overlays"
 find . -type f -name $kustomize_config -print0 | while IFS= read -r -d $'\0' file;
   do
-    echo "INFO - Validating kustomization ${file/%$kustomize_config}"
+    echo -e "  ${CYAN}Validating${NC} kustomization ${file/%$kustomize_config}"
     kustomize build "${file/%$kustomize_config}" "${kustomize_flags[@]}" | \
       kubeconform "${kubeconform_flags[@]}" "${kubeconform_config[@]}"
     if [[ ${PIPESTATUS[0]} != 0 ]]; then
@@ -87,17 +105,17 @@ find . -type f -name $kustomize_config -print0 | while IFS= read -r -d $'\0' fil
     fi
 done
 
-echo "INFO - Validating Helm charts"
+info "Validating Helm charts"
 
 # Add all Helm repositories from helmfile.yaml
-echo "INFO - Adding Helm repositories from helmfile.yaml"
+info "Adding Helm repositories from helmfile.yaml"
 if [[ -f "${REPO_DIR}/helmfile.yaml" ]]; then
   yq '.repositories[] | .name + " " + .url' "${REPO_DIR}/helmfile.yaml" | while read -r name url; do
     helm repo add "$name" "$url" --force-update 2>/dev/null || true
   done
   helm repo update 2>/dev/null || true
 else
-  echo "WARNING - helmfile.yaml not found, Helm validation may fail"
+  warn "helmfile.yaml not found, Helm validation may fail"
 fi
 
 # Process each HelmRelease file
@@ -116,9 +134,9 @@ for helm_file in $helm_release_files; do
     continue
   fi
 
-  echo "INFO - Processing HelmRelease: $helm_file"
-  echo "  Chart: $chart_name@$chart_version"
-  echo "  Release: $release_name (namespace: $release_namespace)"
+  echo -e "${CYAN}Processing${NC} HelmRelease: ${BOLD}$helm_file${NC}"
+  echo -e "  Chart: ${CYAN}$chart_name${NC}@$chart_version"
+  echo -e "  Release: $release_name (namespace: $release_namespace)"
 
   # Extract values section to temp file
   values_file="/tmp/helm-values-$$.yaml"
@@ -142,12 +160,12 @@ for helm_file in $helm_release_files; do
   error_file="${HELM_ERRORS_DIR}/${safe_name}.err"
 
   if helm template "$release_name" "$chart_reference" --version "$chart_version" -n "$release_namespace" -f "$values_file" > "$output_file" 2> "$error_file"; then
-    echo "  ✓ Helm template validation passed"
+    echo -e "  ${GREEN}✓${NC} Helm template validation passed"
     line_count=$(wc -l < "$output_file")
-    echo "  Generated $line_count lines of manifest"
+    echo -e "  Generated ${CYAN}$line_count${NC} lines of manifest"
     rm -f "$error_file"
   else
-    echo "  ✗ Helm template validation FAILED"
+    echo -e "  ${RED}✗${NC} Helm template validation ${RED}FAILED${NC}"
     ((HELM_ERRORS++))
   fi
 
@@ -156,20 +174,20 @@ done
 
 # Generate summary report
 {
-  echo "==============================================="
-  echo "Validation Results Summary"
-  echo "==============================================="
+  echo -e "${BOLD}===============================================${NC}"
+  echo -e "${BOLD}Validation Results Summary${NC}"
+  echo -e "${BOLD}===============================================${NC}"
   echo ""
   echo "Generated: $(date)"
   echo ""
-  echo "Helm Charts Validated: $(find "$HELM_TEMPLATES_DIR" -type f | wc -l)"
+  echo -e "Helm Charts Validated: ${CYAN}$(find "$HELM_TEMPLATES_DIR" -type f | wc -l)${NC}"
   if [[ $HELM_ERRORS -gt 0 ]]; then
-    echo "Helm Errors: $HELM_ERRORS"
+    echo -e "Helm Errors: ${RED}$HELM_ERRORS${NC}"
     echo ""
-    echo "Error Details:"
+    echo -e "${RED}Error Details:${NC}"
     find "$HELM_ERRORS_DIR" -type f -exec echo "--- {} ---" \; -exec cat {} \;
   else
-    echo "Helm Errors: 0 ✓"
+    echo -e "Helm Errors: ${GREEN}0 ✓${NC}"
   fi
   echo ""
   echo "Output Files:"
@@ -181,13 +199,12 @@ done
 } | tee "${RESULTS_DIR}/summary.txt"
 
 echo ""
-echo "INFO - Validation complete"
-echo "INFO - Results saved to: $RESULTS_DIR"
-
-# Exit with error if there were Helm failures
 if [[ $HELM_ERRORS -gt 0 ]]; then
-  echo "ERROR - $HELM_ERRORS Helm chart(s) failed validation"
+  error "$HELM_ERRORS Helm chart(s) failed validation"
   exit 1
+else
+  success "Validation complete"
+  info "Results saved to: $RESULTS_DIR"
 fi
 
 exit 0
