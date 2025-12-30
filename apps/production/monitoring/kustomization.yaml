@@ -15,8 +15,10 @@ resources:
   - tempo/
   - prometheus/
 
-  # Grafana (via Grafana Operator)
-  - grafana/
+  # NOTE: Grafana is deployed via separate Flux Kustomizations:
+  # - grafana-operator (deploys operator and CRDs)
+  # - grafana-instance (deploys Grafana CR and datasources)
+  # See clusters/production/grafana-*.yaml
 
   # Alloy for ingestion
   - alloy/
