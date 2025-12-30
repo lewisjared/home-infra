@@ -52,20 +52,10 @@ spec:
                 limits:
                   cpu: 500m
                   memory: 512Mi
-              # Load admin password from secret
-              env:
-                - name: GF_SECURITY_ADMIN_USER
-                  valueFrom:
-                    secretKeyRef:
-                      name: grafana-admin-credentials
-                      key: admin-user
-                - name: GF_SECURITY_ADMIN_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: grafana-admin-credentials
-                      key: admin-password
-              # Load OIDC client secret from secret
+              # Load admin credentials and OIDC secret from secrets
               envFrom:
+                - secretRef:
+                    name: grafana-admin-credentials
                 - secretRef:
                     name: grafana-oidc-secret
 
