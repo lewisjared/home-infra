@@ -29,8 +29,8 @@ resources:
   # Ingresses
   - ingresses/
 
-  # Grafana dashboards
-  - dashboards/
+  # NOTE: Grafana dashboards are now managed via GrafanaDashboard CRDs
+  # See apps/production/monitoring/grafana/instance/dashboards.yaml
 
   # Hubble UI (Cilium network observability)
   - hubble-ui/
