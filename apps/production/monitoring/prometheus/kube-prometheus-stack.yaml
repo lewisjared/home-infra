@@ -182,7 +182,6 @@ spec:
                 requests:
                   storage: 10Gi
 
-    # Re-enable kube-state-metrics for proper dashboard/recording rule integration
     kubeStateMetrics:
       enabled: true
 
