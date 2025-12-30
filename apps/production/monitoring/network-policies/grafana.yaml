@@ -1,5 +1,6 @@
 ---
 # Allow Grafana to access datasources (Prometheus, Loki, Tempo)
+# Note: Grafana Operator uses label 'app: grafana' instead of 'app.kubernetes.io/name: grafana'
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -15,7 +16,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: grafana
+              app: grafana
       ports:
         - protocol: TCP
           port: 9090 # Prometheus
@@ -35,7 +36,7 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: grafana
+              app: grafana
       ports:
         - protocol: TCP
           port: 3100 # Loki HTTP API
@@ -55,12 +56,13 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: grafana
+              app: grafana
       ports:
         - protocol: TCP
           port: 3200 # Tempo metrics and query frontend
 ---
 # Allow access to Grafana from ingress/gateway (for dashboards)
+# Also allows grafana-operator to communicate with Grafana for provisioning
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -69,7 +71,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: grafana
+      app: grafana
   policyTypes:
     - Ingress
   ingress:
