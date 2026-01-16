@@ -42,6 +42,8 @@ spec:
     pod:
       kind: Deployment
       replicas: 1
+      strategy:
+        type: Recreate
       resources:
         requests:
           cpu: 50m
