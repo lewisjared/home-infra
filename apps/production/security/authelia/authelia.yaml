@@ -132,7 +132,7 @@ spec:
           - domain: jellyfin.home.lewelly.com
             policy: bypass
             networks:
-              - 10.16.0.150/32
+              - 10.16.0.60/32
 
           # All protected apps - one_factor required
           # Note: *.domain matches subdomains but not apex, so both are needed
