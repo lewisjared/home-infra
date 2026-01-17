@@ -131,8 +131,8 @@ spec:
           # Jellyfin - bypass for TV (can't handle web auth flows)
           - domain: jellyfin.home.lewelly.com
             policy: bypass
-            networks:
-              - 10.16.0.60/32
+            # networks:
+            #   - 10.16.0.60/32
 
           # All protected apps - one_factor required
           # Note: *.domain matches subdomains but not apex, so both are needed
