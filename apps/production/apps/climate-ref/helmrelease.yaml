@@ -6,9 +6,9 @@ metadata:
   namespace: climate-ref
 spec:
   interval: 1h
-  url: oci://ghcr.io/climate-ref/charts
+  url: oci://ghcr.io/climate-ref/charts/ref
   ref:
-    tag: ref-0.1.0+pr-492
+    tag: 0.1.0_pr-492
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
