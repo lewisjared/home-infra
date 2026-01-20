@@ -1,0 +1,99 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: climate-ref
+  namespace: climate-ref
+spec:
+  interval: 1h
+  url: oci://ghcr.io/climate-ref/charts
+  ref:
+    tag: ref-0.1.0+pr-492
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: climate-ref
+  namespace: climate-ref
+spec:
+  releaseName: climate-ref
+  interval: 30m
+  timeout: 10m
+  chartRef:
+    kind: OCIRepository
+    name: climate-ref
+    namespace: climate-ref
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  rollback:
+    recreate: true
+    cleanupOnFail: true
+  values:
+    # Global image configuration
+    defaults:
+      image:
+        repository: ghcr.io/climate-ref/climate-ref
+        tag: pr-492
+      serviceAccount:
+        create: true
+      rbac:
+        create: true
+      podSecurityPolicy:
+        enabled: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop:
+            - ALL
+
+    # Flower (Celery monitoring UI) configuration
+    flower:
+      enabled: true
+      image:
+        repository: mher/flower
+        tag: "2.0.1"
+      replicaCount: 1
+      service:
+        type: ClusterIP
+        port: 5555
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        capabilities:
+          drop:
+            - ALL
+
+    # Dragonfly configuration (Celery broker and result backend)
+    dragonfly:
+      enabled: true
+      storage:
+        enabled: true
+
+    # Provider configurations
+    providers:
+      orchestrator: {}
+      esmvaltool: {}
+      pmp: {}
+      ilamb: {}
