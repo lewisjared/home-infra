@@ -40,7 +40,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: pr-492
+        tag: pr-492@sha256:f834a3c1dae4f3b9e68f05f3dfd457cd735911636dbe19eb64cfe97c525fa2ea
       serviceAccount:
         create: true
       podSecurityContext:
@@ -76,7 +76,7 @@ spec:
       enabled: true
       image:
         repository: mher/flower
-        tag: "2.0.1"
+        tag: "2.0.1@sha256:51c3c3db5be343e6335e3dbca5348708932bbcca992df6a39f1dad91e3b340df"
       replicaCount: 1
       service:
         type: ClusterIP
