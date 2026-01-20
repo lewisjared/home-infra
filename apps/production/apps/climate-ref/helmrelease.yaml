@@ -100,6 +100,9 @@ spec:
       enabled: true
       storage:
         enabled: true
+      extraArgs:
+        - --proactor_threads=1
+        - --maxmemory=256mb
 
     # Provider configurations
     providers:
