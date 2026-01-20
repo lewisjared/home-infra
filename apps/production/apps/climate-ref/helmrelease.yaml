@@ -55,13 +55,17 @@ spec:
         capabilities:
           drop:
             - ALL
-      # Mount writable config directory for intake-esgf, ilamb3, etc.
+      # Mount writable directories for app data and config
       volumes:
+        - name: ref-data
+          emptyDir: {}
         - name: config
           emptyDir: {}
         - name: tmp
           emptyDir: {}
       volumeMounts:
+        - name: ref-data
+          mountPath: /ref
         - name: config
           mountPath: /home/app/.config
         - name: tmp
