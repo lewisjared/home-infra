@@ -43,23 +43,29 @@ spec:
         tag: pr-492
       serviceAccount:
         create: true
-      rbac:
-        create: true
-      podSecurityPolicy:
-        enabled: true
-      securityContext:
+      podSecurityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
-      containerSecurityContext:
+        fsGroup: 1000
+      securityContext:
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
         capabilities:
           drop:
             - ALL
+      # Mount writable config directory for intake-esgf, ilamb3, etc.
+      volumes:
+        - name: config
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: config
+          mountPath: /home/app/.config
+        - name: tmp
+          mountPath: /tmp
 
     # Flower (Celery monitoring UI) configuration
     flower:
