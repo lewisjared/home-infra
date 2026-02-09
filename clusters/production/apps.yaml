@@ -17,7 +17,7 @@ spec:
     - name: core
     - name: storage
     - name: security
-    - name: database
+    - name: database-clusters
   decryption:
     provider: sops
     secretRef:
