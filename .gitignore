@@ -21,3 +21,6 @@ validation-results/
 
 # SOPS
 .decrypted*
+
+# Claude
+.claude/settings.local.json
