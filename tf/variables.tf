@@ -273,6 +273,16 @@ variable "worker_nodes" {
       ceph_mac_address = "BC:24:11:30:02:62"
       vm_id            = 212
     }
+    "talos-worker-3" = {
+      proxmox_node     = "churro"
+      ip_address       = "10.10.20.63"
+      mac_address      = "BC:24:11:20:02:63"
+      ceph_ip_address  = "10.10.30.63"
+      ceph_mac_address = "BC:24:11:30:02:63"
+      vm_id            = 213
+      cpu_cores        = 12
+      memory_mb        = 87040
+    }
   }
 }
 
@@ -301,13 +311,13 @@ variable "controlplane_disk_gb" {
 variable "worker_cpu_cores" {
   type        = number
   description = "Default CPU cores for worker nodes"
-  default     = 8
+  default     = 28
 }
 
 variable "worker_memory_mb" {
   type        = number
   description = "Default memory in MB for worker nodes"
-  default     = 16384
+  default     = 55296
 }
 
 variable "worker_disk_gb" {
