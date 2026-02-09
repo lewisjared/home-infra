@@ -21,3 +21,7 @@ spec:
       kind: Deployment
       name: traefik
       namespace: traefik
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: tuppr
+      namespace: system-upgrade

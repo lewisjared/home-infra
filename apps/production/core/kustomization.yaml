@@ -8,3 +8,4 @@ resources:
   - pull-secrets/
   - technitium-rbac/
   - reloader/
+  - tuppr/

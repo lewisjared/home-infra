@@ -27,6 +27,18 @@ locals {
 
   # Control plane specific patches
   controlplane_patches = concat(local.common_patches, [
+    # Enable Kubernetes Talos API Access for tuppr (upgrade controller)
+    yamlencode({
+      machine = {
+        features = {
+          kubernetesTalosAPIAccess = {
+            enabled                    = true
+            allowedRoles               = ["os:admin"]
+            allowedKubernetesNamespaces = ["system-upgrade"]
+          }
+        }
+      }
+    }),
     # Disable default CNI and kube-proxy for Cilium
     yamlencode({
       cluster = {
