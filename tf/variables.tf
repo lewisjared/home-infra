@@ -5,13 +5,13 @@
 variable "proxmox_endpoint" {
   type        = string
   description = "Proxmox VE API endpoint"
-  default     = "https://pve.home.lewelly.com"
+  default     = "https://10.10.10.10:8006"
 }
 
 variable "proxmox_insecure" {
   type        = bool
   description = "Skip TLS verification (use only for self-signed certs)"
-  default     = false
+  default     = true
 }
 
 variable "proxmox_ssh_user" {
