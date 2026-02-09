@@ -5,7 +5,7 @@
 variable "proxmox_endpoint" {
   type        = string
   description = "Proxmox VE API endpoint"
-  default     = "https://pve.lewelly.com"
+  default     = "https://pve.home.lewelly.com"
 }
 
 variable "proxmox_insecure" {
