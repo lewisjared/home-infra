@@ -8,7 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/ref
   ref:
-    tag: 0.1.0_pr-492
+    tag: 0.1.0_v0.9.1
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -40,7 +40,10 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: pr-492@sha256:f834a3c1dae4f3b9e68f05f3dfd457cd735911636dbe19eb64cfe97c525fa2ea
+        tag: v0.9.1
+      env:
+        - name: REF_CONFIGURATION
+          value: /ref
       serviceAccount:
         create: true
       podSecurityContext:
@@ -55,10 +58,17 @@ spec:
         capabilities:
           drop:
             - ALL
-      # Mount writable directories for app data and config
+      # Persistent NFS volumes for CMIP6 data, observations, and REF state
       volumes:
         - name: ref-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: climate-ref-state
+        - name: cmip6-data
+          persistentVolumeClaim:
+            claimName: climate-ref-cmip6
+        - name: obs-data
+          persistentVolumeClaim:
+            claimName: climate-ref-obs
         - name: config
           emptyDir: {}
         - name: tmp
@@ -66,6 +76,10 @@ spec:
       volumeMounts:
         - name: ref-data
           mountPath: /ref
+        - name: cmip6-data
+          mountPath: /data/cmip6
+        - name: obs-data
+          mountPath: /data/obs
         - name: config
           mountPath: /home/app/.config
         - name: tmp
@@ -107,6 +121,18 @@ spec:
     # Provider configurations
     providers:
       orchestrator: {}
-      esmvaltool: {}
-      pmp: {}
-      ilamb: {}
+      esmvaltool:
+        resources:
+          requests:
+            memory: 4Gi
+            cpu: "2"
+      pmp:
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: "1"
+      ilamb:
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: "1"

@@ -1,0 +1,71 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ref-ingest-solve
+  namespace: climate-ref
+spec:
+  schedule: "0 6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 14400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          containers:
+            - name: ref-ingest
+              image: ghcr.io/climate-ref/climate-ref:v0.9.1
+              command:
+                - sh
+                - -c
+                - |
+                  ref datasets ingest /data/cmip6 --source-type CMIP6 --solve
+              env:
+                - name: REF_CONFIGURATION
+                  value: /ref
+              volumeMounts:
+                - name: ref-data
+                  mountPath: /ref
+                - name: cmip6-data
+                  mountPath: /data/cmip6
+                - name: obs-data
+                  mountPath: /data/obs
+                - name: config
+                  mountPath: /home/app/.config
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  memory: 1Gi
+                  cpu: 500m
+                limits:
+                  memory: 2Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                capabilities:
+                  drop:
+                    - ALL
+          volumes:
+            - name: ref-data
+              persistentVolumeClaim:
+                claimName: climate-ref-state
+            - name: cmip6-data
+              persistentVolumeClaim:
+                claimName: climate-ref-cmip6
+            - name: obs-data
+              persistentVolumeClaim:
+                claimName: climate-ref-obs
+            - name: config
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}

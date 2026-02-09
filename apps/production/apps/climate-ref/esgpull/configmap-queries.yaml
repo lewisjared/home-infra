@@ -1,0 +1,134 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: esgpull-queries
+  namespace: climate-ref
+data:
+  setup-queries.sh: |
+    #!/bin/sh
+    set -e
+
+    echo "=== Initializing esgpull ==="
+    esgpull self install
+
+    echo "=== Configuring data path ==="
+    esgpull config api.index_node esgf-node.llnl.gov
+    esgpull config paths.data /data/cmip6
+
+    echo "=== Adding CMIP6 data queries ==="
+
+    # --- Amon: historical ---
+    esgpull add --tag amon-core-hist \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:historical \
+      variable_id:tas,pr,psl,ua,va,uas,vas,hurs,hus,ts,tauu,clt,tasmax,tasmin
+
+    esgpull add --tag amon-rad-hist \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:historical \
+      variable_id:rsut,rsutcs,rlut,rlutcs,rsdt,rsds,rsus,rlds,rlus
+
+    esgpull add --tag amon-misc-hist \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:historical \
+      variable_id:clwvi,clivi,cli,ta,hfls,hfss,fco2antt
+
+    # --- Amon: piControl ---
+    esgpull add --tag amon-picontrol \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:piControl \
+      variable_id:rlut,rsdt,rsut,tas
+
+    # --- Amon: idealized CO2 experiments ---
+    esgpull add --tag amon-4xco2 \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:abrupt-4xCO2 \
+      variable_id:rlut,rsdt,rsut,tas
+
+    esgpull add --tag amon-1pctco2 \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:1pctCO2 \
+      variable_id:tas
+
+    esgpull add --tag amon-esm1pct \
+      project:CMIP6 mip_era:CMIP6 activity_id:C4MIP \
+      table_id:Amon experiment_id:esm-1pctCO2 \
+      variable_id:tas,fco2antt
+
+    esgpull add --tag amon-esmpi \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:esm-piControl \
+      variable_id:tas
+
+    esgpull add --tag amon-zec \
+      project:CMIP6 mip_era:CMIP6 activity_id:CDRMIP \
+      table_id:Amon experiment_id:esm-1pct-brch-1000PgC \
+      variable_id:tas
+
+    # --- Amon: SSP scenarios ---
+    esgpull add --tag amon-ssp \
+      project:CMIP6 mip_era:CMIP6 activity_id:ScenarioMIP \
+      table_id:Amon experiment_id:ssp126,ssp245,ssp370,ssp585 \
+      variable_id:pr,tas
+
+    # --- Amon: AMIP ---
+    esgpull add --tag amon-amip \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Amon experiment_id:amip \
+      variable_id:tas,pr,psl,ts,uas,vas,rsut,rsdt,rsds,rsus,rlut,rlds,rlus,ta,ua,va,zg
+
+    # --- Amon: hist-GHG ---
+    esgpull add --tag amon-histghg \
+      project:CMIP6 mip_era:CMIP6 activity_id:DAMIP \
+      table_id:Amon experiment_id:hist-GHG \
+      variable_id:tas,pr,psl,ts,uas,vas,rsut,rsdt,rsds,rsus,rlut,rlds,rlus,ta,ua,va,zg
+
+    # --- Ocean monthly ---
+    esgpull add --tag omon-hist \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Omon experiment_id:historical \
+      variable_id:tos,thetao,so,sos,msftmz
+
+    # --- Sea ice monthly ---
+    esgpull add --tag simon-hist \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:SImon experiment_id:historical \
+      variable_id:siconc
+
+    # --- Land monthly ---
+    esgpull add --tag lmon-hist \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP,LS3MIP \
+      table_id:Lmon experiment_id:historical,land-hist \
+      variable_id:cVeg,treeFrac,gpp,lai,nbp
+
+    esgpull add --tag lmon-land \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP,LS3MIP \
+      table_id:Lmon experiment_id:historical,land-hist \
+      variable_id:mrro,mrsos,mrsol,cSoil,snc,burntFractionAll
+
+    # --- Extra land variables (Emon) ---
+    esgpull add --tag emon-hist \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP,LS3MIP \
+      table_id:Emon experiment_id:historical,land-hist \
+      variable_id:vegFrac,burntArea
+
+    # --- Fixed fields (fx) ---
+    esgpull add --tag fx-atm \
+      project:CMIP6 mip_era:CMIP6 \
+      table_id:fx \
+      variable_id:areacella,sftlf
+
+    esgpull add --tag fx-ocean \
+      project:CMIP6 mip_era:CMIP6 \
+      table_id:Ofx \
+      variable_id:areacello,sftof,volcello
+
+    # --- Ocean yearly ---
+    esgpull add --tag oyr-ohc \
+      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
+      table_id:Oyr experiment_id:historical \
+      variable_id:ohc
+
+    echo "=== All queries added ==="
+    esgpull search --all

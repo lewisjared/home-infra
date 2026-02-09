@@ -6,3 +6,6 @@ resources:
   - helmrelease.yaml
   - httproute.yaml
   - middleware.yaml
+  - pvc/
+  - esgpull/
+  - jobs/

@@ -1,0 +1,93 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: esgpull-sync
+  namespace: climate-ref
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 86400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          initContainers:
+            - name: install-esgpull
+              image: python:3.11-slim
+              command:
+                - sh
+                - -c
+                - pip install --no-cache-dir esgpull -t /tools/lib && cp -r /tools/lib/bin/* /tools/bin/ || true
+              volumeMounts:
+                - name: tools
+                  mountPath: /tools
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop:
+                    - ALL
+          containers:
+            - name: esgpull
+              image: python:3.11-slim
+              command:
+                - sh
+                - -c
+                - |
+                  export PYTHONPATH=/tools/lib:$PYTHONPATH
+                  export PATH=/tools/bin:/tools/lib/bin:$PATH
+                  export ESGPULL_HOME=/esgpull
+
+                  echo "=== esgpull update ==="
+                  esgpull update --all
+
+                  echo "=== esgpull download ==="
+                  esgpull download --all
+              env:
+                - name: ESGPULL_HOME
+                  value: /esgpull
+              volumeMounts:
+                - name: cmip6-data
+                  mountPath: /data/cmip6
+                - name: esgpull-data
+                  mountPath: /esgpull
+                - name: tools
+                  mountPath: /tools
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  memory: 512Mi
+                  cpu: 250m
+                limits:
+                  memory: 1Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop:
+                    - ALL
+          volumes:
+            - name: cmip6-data
+              persistentVolumeClaim:
+                claimName: climate-ref-cmip6
+            - name: esgpull-data
+              persistentVolumeClaim:
+                claimName: climate-ref-esgpull
+            - name: tools
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}
