@@ -118,6 +118,16 @@ else
   warn "helmfile.yaml not found, Helm validation may fail"
 fi
 
+# Build a map of OCI HelmRepository names to their URLs
+declare -A OCI_REPOS
+while IFS= read -r -d '' yaml_file; do
+  while IFS='=' read -r name url; do
+    if [[ -n "$name" && "$name" != "null" && -n "$url" && "$url" != "null" ]]; then
+      OCI_REPOS["$name"]="$url"
+    fi
+  done < <(yq -r 'select(.kind == "HelmRepository" and .spec.type == "oci") | .metadata.name + "=" + .spec.url' "$yaml_file" 2>/dev/null)
+done < <(find . -type f -name '*.yaml' -print0)
+
 # Process each HelmRelease file
 helm_release_files=$(find . -type f -name '*.yaml' -exec grep -l "kind: HelmRelease" {} \;)
 
@@ -150,17 +160,23 @@ for helm_file in $helm_release_files; do
   # Construct full chart reference
   chart_reference="$chart_name"
   if [[ -n "$repo_name" && "$repo_name" != "null" ]]; then
-    chart_reference="$repo_name/$chart_name"
+    # Check if this is an OCI repository
+    if [[ -n "${OCI_REPOS[$repo_name]:-}" ]]; then
+      chart_reference="${OCI_REPOS[$repo_name]}/$chart_name"
+      echo -e "  Using OCI reference: ${CYAN}$chart_reference${NC}"
+    else
+      chart_reference="$repo_name/$chart_name"
 
-    # Check if repo exists
-    if ! helm repo list 2>/dev/null | grep -q "^${repo_name}[[:space:]]"; then
-      echo -e "  ${RED}✗${NC} Repository '${BOLD}$repo_name${NC}' not found"
-      echo -e "  ${YELLOW}Add it to helmfile.yaml:${NC}"
-      echo -e "    - name: $repo_name"
-      echo -e "      url: <repository-url>"
-      ((HELM_ERRORS++))
-      rm -f "$values_file"
-      continue
+      # Check if repo exists
+      if ! helm repo list 2>/dev/null | grep -q "^${repo_name}[[:space:]]"; then
+        echo -e "  ${RED}✗${NC} Repository '${BOLD}$repo_name${NC}' not found"
+        echo -e "  ${YELLOW}Add it to helmfile.yaml:${NC}"
+        echo -e "    - name: $repo_name"
+        echo -e "      url: <repository-url>"
+        ((HELM_ERRORS++))
+        rm -f "$values_file"
+        continue
+      fi
     fi
   fi
 

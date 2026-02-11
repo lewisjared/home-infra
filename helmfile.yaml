@@ -3,6 +3,8 @@
 # Keep this in sync with HelmRepository resources in apps/production/
 
 repositories:
+  - name: cloudnative-pg
+    url: https://cloudnative-pg.github.io/charts
   - name: authelia
     url: https://charts.authelia.com
   - name: external-dns

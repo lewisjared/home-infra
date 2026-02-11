@@ -8,7 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/ref
   ref:
-    tag: 0.1.0_v0.9.1
+    tag: 0.10.0
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -40,10 +40,9 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: v0.9.1
+        tag: v0.10.0
       env:
-        - name: REF_CONFIGURATION
-          value: /ref
+        REF_CONFIGURATION: /ref
       serviceAccount:
         create: true
       podSecurityContext:
