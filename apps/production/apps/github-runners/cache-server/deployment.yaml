@@ -29,7 +29,7 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
-            - name: URL_BASE
+            - name: API_BASE_URL
               value: http://actions-cache-server.github-runners.svc.cluster.local:8080
             - name: STORAGE_DRIVER
               value: filesystem
