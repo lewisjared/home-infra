@@ -26,11 +26,11 @@ spec:
           image: ghcr.io/falcondev-oss/github-actions-cache-server:latest
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 3000
               protocol: TCP
           env:
             - name: API_BASE_URL
-              value: http://actions-cache-server.github-runners.svc.cluster.local:8080
+              value: http://actions-cache-server.github-runners.svc.cluster.local:3000
             - name: STORAGE_DRIVER
               value: filesystem
             - name: STORAGE_PATH
@@ -40,6 +40,8 @@ spec:
           volumeMounts:
             - name: cache
               mountPath: /data
+            - name: app-data
+              mountPath: /app/.data
           livenessProbe:
             httpGet:
               path: /health
@@ -68,3 +70,5 @@ spec:
         - name: cache
           persistentVolumeClaim:
             claimName: github-runners-cache
+        - name: app-data
+          emptyDir: {}

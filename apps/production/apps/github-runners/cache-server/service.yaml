@@ -11,6 +11,6 @@ spec:
     app.kubernetes.io/name: actions-cache-server
   ports:
     - name: http
-      port: 8080
+      port: 3000
       targetPort: http
       protocol: TCP

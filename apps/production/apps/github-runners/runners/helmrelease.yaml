@@ -57,7 +57,7 @@ spec:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
               - name: ACTIONS_CACHE_URL
-                value: http://actions-cache-server.github-runners.svc.cluster.local:8080/
+                value: http://actions-cache-server.github-runners.svc.cluster.local:3000/
         volumes:
           - name: cmip6-data
             persistentVolumeClaim:
