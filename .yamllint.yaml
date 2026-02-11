@@ -27,3 +27,4 @@ ignore: |
   kubeconfig
   tf/manifests/cilium/cilium-install.yaml
   clusters/production/flux-system
+  apps/production/apps/github-runners/secret.yaml

@@ -6,4 +6,5 @@ resources:
   - podinfo/
   - media/
   - climate-ref/
+  - github-runners/
   # Disabled apps in ./disabled/ directory

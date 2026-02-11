@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actions-cache-server
+  namespace: github-runners
+  labels:
+    app.kubernetes.io/name: actions-cache-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: actions-cache-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: actions-cache-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: cache-server
+          image: ghcr.io/falcondev-oss/github-actions-cache-server:latest
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: URL_BASE
+              value: http://actions-cache-server.github-runners.svc.cluster.local:8080
+            - name: STORAGE_DRIVER
+              value: filesystem
+            - name: STORAGE_PATH
+              value: /data
+            - name: CLEANUP_OLDER_THAN
+              value: "7d"
+          volumeMounts:
+            - name: cache
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: github-runners-cache

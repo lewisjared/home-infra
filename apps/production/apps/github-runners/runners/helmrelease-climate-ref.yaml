@@ -1,0 +1,57 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: arc-runner-scale-set
+  namespace: github-runners
+spec:
+  interval: 1h
+  url: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+  ref:
+    tag: 0.10.1
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: arc-climate-ref
+  namespace: github-runners
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: arc-runner-scale-set
+    namespace: github-runners
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  values:
+    githubConfigUrl: https://github.com/Climate-REF/climate-ref
+    githubConfigSecret: github-app-secret
+    minRunners: 0
+    maxRunners: 4
+    containerMode:
+      type: dind
+    template:
+      spec:
+        containers:
+          - name: runner
+            image: ghcr.io/actions/actions-runner:latest
+            command: ["/home/runner/run.sh"]
+            volumeMounts:
+              - name: cmip6-data
+                mountPath: /data/cmip6
+            env:
+              - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
+                value: "false"
+              - name: ACTIONS_CACHE_URL
+                value: http://actions-cache-server.github-runners.svc.cluster.local:8080/
+        volumes:
+          - name: cmip6-data
+            persistentVolumeClaim:
+              claimName: github-runners-cmip6
