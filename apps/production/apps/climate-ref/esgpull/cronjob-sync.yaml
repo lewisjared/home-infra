@@ -20,13 +20,15 @@ spec:
             runAsUser: 1000
             runAsGroup: 1000
             fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
           initContainers:
             - name: install-esgpull
               image: python:3.11-slim
               command:
                 - sh
                 - -c
-                - pip install --no-cache-dir esgpull -t /tools/lib && cp -r /tools/lib/bin/* /tools/bin/ || true
+                - mkdir -p /tools/bin && pip install --no-cache-dir esgpull -t /tools/lib && cp -r /tools/lib/bin/* /tools/bin/
               volumeMounts:
                 - name: tools
                   mountPath: /tools
@@ -45,17 +47,29 @@ spec:
                 - sh
                 - -c
                 - |
+                  set -e
                   export PYTHONPATH=/tools/lib:$PYTHONPATH
                   export PATH=/tools/bin:/tools/lib/bin:$PATH
-                  export ESGPULL_HOME=/esgpull
+                  export ESGPULL_INSTALLS_PATH=/esgpull
+
+                  # Initialize esgpull and add queries on first run
+                  if [ ! -f /esgpull/installs.json ]; then
+                    echo "=== initializing esgpull ==="
+                    esgpull self install /esgpull/data
+                    echo "=== adding queries ==="
+                    sh /scripts/setup-queries.sh
+                  fi
+
+                  # Ensure index node is up to date
+                  esgpull config api.index_node esgf-data.dkrz.de
 
                   echo "=== esgpull update ==="
-                  esgpull update --all
+                  yes y | esgpull update --yes
 
                   echo "=== esgpull download ==="
-                  esgpull download --all
+                  esgpull download
               env:
-                - name: ESGPULL_HOME
+                - name: ESGPULL_INSTALLS_PATH
                   value: /esgpull
               volumeMounts:
                 - name: cmip6-data
@@ -66,12 +80,14 @@ spec:
                   mountPath: /tools
                 - name: tmp
                   mountPath: /tmp
+                - name: scripts
+                  mountPath: /scripts
               resources:
                 requests:
-                  memory: 512Mi
+                  memory: 1Gi
                   cpu: 250m
                 limits:
-                  memory: 1Gi
+                  memory: 4Gi
               securityContext:
                 allowPrivilegeEscalation: false
                 runAsNonRoot: true
@@ -91,3 +107,7 @@ spec:
               emptyDir: {}
             - name: tmp
               emptyDir: {}
+            - name: scripts
+              configMap:
+                name: esgpull-queries
+                defaultMode: 0755
