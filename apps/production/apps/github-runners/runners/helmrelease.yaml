@@ -51,12 +51,21 @@ spec:
             volumeMounts:
               - name: cmip6-data
                 mountPath: /data/cmip6
+              - name: runner-cache
+                mountPath: /data/cache
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
               - name: ACTIONS_CACHE_URL
                 value: http://actions-cache-server.github-runners.svc.cluster.local:3000/
+              - name: REF_DATASET_CACHE_DIR
+                value: /data/cache/datasets
+              - name: REF_SOFTWARE_ROOT
+                value: /data/cache/software
         volumes:
           - name: cmip6-data
             persistentVolumeClaim:
               claimName: github-runners-cmip6
+          - name: runner-cache
+            persistentVolumeClaim:
+              claimName: github-runners-cache
