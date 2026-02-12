@@ -44,6 +44,13 @@ spec:
       namespace: arc-system
     template:
       spec:
+        initContainers:
+          - name: setup-cache-dirs
+            image: busybox:latest
+            command: ["sh", "-c", "mkdir -p /data/cache/datasets /data/cache/software && chmod 777 /data/cache/datasets /data/cache/software"]
+            volumeMounts:
+              - name: runner-cache
+                mountPath: /data/cache
         containers:
           - name: runner
             image: ghcr.io/actions/actions-runner:latest
