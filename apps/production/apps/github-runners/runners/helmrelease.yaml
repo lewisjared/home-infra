@@ -47,6 +47,8 @@ spec:
         initContainers:
           - name: setup-cache-dirs
             image: busybox:latest
+            securityContext:
+              runAsUser: 0
             command: ["sh", "-c", "mkdir -p /data/cache/datasets /data/cache/software && chmod 777 /data/cache/datasets /data/cache/software"]
             volumeMounts:
               - name: runner-cache
