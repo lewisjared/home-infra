@@ -42,8 +42,6 @@ spec:
     controllerServiceAccount:
       name: arc-controller-gha-rs-controller
       namespace: arc-system
-    containerMode:
-      type: dind
     template:
       spec:
         containers:
