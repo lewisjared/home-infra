@@ -107,6 +107,8 @@ spec:
         capabilities:
           drop:
             - ALL
+      env:
+        CELERY_ACCEPT_CONTENT: "json,pickle"
 
     # Dragonfly configuration (Celery broker and result backend)
     dragonfly:
