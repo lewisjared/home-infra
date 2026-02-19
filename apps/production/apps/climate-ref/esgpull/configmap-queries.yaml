@@ -2,130 +2,341 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: esgpull-queries
+  name: esgf-fetch-scripts
   namespace: climate-ref
 data:
-  setup-queries.sh: |
+  run-fetch.sh: |
     #!/bin/sh
     set -e
 
-    echo "=== Configuring esgpull ==="
-    esgpull config api.index_node esgf-data.dkrz.de
-    esgpull config paths.data /data/cmip6
+    export HOME=/tmp
+    export PYTHONPATH=/tools/lib:$PYTHONPATH
+    export PATH=/tools/bin:/tools/lib/bin:$PATH
 
-    echo "=== Adding CMIP6 data queries ==="
+    # Configure intake-esgf to download into the CMIP6 NFS volume
+    mkdir -p /tmp/.config/intake-esgf
+    cat > /tmp/.config/intake-esgf/conf.yaml <<CONF
+    local_cache:
+      - /data/cmip6
+    confirm_download: false
+    break_on_error: false
+    num_threads: 6
+    CONF
 
-    # --- Amon: historical ---
-    esgpull add --track --tag amon-core-hist \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:historical \
-      variable_id:tas,pr,psl,ua,va,uas,vas,hurs,hus,ts,tauu,clt,tasmax,tasmin
+    echo "=== intake-esgf configuration ==="
+    cat /tmp/.config/intake-esgf/conf.yaml
 
-    esgpull add --track --tag amon-rad-hist \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:historical \
-      variable_id:rsut,rsutcs,rlut,rlutcs,rsdt,rsds,rsus,rlds,rlus
+    echo "=== fetching ESGF datasets ==="
+    python /scripts/fetch-esgf.py
 
-    esgpull add --track --tag amon-misc-hist \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:historical \
-      variable_id:clwvi,clivi,cli,ta,hfls,hfss,fco2antt
+    echo "=== fetch complete ==="
 
-    # --- Amon: piControl ---
-    esgpull add --track --tag amon-picontrol \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:piControl \
-      variable_id:rlut,rsdt,rsut,tas
+  fetch-esgf.py: |
+    """
+    CLI tool for fetching the required CMIP6 and Obs4MIPs datasets from ESGF.
 
-    # --- Amon: idealized CO2 experiments ---
-    esgpull add --track --tag amon-4xco2 \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:abrupt-4xCO2 \
-      variable_id:rlut,rsdt,rsut,tas
+    This script can either run all predefined requests or a specific request by ID.
+    By default, only one ensemble member per model is fetched to reduce the total
+    data volume. This can be changed with the --no-remove-ensembles flag.
 
-    esgpull add --track --tag amon-1pctco2 \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:1pctCO2 \
-      variable_id:tas
+    This fetches about 3TB of datasets into the default location for intake esgf.
+    This can be adjusted via `~/.config/intake-esgf/config.yaml`.
 
-    esgpull add --track --tag amon-esm1pct \
-      project:CMIP6 mip_era:CMIP6 activity_id:C4MIP \
-      table_id:Amon experiment_id:esm-1pctCO2 \
-      variable_id:tas,fco2antt
+    Source: https://github.com/Climate-REF/climate-ref/blob/main/scripts/fetch-esgf.py
+    """
 
-    esgpull add --track --tag amon-esmpi \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:esm-piControl \
-      variable_id:tas
+    import intake_esgf
+    import typer
+    from attrs import define
+    from loguru import logger
 
-    esgpull add --track --tag amon-zec \
-      project:CMIP6 mip_era:CMIP6 activity_id:CDRMIP \
-      table_id:Amon experiment_id:esm-1pct-brch-1000PgC \
-      variable_id:tas
 
-    # --- Amon: SSP scenarios ---
-    esgpull add --track --tag amon-ssp \
-      project:CMIP6 mip_era:CMIP6 activity_id:ScenarioMIP \
-      table_id:Amon experiment_id:ssp126,ssp245,ssp370,ssp585 \
-      variable_id:pr,tas
+    @define
+    class CMIP6Request:
+        """
+        A set of CMIP6 data that will be fetched from ESGF
+        """
 
-    # --- Amon: AMIP ---
-    esgpull add --track --tag amon-amip \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Amon experiment_id:amip \
-      variable_id:tas,pr,psl,ts,uas,vas,rsut,rsdt,rsds,rsus,rlut,rlds,rlus,ta,ua,va,zg
+        id: str
+        facets: dict[str, str | tuple[str, ...] | list[str]]
 
-    # --- Amon: hist-GHG ---
-    esgpull add --track --tag amon-histghg \
-      project:CMIP6 mip_era:CMIP6 activity_id:DAMIP \
-      table_id:Amon experiment_id:hist-GHG \
-      variable_id:tas,pr,psl,ts,uas,vas,rsut,rsdt,rsds,rsus,rlut,rlds,rlus,ta,ua,va,zg
+        def fetch(self, remove_ensembles: bool = True):
+            catalog = intake_esgf.ESGFCatalog()
+            search_parameters = {
+                "project": "CMIP6",
+                "frequency": ["mon", "fx"],
+                **self.facets,
+            }
+            logger.debug(f"Fetching CMIP6 data: {search_parameters}")
+            try:
+                cmip6_data = catalog.search(**search_parameters)
+                if remove_ensembles:
+                    cmip6_data = cmip6_data.remove_ensembles()
+                return cmip6_data.to_path_dict()
+            except Exception:
+                logger.info(f"Error fetching CMIP6 data: {search_parameters}")
+            return {}
 
-    # --- Ocean monthly ---
-    esgpull add --track --tag omon-hist \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Omon experiment_id:historical \
-      variable_id:tos,thetao,so,sos,msftmz
 
-    # --- Sea ice monthly ---
-    esgpull add --track --tag simon-hist \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:SImon experiment_id:historical \
-      variable_id:siconc
+    @define
+    class Obs4MIPsRequest:
+        """
+        A set of Obs4MIPs data that will be fetched from ESGF
+        """
 
-    # --- Land monthly ---
-    esgpull add --track --tag lmon-hist \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP,LS3MIP \
-      table_id:Lmon experiment_id:historical,land-hist \
-      variable_id:cVeg,treeFrac,gpp,lai,nbp
+        id: str
+        facets: dict[str, str | tuple[str, ...] | list[str]]
 
-    esgpull add --track --tag lmon-land \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP,LS3MIP \
-      table_id:Lmon experiment_id:historical,land-hist \
-      variable_id:mrro,mrsos,mrsol,cSoil,snc,burntFractionAll
+        def fetch(self, remove_ensembles: bool = True):
+            catalog = intake_esgf.ESGFCatalog()
+            search_parameters = {
+                "project": "obs4MIPs",
+                "frequency": ["mon", "fx"],
+                **self.facets,
+            }
+            logger.info(f"Fetching Obs4MIPs data: {search_parameters}")
+            try:
+                obs_data = catalog.search(**search_parameters)
+                return obs_data.to_path_dict(minimal_keys=False)
+            except Exception:
+                logger.exception(f"Error fetching Obs4MIPs data: {search_parameters}")
+            return {}
 
-    # --- Extra land variables (Emon) ---
-    esgpull add --track --tag emon-hist \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP,LS3MIP \
-      table_id:Emon experiment_id:historical,land-hist \
-      variable_id:vegFrac,burntArea
 
-    # --- Fixed fields (fx) ---
-    esgpull add --track --tag fx-atm \
-      project:CMIP6 mip_era:CMIP6 \
-      table_id:fx \
-      variable_id:areacella,sftlf
+    Request = CMIP6Request | Obs4MIPsRequest
 
-    esgpull add --track --tag fx-ocean \
-      project:CMIP6 mip_era:CMIP6 \
-      table_id:Ofx \
-      variable_id:areacello,sftof,volcello
+    requests: list[Request] = [
+        CMIP6Request(
+            id="esmvaltool-climate-at-global-warmings-levels",
+            facets=dict(
+                variable_id=["pr", "tas"],
+                experiment_id=["ssp126", "ssp245", "ssp370", "ssp585", "historical"],
+                table_id="Amon",
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-cloud-radiative-effects",
+            facets=dict(
+                variable_id=["rlut", "rlutcs", "rsut", "rsutcs"],
+                experiment_id="historical",
+                table_id="Amon",
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-cloud-scatterplots-cmip6",
+            facets=dict(
+                variable_id=[
+                    "areacella",
+                    "cli",
+                    "clivi",
+                    "clt",
+                    "clwvi",
+                    "pr",
+                    "rlut",
+                    "rlutcs",
+                    "rsut",
+                    "rsutcs",
+                    "ta",
+                ],
+                experiment_id="historical",
+                table_id="Amon",
+            ),
+        ),
+        Obs4MIPsRequest(
+            id="esmvaltool-cloud-scatterplots-obs4mips",
+            facets=dict(
+                source_id="ERA-5",
+                variable_id="ta",
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-ecs",
+            facets=dict(
+                variable_id=["rlut", "rsdt", "rsut", "tas"],
+                experiment_id=["abrupt-4xCO2", "piControl"],
+                table_id="Amon",
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-enso",
+            facets=dict(
+                variable_id=["pr", "tos", "tauu"],
+                experiment_id=["historical"],
+                table_id=("Amon", "Omon"),
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-fire",
+            facets=dict(
+                variable_id=[
+                    "cVeg",
+                    "hurs",
+                    "pr",
+                    "sftlf",
+                    "tas",
+                    "tasmax",
+                    "treeFrac",
+                    "vegFrac",
+                ],
+                experiment_id=["historical"],
+                table_id=("Amon", "Emon", "Lmon"),
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-historical-cmip6",
+            facets=dict(
+                variable_id=["hus", "pr", "psl", "tas", "ua"],
+                experiment_id=["historical"],
+                table_id="Amon",
+            ),
+        ),
+        Obs4MIPsRequest(
+            id="esmvaltool-historical-obs4mips",
+            facets=dict(
+                source_id="ERA-5",
+                variable_id=["psl", "tas", "ua"],
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-tcr",
+            facets=dict(
+                variable_id=["tas"],
+                experiment_id=["1pctCO2", "piControl"],
+                table_id="Amon",
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-tcre",
+            facets=dict(
+                variable_id=["fco2antt", "tas"],
+                experiment_id=["esm-1pctCO2", "esm-piControl"],
+                table_id="Amon",
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-zec",
+            facets=dict(
+                variable_id=["areacella", "tas"],
+                experiment_id=["1pctCO2", "esm-1pct-brch-1000PgC"],
+                table_id="Amon",
+            ),
+        ),
+        CMIP6Request(
+            id="esmvaltool-sea-ice-area-seasonal-cycle",
+            facets=dict(
+                variable_id=["areacello", "siconc"],
+                experiment_id=["historical"],
+            ),
+        ),
+        CMIP6Request(
+            id="ilamb-data",
+            facets=dict(
+                variable_id=[
+                    "areacella",
+                    "sftlf",
+                    "gpp",
+                    "pr",
+                    "tas",
+                    "mrro",
+                    "mrsos",
+                    "cSoil",
+                    "lai",
+                    "areacella",
+                    "burntFractionAll",
+                    "snc",
+                    "nbp",
+                ],
+                experiment_id=["historical"],
+            ),
+        ),
+        CMIP6Request(
+            id="iomb-data",
+            facets=dict(
+                variable_id=["areacello", "tos"],
+                experiment_id=["historical"],
+            ),
+        ),
+        CMIP6Request(
+            id="iomb-data-2",
+            facets=dict(
+                variable_id=["sftof", "sos", "msftmz"],
+                experiment_id=["historical"],
+            ),
+        ),
+        CMIP6Request(
+            id="iomb-data-large",
+            facets=dict(
+                variable_id=["volcello", "thetao"],
+                experiment_id=["historical"],
+                source_id=[
+                    "AWI-ESM-1-1-LR",
+                    "CAMS-CSM1-0",
+                    "TaiESM1",
+                    "CanESM5",
+                    "CanESM5-1",
+                    "CanESM5-CanOE",
+                    "FGOALS-g3",
+                    "FGOALS-f3-L",
+                    "CAS-ESM2-0",
+                    "BCC-ESM1",
+                    "BCC-CSM2-MR",
+                ],
+            ),
+        ),
+        CMIP6Request(
+            id="pmp-modes-of-variability",
+            facets=dict(
+                variable_id=["areacella", "ts", "psl"],
+                experiment_id=["historical", "hist-GHG"],
+                table_id="Amon",
+            ),
+        ),
+    ]
 
-    # --- Ocean yearly ---
-    esgpull add --track --tag oyr-ohc \
-      project:CMIP6 mip_era:CMIP6 activity_id:CMIP \
-      table_id:Oyr experiment_id:historical \
-      variable_id:ohc
 
-    echo "=== All queries added ==="
-    esgpull search --all
+    def run_request(request: Request, remove_ensembles: bool = True):
+        print(f"Processing request: {request.id}")
+        df = request.fetch(remove_ensembles=remove_ensembles)
+        print(f"{len(df)} datasets")
+        print("\n")
+
+
+    def main(
+        request_id: str = typer.Option(
+            None,
+            help="ID of a specific request to run. If not provided, all requests will be run.",
+        ),
+        remove_ensembles: bool = typer.Option(
+            True,
+            help=(
+                "Remove ensemble members, keeping only one per model. "
+                "Use --no-remove-ensembles to fetch all ensembles."
+            ),
+        ),
+    ):
+        """
+        Fetch CMIP6 datasets from ESGF.
+        """
+        if request_id:
+            matching_requests = [req for req in requests if req.id == request_id]
+            if not matching_requests:
+                logger.info(f"Error: No request found with ID '{request_id}'")
+                logger.info("Available request IDs:")
+                for req in requests:
+                    logger.info(f"  - {req.id}")
+                raise typer.Exit(1)
+
+            logger.info(f"Running single request: {request_id}")
+            if not remove_ensembles:
+                logger.info("Fetching all ensemble members")
+            run_request(matching_requests[0], remove_ensembles=remove_ensembles)
+        else:
+            logger.info("Running all requests...")
+            if not remove_ensembles:
+                logger.info("Fetching all ensemble members")
+            for request in requests:
+                run_request(request, remove_ensembles=remove_ensembles)
+
+
+    if __name__ == "__main__":
+        typer.run(main)

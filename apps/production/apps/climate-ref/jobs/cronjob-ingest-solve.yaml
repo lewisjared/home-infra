@@ -22,7 +22,7 @@ spec:
             fsGroup: 1000
           containers:
             - name: ref-ingest
-              image: ghcr.io/climate-ref/climate-ref:v0.9.1
+              image: ghcr.io/climate-ref/climate-ref:v0.10.0
               command:
                 - sh
                 - -c
