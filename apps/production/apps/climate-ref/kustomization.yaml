@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: climate-ref
 resources:
   - namespace.yaml
+  - flower-configmap.yaml
   - helmrelease.yaml
   - httproute.yaml
   - middleware.yaml
