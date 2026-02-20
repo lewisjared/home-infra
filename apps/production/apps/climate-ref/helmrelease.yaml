@@ -40,7 +40,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: main
+        tag: 0.10.0_e2f67ef
       env:
         REF_CONFIGURATION: /ref
       serviceAccount:
@@ -108,7 +108,6 @@ spec:
           drop:
             - ALL
       env: {}
-
 
     # Dragonfly configuration (Celery broker and result backend)
     dragonfly:
