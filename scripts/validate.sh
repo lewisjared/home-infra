@@ -129,7 +129,7 @@ while IFS= read -r -d '' yaml_file; do
 done < <(find . -type f -name '*.yaml' -print0)
 
 # Process each HelmRelease file
-helm_release_files=$(find . -type f -name '*.yaml' -exec grep -l "kind: HelmRelease" {} \;)
+helm_release_files=$(find . -type f -name '*.yaml' -not -path '*/disabled/*' -exec grep -l "kind: HelmRelease" {} \;)
 
 for helm_file in $helm_release_files; do
   # Extract values only from HelmRelease documents (skip HelmRepository, etc.)
