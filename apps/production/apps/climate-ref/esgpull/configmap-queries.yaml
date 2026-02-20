@@ -20,7 +20,7 @@ data:
       - /data/cmip6
     confirm_download: false
     break_on_error: false
-    num_threads: 6
+    num_threads: 20
     CONF
 
     echo "=== intake-esgf configuration ==="
