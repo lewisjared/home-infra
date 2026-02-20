@@ -54,31 +54,6 @@ mkdir -p /mnt/tank/climate-ref/{cmip6,obs,state}
 chown -R 1000:1000 /mnt/tank/climate-ref/
 ```
 
-Ensure the NFS export allows read/write from the cluster nodes:
-
-```bash
-# /etc/exports (example)
-/mnt/tank/climate-ref 10.10.20.0/24(rw,sync,no_subtree_check,no_root_squash)
-```
-
-## Deployment
-
-Push to the Git repo. Flux reconciles automatically:
-
-```bash
-git add apps/production/apps/climate-ref/
-git commit -m "climate-ref: add NFS storage, esgpull sync, and ingest jobs"
-git push
-```
-
-Verify reconciliation:
-
-```bash
-flux get kustomization apps
-kubectl -n climate-ref get pvc
-kubectl -n climate-ref get pods
-```
-
 ## Initial Setup (One-Time)
 
 ### 1. Verify PVCs are bound
@@ -98,9 +73,10 @@ kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref config list
 
 ```bash
 # Set up all providers (creates conda environments, fetches reference data)
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --skip-data --skip-validate
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup
 
 # Set up individual providers if needed
+# This should be done after an update to retrigger downloading data
 kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --provider pmp
 kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --provider ilamb
 
@@ -109,6 +85,8 @@ kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers lis
 ```
 
 ### 4. Trigger first ESGF data fetch
+
+This is only needed to update the local cache of CMIP6/obs4MIPs data
 
 ```bash
 kubectl -n climate-ref create job --from=cronjob/esgf-fetch manual-fetch-$(date +%s)
@@ -183,11 +161,11 @@ ssh 10.10.20.20 du -sh /mnt/tank/climate-ref/*
 
 ## Data Volume Estimates
 
-| Volume  | Estimated Size | Contents                                         |
-|---------|----------------|--------------------------------------------------|
-| cmip6   | 1-5 TB         | Full CMIP6 ensemble (all models, all members)    |
-| obs     | 10-50 GB       | Observation and reference datasets               |
-| state   | 5-20 GB        | SQLite DB, conda environments, diagnostic results|
+| Volume | Estimated Size | Contents                                             |
+| ------ | -------------- | ---------------------------------------------------- |
+| cmip6  | 1-5 TB         | Full CMIP6 ensemble (all models, single realisation) |
+| obs    | 10-50 GB       | Observation and reference datasets                   |
+| state  | 5-20 GB        | SQLite DB, conda environments, diagnostic results    |
 
 ## CronJob Schedule
 
@@ -234,17 +212,3 @@ SQLite on NFS can have locking issues under concurrent access. If you see
 1. Ensuring only one writer at a time (the CronJobs use `concurrencyPolicy: Forbid`)
 2. Setting `PRAGMA journal_mode=WAL` in the REF configuration
 3. Migrating to PostgreSQL for production workloads
-
-### ESGF fetch returns empty results
-
-Check the fetch job logs for errors:
-
-```bash
-kubectl -n climate-ref logs job/<esgf-fetch-job-name> --all-containers
-```
-
-Common causes:
-
-- **pandas version incompatibility**: intake-esgf requires pandas<3. The CronJob pins this explicitly.
-- **Globus API errors**: The ESGF Globus catalog may reject certain query combinations. Check for `SearchAPIError` in logs.
-- **Network issues**: ESGF nodes can be unreliable. The CronJob retries daily.
