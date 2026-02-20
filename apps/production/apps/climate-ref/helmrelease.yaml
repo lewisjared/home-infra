@@ -107,16 +107,8 @@ spec:
         capabilities:
           drop:
             - ALL
-      env:
-        CELERY_CONFIG_MODULE: celeryconfig
-        PYTHONPATH: /flower-config
-      volumes:
-        - name: flower-config
-          configMap:
-            name: flower-celery-config
-      volumeMounts:
-        - name: flower-config
-          mountPath: /flower-config
+      env: {}
+
 
     # Dragonfly configuration (Celery broker and result backend)
     dragonfly:
