@@ -4,35 +4,37 @@ Full CMIP6 ensemble evaluation using Climate REF on local Kubernetes with NFS-ba
 
 ## Architecture
 
-```text
-                    +-----------------+
-                    |   Flower UI     |
-                    | :5555 (Authelia)|
-                    +--------+--------+
-                             |
-+------------+     +---------+---------+     +------------+
-| esgpull    |     |   Orchestrator    |     | Dragonfly  |
-| CronJob    |     |   (Celery beat)   |     | (broker)   |
-| daily 02:00|     +---+-----+-----+--+     +------------+
-+-----+------+         |     |     |
-      |           +----+  +--+--+  +----+
-      |           | ESM | | PMP |  |ILAMB|   <- Celery workers
-      |           +--+--+ +--+--+  +--+--+
-      |              |       |        |
-+-----v--------------v-------v--------v-----+
-|              NFS (10.10.20.20)             |
-|  /mnt/tank/climate-ref/                    |
-|    cmip6/   - CMIP6 model data (5Ti)      |
-|    obs/     - Observation data (100Gi)     |
-|    state/   - DB, conda envs, results     |
-|    esgpull/ - esgpull config + DB          |
-+--------------------------------------------+
+```mermaid
+graph TD
+    subgraph CronJobs
+        FETCH[esgf-fetch<br/>daily 02:00]
+        INGEST[ref-ingest-solve<br/>daily 06:00]
+    end
 
-+------------------+
-| ref-ingest-solve |
-| CronJob          |
-| daily 06:00      |
-+------------------+
+    subgraph Services
+        FLOWER[Flower UI<br/>:5555 Authelia]
+        ORCH[Orchestrator<br/>Celery beat]
+        DRAGON[Dragonfly<br/>broker]
+    end
+
+    subgraph Workers[Celery Workers]
+        ESM[ESMValTool]
+        PMP[PMP]
+        ILAMB[ILAMB]
+    end
+
+    subgraph NFS[NFS 10.10.20.20]
+        CMIP6[cmip6/ - CMIP6 model data 5Ti]
+        OBS[obs/ - Observation data 100Gi]
+        STATE[state/ - DB, conda envs, results]
+    end
+
+    FLOWER --> ORCH
+    ORCH --> DRAGON
+    DRAGON --> ESM & PMP & ILAMB
+    FETCH --> CMIP6
+    INGEST --> CMIP6
+    ESM & PMP & ILAMB --> NFS
 ```
 
 ## Prerequisites
@@ -48,7 +50,7 @@ Create the required directories on the NFS server:
 
 ```bash
 ssh 10.10.20.20
-mkdir -p /mnt/tank/climate-ref/{cmip6,obs,state,esgpull}
+mkdir -p /mnt/tank/climate-ref/{cmip6,obs,state}
 chown -R 1000:1000 /mnt/tank/climate-ref/
 ```
 
@@ -86,54 +88,46 @@ kubectl -n climate-ref get pvc
 # All PVCs should show STATUS=Bound
 ```
 
-### 2. Set up providers
+### 2. Verify configuration
 
 ```bash
-kubectl -n climate-ref exec -it deploy/climate-ref-orchestrator -- ref config list
-kubectl -n climate-ref exec -it deploy/climate-ref-orchestrator -- ref providers setup
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref config list
 ```
 
-This creates conda environments for ESMValTool and PMP, and fetches reference/observation data.
-
-### 3. Initialize esgpull queries
-
-Create a one-off job from the CronJob and exec into it to run the query setup script:
+### 3. Set up providers
 
 ```bash
-# Create the init job
-kubectl -n climate-ref create job esgpull-init --from=cronjob/esgpull-sync
+# Set up all providers (creates conda environments, fetches reference data)
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --skip-data --skip-validate
 
-# Wait for it to start, then exec in
-kubectl -n climate-ref wait --for=condition=ready pod -l job-name=esgpull-init --timeout=120s
-kubectl -n climate-ref exec -it job/esgpull-init -- sh
+# Set up individual providers if needed
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --provider pmp
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --provider ilamb
 
-# Inside the pod, run the query setup
-export PYTHONPATH=/tools/lib:$PYTHONPATH
-export PATH=/tools/bin:/tools/lib/bin:$PATH
-sh /queries/setup-queries.sh
-
-# Verify queries were added
-esgpull search --all
-
-# Exit and let the job complete normally (it will run update + download)
-exit
+# Verify providers are registered
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers list
 ```
 
-Alternatively, mount the ConfigMap in the CronJob and run the script directly. The queries persist in the esgpull NFS volume.
-
-### 4. Trigger first sync manually
+### 4. Trigger first ESGF data fetch
 
 ```bash
-kubectl -n climate-ref create job --from=cronjob/esgpull-sync manual-sync-$(date +%s)
+kubectl -n climate-ref create job --from=cronjob/esgf-fetch manual-fetch-$(date +%s)
 ```
 
-### 5. Trigger first ingest manually
+This uses `intake-esgf` to search the ESGF Globus catalog and download CMIP6/Obs4MIPs data to the NFS volume.
 
-After some CMIP6 data has been downloaded:
+### 5. Ingest data and solve
+
+After CMIP6 data has been downloaded:
 
 ```bash
 kubectl -n climate-ref create job --from=cronjob/ref-ingest-solve manual-ingest-$(date +%s)
 ```
+
+This runs two commands sequentially:
+
+1. `ref datasets ingest --source-type cmip6 /data/cmip6` - ingests downloaded datasets into the database
+2. `ref solve` - triggers diagnostic evaluations for any new data
 
 ## Monitoring
 
@@ -160,19 +154,19 @@ kubectl -n climate-ref logs deploy/climate-ref-esmvaltool
 kubectl -n climate-ref logs deploy/climate-ref-pmp
 kubectl -n climate-ref logs deploy/climate-ref-ilamb
 
-# esgpull sync job
-kubectl -n climate-ref logs job/esgpull-sync-<id>
+# ESGF fetch job
+kubectl -n climate-ref logs job/<esgf-fetch-job-name> --all-containers
 
-# Ingest job
-kubectl -n climate-ref logs job/ref-ingest-solve-<id>
+# Ingest + solve job
+kubectl -n climate-ref logs job/<ref-ingest-solve-job-name>
 ```
 
 ## Manual Operations
 
-### Trigger esgpull sync
+### Trigger ESGF data fetch
 
 ```bash
-kubectl -n climate-ref create job --from=cronjob/esgpull-sync manual-sync-$(date +%s)
+kubectl -n climate-ref create job --from=cronjob/esgf-fetch manual-fetch-$(date +%s)
 ```
 
 ### Trigger ingest + solve
@@ -194,13 +188,12 @@ ssh 10.10.20.20 du -sh /mnt/tank/climate-ref/*
 | cmip6   | 1-5 TB         | Full CMIP6 ensemble (all models, all members)    |
 | obs     | 10-50 GB       | Observation and reference datasets               |
 | state   | 5-20 GB        | SQLite DB, conda environments, diagnostic results|
-| esgpull | <100 MB        | esgpull configuration and tracking database      |
 
 ## CronJob Schedule
 
 | Job                | Schedule        | Purpose                                 |
 |--------------------|-----------------|---------------------------------------- |
-| `esgpull-sync`     | Daily 02:00 UTC | Sync CMIP6 data from ESGF               |
+| `esgf-fetch`       | Daily 02:00 UTC | Fetch CMIP6/Obs4MIPs data from ESGF     |
 | `ref-ingest-solve` | Daily 06:00 UTC | Ingest new data and trigger evaluations |
 
 ## Troubleshooting
@@ -242,17 +235,16 @@ SQLite on NFS can have locking issues under concurrent access. If you see
 2. Setting `PRAGMA journal_mode=WAL` in the REF configuration
 3. Migrating to PostgreSQL for production workloads
 
-### esgpull download failures
+### ESGF fetch returns empty results
 
-ESGF nodes can be unreliable. The CronJob will retry daily. Check logs:
-
-```bash
-kubectl -n climate-ref logs job/<esgpull-job-name>
-```
-
-You can also configure fallback nodes in the esgpull config:
+Check the fetch job logs for errors:
 
 ```bash
-kubectl -n climate-ref exec -it job/<esgpull-job-name> -- \
-  esgpull config api.index_node esgf-data.dkrz.de
+kubectl -n climate-ref logs job/<esgf-fetch-job-name> --all-containers
 ```
+
+Common causes:
+
+- **pandas version incompatibility**: intake-esgf requires pandas<3. The CronJob pins this explicitly.
+- **Globus API errors**: The ESGF Globus catalog may reject certain query combinations. Check for `SearchAPIError` in logs.
+- **Network issues**: ESGF nodes can be unreliable. The CronJob retries daily.
