@@ -29,7 +29,8 @@ spec:
                 - sh
                 - -c
                 - |
-                  ref datasets ingest /data/cmip6 --source-type cmip6 --solve
+                  ref datasets ingest --source-type cmip6 /data/cmip6 &&
+                  ref solve
               env:
                 - name: REF_CONFIGURATION
                   value: /ref
