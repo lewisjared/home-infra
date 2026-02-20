@@ -30,17 +30,7 @@
 
 ## Access Information
 
-### Default Credentials
-
-- **Username**: `admin`
-- **Password**: `admin`
-- **Email**: `admin@home.local`
-
-**IMPORTANT**: Change the password after first login!
-
 ### User Groups
-
-The default admin user belongs to two groups:
 
 - `admins`: Full cluster-admin access (via ClusterRoleBinding)
 - `developers`: View-only access
@@ -63,7 +53,7 @@ The default admin user belongs to two groups:
    ```
 
 2. **Navigate to Authelia** first: `https://auth.home.lewelly.com`
-   - Log in with credentials above
+   - Log in with your credentials
    - You'll be prompted to set up 2FA (TOTP) on first login
    - Scan the QR code with your authenticator app (Google Authenticator, Authy, etc.)
 
@@ -148,8 +138,6 @@ To add more users, update `infrastructure/authelia/users-database.yaml`:
 
    ```yaml
    users:
-     admin:
-       # ... existing admin user
      newuser:
        displayname: "New User"
        password: "$argon2id$v=19$m=65536,t=3,p=4$..." # Your generated hash
