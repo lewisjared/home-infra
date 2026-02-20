@@ -31,7 +31,7 @@ spec:
                 - |
                   mkdir -p /tools/bin &&
                   pip install --no-cache-dir \
-                    intake-esgf \
+                    "intake-esgf==2025.10.22" \
                     typer \
                     attrs \
                     loguru \

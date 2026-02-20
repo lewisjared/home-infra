@@ -67,14 +67,16 @@ data:
                 "frequency": ["mon", "fx"],
                 **self.facets,
             }
-            logger.debug(f"Fetching CMIP6 data: {search_parameters}")
+            logger.info(f"Fetching CMIP6 data: {search_parameters}")
             try:
                 cmip6_data = catalog.search(**search_parameters)
+                logger.info(f"Search returned {len(cmip6_data.df)} results")
                 if remove_ensembles:
                     cmip6_data = cmip6_data.remove_ensembles()
+                    logger.info(f"After removing ensembles: {len(cmip6_data.df)} results")
                 return cmip6_data.to_path_dict()
             except Exception:
-                logger.info(f"Error fetching CMIP6 data: {search_parameters}")
+                logger.exception(f"Error fetching CMIP6 data: {search_parameters}")
             return {}
 
 
@@ -97,6 +99,7 @@ data:
             logger.info(f"Fetching Obs4MIPs data: {search_parameters}")
             try:
                 obs_data = catalog.search(**search_parameters)
+                logger.info(f"Search returned {len(obs_data.df)} results")
                 return obs_data.to_path_dict(minimal_keys=False)
             except Exception:
                 logger.exception(f"Error fetching Obs4MIPs data: {search_parameters}")
