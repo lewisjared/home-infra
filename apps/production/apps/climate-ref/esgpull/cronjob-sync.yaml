@@ -32,6 +32,7 @@ spec:
                   mkdir -p /tools/bin &&
                   pip install --no-cache-dir \
                     "intake-esgf==2025.10.22" \
+                    "pandas<3" \
                     typer \
                     attrs \
                     loguru \
