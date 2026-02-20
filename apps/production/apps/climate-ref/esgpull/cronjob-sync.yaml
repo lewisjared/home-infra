@@ -25,7 +25,7 @@ spec:
               type: RuntimeDefault
           initContainers:
             - name: install-deps
-              image: python:3.11-slim
+              image: python:3.14-slim@sha256:486b8092bfb12997e10d4920897213a06563449c951c5506c2a2cfaf591c599f
               command:
                 - sh
                 - -c
@@ -52,7 +52,7 @@ spec:
                     - ALL
           containers:
             - name: fetch-esgf
-              image: python:3.11-slim
+              image: python:3.14-slim@sha256:486b8092bfb12997e10d4920897213a06563449c951c5506c2a2cfaf591c599f
               command:
                 - sh
                 - -c
