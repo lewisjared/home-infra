@@ -25,7 +25,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: ref-ingest
-              image: ghcr.io/climate-ref/climate-ref:v0.10.0
+              image: ghcr.io/climate-ref/climate-ref:v0.10.0@sha256:0560b94f6108c63ae51e5be6788548a788c14fb16ff3f1993ac6b0e2b6ba3bb4
               command:
                 - sh
                 - -c

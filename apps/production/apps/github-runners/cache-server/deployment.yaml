@@ -23,7 +23,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: cache-server
-          image: ghcr.io/falcondev-oss/github-actions-cache-server:latest
+          image: ghcr.io/falcondev-oss/github-actions-cache-server:latest@sha256:e5cd65f782857aa570235e9ce83b1f5c483f53b3173f45189259753d86d10be8
           ports:
             - name: http
               containerPort: 3000
