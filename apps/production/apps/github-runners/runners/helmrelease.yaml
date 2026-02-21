@@ -96,6 +96,8 @@ spec:
                 value: "false"
               - name: ACTIONS_CACHE_URL
                 value: http://actions-cache-server.github-runners.svc.cluster.local:3000/
+              - name: REF_CONFIGURATION
+                value: /tmp/climate-ref-config
               - name: REF_DATASET_CACHE_DIR
                 value: /data/cache/datasets
               - name: REF_SOFTWARE_ROOT
