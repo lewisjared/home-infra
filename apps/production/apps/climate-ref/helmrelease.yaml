@@ -43,6 +43,7 @@ spec:
         tag: main
       env:
         REF_CONFIGURATION: /ref
+        CONDA_PKGS_DIRS: /tmp/conda-pkgs
       serviceAccount:
         create: true
       podSecurityContext:
