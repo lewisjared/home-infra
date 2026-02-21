@@ -57,10 +57,11 @@ spec:
               - sh
               - -c
               - |
-                mkdir -p /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data /data/cache/intake-esgf-config
-                chmod 777 /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data /data/cache/intake-esgf-config
+                mkdir -p /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data
+                chmod 777 /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data
 
-                cat > /data/cache/intake-esgf-config/conf.yaml <<'EOF'
+                mkdir -p /home-config/intake-esgf
+                cat > /home-config/intake-esgf/conf.yaml <<'EOF'
                 esg_dataroot:
                   - /data/cmip6
                 local_cache:
@@ -68,9 +69,12 @@ spec:
                 confirm_download: false
                 num_threads: 20
                 EOF
+                chmod -R 777 /home-config
             volumeMounts:
               - name: runner-cache
                 mountPath: /data/cache
+              - name: home-config
+                mountPath: /home-config
         containers:
           - name: runner
             image: ghcr.io/actions/actions-runner:latest
@@ -87,10 +91,9 @@ spec:
               - name: runner-cache
                 mountPath: /home/runner/.esgf
                 subPath: intake-esgf-data
-              # intake-esgf config
-              - name: runner-cache
-                mountPath: /home/runner/.config/intake-esgf
-                subPath: intake-esgf-config
+              # Runner .config dir (intake-esgf config, matplotlib, etc.)
+              - name: home-config
+                mountPath: /home/runner/.config
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
@@ -109,3 +112,5 @@ spec:
           - name: runner-cache
             persistentVolumeClaim:
               claimName: github-runners-cache
+          - name: home-config
+            emptyDir: {}
