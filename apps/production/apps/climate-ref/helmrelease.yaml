@@ -8,7 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/ref
   ref:
-    tag: 0.10.0_pr-556
+    tag: 0.10.0_661f519
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
