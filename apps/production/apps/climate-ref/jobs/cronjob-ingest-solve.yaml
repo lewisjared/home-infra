@@ -31,7 +31,8 @@ spec:
                 - -c
                 - |
                   ref datasets ingest --source-type cmip6 /data/cmip6 &&
-                  ref solve
+                  # Run a solve, but don't wait on the results
+                  ref solve --timeout 0
               env:
                 - name: REF_CONFIGURATION
                   value: /ref
