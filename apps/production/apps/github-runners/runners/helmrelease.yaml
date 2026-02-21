@@ -49,7 +49,25 @@ spec:
             image: busybox:latest
             securityContext:
               runAsUser: 0
-            command: ["sh", "-c", "mkdir -p /data/cache/datasets /data/cache/software && chmod 777 /data/cache/datasets /data/cache/software"]
+            # Create the cache directories and set permissions so that the runner can write to them.
+            # Also create the intake-esgf config file for the runner to use.
+            # We mount the climate-ref cmip6 data to the runner pods as read-only.
+            # Any runner-specific data are written to the cache directory.
+            command:
+              - sh
+              - -c
+              - |
+                mkdir -p /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data /data/cache/intake-esgf-config
+                chmod 777 /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data /data/cache/intake-esgf-config
+
+                cat > /data/cache/intake-esgf/conf.yaml <<'EOF'
+                esg_dataroot:
+                  - /data/cmip6
+                local_cache:
+                  - ~/.esgf
+                confirm_download: false
+                num_threads: 20
+                EOF
             volumeMounts:
               - name: runner-cache
                 mountPath: /data/cache
@@ -58,10 +76,21 @@ spec:
             image: ghcr.io/actions/actions-runner:latest
             command: ["/home/runner/run.sh"]
             volumeMounts:
+              # RO CMIP6 archive
               - name: cmip6-data
                 mountPath: /data/cmip6
+                readOnly: true
+              # RW cache for runner-specific data (e.g. test outputs, downloaded software, etc.)
               - name: runner-cache
                 mountPath: /data/cache
+              # Local intake-esgf cache
+              - name: runner-cache
+                mountPath: /home/runner/.esgf
+                subPath: intake-esgf-data
+              # intake-esgf config
+              - name: runner-cache
+                mountPath: /home/runner/.config/intake-esgf
+                subPath: intake-esgf-config
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
