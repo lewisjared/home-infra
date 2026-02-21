@@ -60,7 +60,7 @@ spec:
                 mkdir -p /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data /data/cache/intake-esgf-config
                 chmod 777 /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data /data/cache/intake-esgf-config
 
-                cat > /data/cache/intake-esgf/conf.yaml <<'EOF'
+                cat > /data/cache/intake-esgf-config/conf.yaml <<'EOF'
                 esg_dataroot:
                   - /data/cmip6
                 local_cache:
