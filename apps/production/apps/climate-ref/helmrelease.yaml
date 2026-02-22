@@ -40,7 +40,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: main
+        tag: pr-559
       env:
         REF_CONFIGURATION: /ref
         CONDA_PKGS_DIRS: /tmp/conda-pkgs
