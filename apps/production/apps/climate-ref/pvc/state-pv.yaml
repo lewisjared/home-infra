@@ -17,6 +17,8 @@ spec:
     - nfsvers=4.2
     - hard
     - noatime
+    - rsize=65536
+    - wsize=65536
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
