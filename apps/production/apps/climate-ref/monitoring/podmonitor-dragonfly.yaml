@@ -11,5 +11,5 @@ spec:
       interval: 30s
   selector:
     matchLabels:
-      app.kubernetes.io/component: dragonfly
+      app.kubernetes.io/name: dragonfly
       app.kubernetes.io/instance: climate-ref
