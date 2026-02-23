@@ -128,10 +128,10 @@ spec:
       orchestrator: {}
       esmvaltool:
         replicaCount: 4
-        autoscaling:
-          enabled: false
-          minReplicas: 1
-          maxReplicas: 10
+        # autoscaling:
+        #   enabled: false
+        #   minReplicas: 1
+        #   maxReplicas: 10
         resources:
           requests:
             memory: 8Gi
@@ -140,10 +140,10 @@ spec:
           CELERY_WORKER_CONCURRENCY: "2"
       pmp:
         replicaCount: 4
-        autoscaling:
-          enabled: false
-          minReplicas: 1
-          maxReplicas: 10
+        # autoscaling:
+        #   enabled: false
+        #   minReplicas: 1
+        #   maxReplicas: 10
         resources:
           requests:
             memory: 8Gi
@@ -152,10 +152,10 @@ spec:
           CELERY_WORKER_CONCURRENCY: "2"
       ilamb:
         replicaCount: 2
-        autoscaling:
-          enabled: false
-          minReplicas: 1
-          maxReplicas: 10
+        # autoscaling:
+        #   enabled: false
+        #   minReplicas: 1
+        #   maxReplicas: 10
         resources:
           requests:
             memory: 8Gi

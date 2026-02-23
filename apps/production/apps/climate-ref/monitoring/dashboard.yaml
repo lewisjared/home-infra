@@ -550,6 +550,75 @@ spec:
           ],
           "title": "Keys Count",
           "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 49 },
+          "id": 105,
+          "title": "Scaling",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 10 },
+                  { "color": "red", "value": 50 }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 6, "x": 0, "y": 50 },
+          "id": 20,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "reduceOptions": { "calcs": ["lastNotNull"] }
+          },
+          "targets": [
+            {
+              "expr": "clamp_min(sum(flower_events_total{namespace=\"climate-ref\", type=\"task-received\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-failed\"}), 0)",
+              "legendFormat": ""
+            }
+          ],
+          "title": "Pending Tasks",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 30,
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "mode": "normal" }
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 18, "x": 6, "y": 50 },
+          "id": 21,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "clamp_min(sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-received\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-failed\"}), 0)",
+              "legendFormat": "{{ provider }}"
+            }
+          ],
+          "title": "Pending Tasks by Provider",
+          "type": "timeseries"
         }
       ],
       "schemaVersion": 39,

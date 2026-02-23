@@ -28,3 +28,4 @@ ignore: |
   tf/manifests/cilium/cilium-install.yaml
   clusters/production/flux-system
   apps/production/apps/github-runners/secret.yaml
+  apps/production/apps/climate-ref/monitoring/dashboard.yaml
