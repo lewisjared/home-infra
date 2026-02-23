@@ -95,6 +95,8 @@ spec:
         repository: mher/flower
         tag: "2.0.1@sha256:51c3c3db5be343e6335e3dbca5348708932bbcca992df6a39f1dad91e3b340df"
       replicaCount: 1
+      env:
+        FLOWER_TASK_RUNTIME_METRIC_BUCKETS: "30,60,120,180,300,450,600,900,1200,1800"
       service:
         type: ClusterIP
         port: 5555
