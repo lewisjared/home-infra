@@ -9,6 +9,11 @@ spec:
     - port: http
       path: /metrics
       interval: 30s
+      metricRelabelings:
+        - sourceLabels: [worker]
+          regex: "celery@climate-ref-([a-z]+)-.*"
+          targetLabel: provider
+          replacement: "$1"
   selector:
     matchLabels:
       app.kubernetes.io/component: flower

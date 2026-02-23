@@ -137,7 +137,7 @@ spec:
           },
           "targets": [
             {
-              "expr": "sum(flower_worker_online{namespace=\"climate-ref\"})",
+              "expr": "count(flower_worker_online{namespace=\"climate-ref\"} == 1)",
               "legendFormat": ""
             }
           ],
@@ -271,8 +271,8 @@ spec:
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
             {
-              "expr": "flower_worker_number_of_currently_executing_tasks{namespace=\"climate-ref\"}",
-              "legendFormat": "{{ worker }}"
+              "expr": "sum by (provider) (flower_worker_number_of_currently_executing_tasks{namespace=\"climate-ref\"} and flower_worker_online{namespace=\"climate-ref\"} == 1)",
+              "legendFormat": "{{ provider }}"
             }
           ],
           "title": "Active Tasks per Worker",
@@ -283,13 +283,9 @@ spec:
           "fieldConfig": {
             "defaults": {
               "color": { "mode": "thresholds" },
-              "mappings": [
-                { "options": { "0": { "color": "red", "text": "Offline" }, "1": { "color": "green", "text": "Online" } }, "type": "value" }
-              ],
               "thresholds": {
                 "steps": [
-                  { "color": "red", "value": null },
-                  { "color": "green", "value": 1 }
+                  { "color": "green", "value": null }
                 ]
               }
             },
@@ -304,11 +300,11 @@ spec:
           },
           "targets": [
             {
-              "expr": "flower_worker_online{namespace=\"climate-ref\"}",
-              "legendFormat": "{{ worker }}"
+              "expr": "count by (provider) (flower_worker_online{namespace=\"climate-ref\"} == 1)",
+              "legendFormat": "{{ provider }}"
             }
           ],
-          "title": "Worker Online Status",
+          "title": "Online Workers by Provider",
           "type": "stat"
         },
         {
