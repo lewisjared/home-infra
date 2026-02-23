@@ -105,6 +105,9 @@ spec:
                 value: /data/cache/datasets
               - name: REF_SOFTWARE_ROOT
                 value: /data/cache/software
+              # Set a reasonable width for the rich tracebacks
+              - name: "COLUMNS"
+                value: "200"
         volumes:
           - name: cmip6-data
             persistentVolumeClaim:
