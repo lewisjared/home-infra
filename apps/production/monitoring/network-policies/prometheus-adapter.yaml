@@ -1,0 +1,18 @@
+---
+# Allow kube-apiserver to reach prometheus-adapter for Custom Metrics API
+# The apiserver runs on host network, so no from restriction is used
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-apiserver-to-prometheus-adapter
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-adapter
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 6443
