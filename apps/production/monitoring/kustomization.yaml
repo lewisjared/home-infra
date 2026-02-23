@@ -32,5 +32,8 @@ resources:
   # NOTE: Grafana dashboards are now managed via GrafanaDashboard CRDs
   # See apps/production/monitoring/grafana/instance/dashboards.yaml
 
+  # Prometheus Adapter (custom metrics API for HPA)
+  - prometheus-adapter/
+
   # Hubble UI (Cilium network observability)
   - hubble-ui/
