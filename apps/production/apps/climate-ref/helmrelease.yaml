@@ -125,17 +125,39 @@ spec:
     providers:
       orchestrator: {}
       esmvaltool:
+        autoscaling:
+          enabled: true
+          minReplicas: 1
+          maxReplicas: 10
+          targetCPUUtilizationPercentage: 80
         resources:
+          CPUUtilizationPercentage: 80
           requests:
-            memory: 4Gi
-            cpu: "2"
+            memory: 8Gi
+            cpu: "4"
+          env:
+            CELERY_WORKER_CONCURRENCY: "2"
       pmp:
+        autoscaling:
+          enabled: true
+          minReplicas: 1
+          maxReplicas: 10
+          targetCPUUtilizationPercentage: 80
         resources:
           requests:
-            memory: 2Gi
-            cpu: "1"
+            memory: 8Gi
+            cpu: "4"
+          env:
+            CELERY_WORKER_CONCURRENCY: "2"
       ilamb:
+        autoscaling:
+          enabled: true
+          minReplicas: 1
+          maxReplicas: 10
+          targetCPUUtilizationPercentage: 80
         resources:
           requests:
-            memory: 2Gi
-            cpu: "1"
+            memory: 8Gi
+            cpu: "4"
+          env:
+            CELERY_WORKER_CONCURRENCY: "2"
