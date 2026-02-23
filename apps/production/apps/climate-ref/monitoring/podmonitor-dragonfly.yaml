@@ -1,0 +1,15 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: climate-ref-dragonfly
+  namespace: climate-ref
+spec:
+  podMetricsEndpoints:
+    - port: dragonfly
+      path: /metrics
+      interval: 30s
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: dragonfly
+      app.kubernetes.io/instance: climate-ref
