@@ -8,7 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/ref
   ref:
-    tag: 0.10.0_661f519
+    tag: 0.10.0_eda6c3f
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -40,7 +40,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: pr-559
+        tag: sha256-86fbf1143df23735e3981b5e5f47bcfe96a6864157fcd227540a5381427e6f07
       env:
         REF_CONFIGURATION: /ref
         CONDA_PKGS_DIRS: /tmp/conda-pkgs
