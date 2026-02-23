@@ -40,9 +40,9 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: main@sha256:86fbf1143df23735e3981b5e5f47bcfe96a6864157fcd227540a5381427e6f07
+        tag: main@sha256:ff0dc2c9067e9f964484ba46e89b1948fbffe08a055a2c116a4041c8c4a93c45
       env:
-        REF_CONFIGURATION: /ref
+        REF_CONFIGURATION: /ref/test-lazy
         CONDA_PKGS_DIRS: /tmp/conda-pkgs
       serviceAccount:
         create: true
