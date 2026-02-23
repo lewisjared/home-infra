@@ -129,7 +129,7 @@ spec:
       esmvaltool:
         replicaCount: 4
         autoscaling:
-          enabled: true
+          enabled: false
           minReplicas: 1
           maxReplicas: 10
         resources:
@@ -141,7 +141,7 @@ spec:
       pmp:
         replicaCount: 4
         autoscaling:
-          enabled: true
+          enabled: false
           minReplicas: 1
           maxReplicas: 10
         resources:
@@ -153,7 +153,7 @@ spec:
       ilamb:
         replicaCount: 2
         autoscaling:
-          enabled: true
+          enabled: false
           minReplicas: 1
           maxReplicas: 10
         resources:
