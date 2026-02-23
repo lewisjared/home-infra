@@ -57,3 +57,12 @@ spec:
             matches: "^(.*)$"
             as: "${1}"
           metricsQuery: '<<.Series>>{<<.LabelMatchers>>}'
+      external:
+        - seriesQuery: 'flower_worker_number_of_currently_executing_tasks{namespace!=""}'
+          resources:
+            overrides:
+              namespace:
+                resource: namespace
+          name:
+            as: celery_active_tasks
+          metricsQuery: 'sum by (namespace, provider) (flower_worker_number_of_currently_executing_tasks{<<.LabelMatchers>>,provider!=""})'
