@@ -76,6 +76,9 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
+        - name: esmvaltool-config
+          configMap:
+            name: climate-ref-esmvaltool-config
       volumeMounts:
         - name: ref-data
           mountPath: /ref
@@ -87,6 +90,10 @@ spec:
           mountPath: /home/app/.config
         - name: tmp
           mountPath: /tmp
+        - name: esmvaltool-config
+          mountPath: /tmp/.config/esmvaltool/config.yaml
+          subPath: config.yaml
+          readOnly: true
 
     # Flower (Celery monitoring UI) configuration
     flower:
@@ -150,6 +157,10 @@ spec:
             cpu: "4"
         env:
           CELERY_WORKER_CONCURRENCY: "2"
+          # Use synchronous Dask scheduler to avoid crashes from excessive
+          # parallelism when running multiple executions on the same machine.
+          # See: https://github.com/Climate-REF/climate-ref/issues/437
+          DASK_SCHEDULER: synchronous
       ilamb:
         replicaCount: 2
         # autoscaling:
@@ -162,3 +173,7 @@ spec:
             cpu: "4"
         env:
           CELERY_WORKER_CONCURRENCY: "2"
+          # Use synchronous Dask scheduler to avoid crashes from excessive
+          # parallelism when running multiple executions on the same machine.
+          # See: https://github.com/Climate-REF/climate-ref/issues/437
+          DASK_SCHEDULER: synchronous
