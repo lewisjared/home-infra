@@ -105,7 +105,8 @@ spec:
             authelia_url: https://auth.home.lewelly.com
             name: authelia_session
             same_site: lax
-            expiration: 6h
+            expiration: 24h
+            inactivity: 4h
             remember_me: 1M
 
       storage:
