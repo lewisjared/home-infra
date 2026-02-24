@@ -75,13 +75,17 @@ spec:
         # Enable PSI (Pressure Stall Information) metrics
         extraArgs:
           - --collector.pressure
-        # Relabel job to "node-exporter" to match kube-prometheus-stack
-        # recording rules and standard Grafana dashboards
+        # Relabel to match kube-prometheus-stack recording rules and dashboards
         extraMetricProcessingRules: |-
           rule {
             action = "replace"
             replacement = "node-exporter"
             target_label = "job"
+          }
+          rule {
+            action = "replace"
+            source_labels = ["instance"]
+            target_label = "node"
           }
 
     clusterEvents:
