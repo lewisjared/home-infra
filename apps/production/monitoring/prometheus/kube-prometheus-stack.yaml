@@ -186,8 +186,29 @@ spec:
                 requests:
                   storage: 10Gi
 
+    # Add cluster label to kubelet/cadvisor metrics for dashboard filtering
+    kubelet:
+      serviceMonitor:
+        metricRelabelings:
+          - action: replace
+            targetLabel: cluster
+            replacement: home-infra
+        cAdvisorMetricRelabelings:
+          - action: replace
+            targetLabel: cluster
+            replacement: home-infra
+
     kubeStateMetrics:
       enabled: true
+
+    # Add cluster label to kube-state-metrics for dashboard filtering
+    kube-state-metrics:
+      prometheus:
+        monitor:
+          metricRelabelings:
+            - action: replace
+              targetLabel: cluster
+              replacement: home-infra
 
     # Keep node-exporter disabled - using k8s-monitoring's version
     nodeExporter:
