@@ -67,11 +67,22 @@ spec:
       enabled: true
       destinations:
         - local-prometheus
-
-    nodeMetrics:
-      enabled: true
-      destinations:
-        - local-prometheus
+      node-exporter:
+        # Disable the default allow list so all node_* metrics are collected
+        # (the default only keeps a small subset for Grafana Cloud)
+        metricsTuning:
+          useDefaultAllowList: false
+        # Enable PSI (Pressure Stall Information) metrics
+        extraArgs:
+          - --collector.pressure
+        # Relabel job to "node-exporter" to match kube-prometheus-stack
+        # recording rules and standard Grafana dashboards
+        extraMetricProcessingRules: |-
+          rule {
+            action = "replace"
+            replacement = "node-exporter"
+            target_label = "job"
+          }
 
     clusterEvents:
       enabled: true
