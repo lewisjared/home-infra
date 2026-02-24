@@ -47,6 +47,7 @@ spec:
         REF_SOFTWARE_ROOT: "/ref/software"
         REF_CMIP6_PARSER: drs
         CONDA_PKGS_DIRS: /tmp/conda-pkgs
+        XDG_CONFIG_HOME: /home/app/.config
       serviceAccount:
         create: true
       podSecurityContext:
@@ -91,7 +92,7 @@ spec:
         - name: tmp
           mountPath: /tmp
         - name: esmvaltool-config
-          mountPath: /tmp/.config/esmvaltool/config.yaml
+          mountPath: /home/app/.config/esmvaltool/config.yaml
           subPath: config.yaml
           readOnly: true
 
