@@ -40,7 +40,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: main@sha256:badfbe02880919db33d249151b4e2c721a789c0daee708e62db874a3e61bd784
+        tag: main@sha256:53905c552d4aafc5ee7de879993f969aa5700eb2b4a9f74e5c15c6a068ebe360
       env:
         COLUMNS: "160"
         REF_CONFIGURATION: /ref/test-lazy
@@ -121,7 +121,7 @@ spec:
         enabled: true
       extraArgs:
         - --proactor_threads=1
-        - --maxmemory=256mb
+        - --maxmemory=1Gi
 
     # Provider configurations
     providers:
