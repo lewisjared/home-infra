@@ -54,6 +54,10 @@ spec:
         # Enable remote write receiver for k8s-monitoring (Alloy)
         enableRemoteWriteReceiver: true
 
+        # Add cluster label to all metrics for dashboard filtering
+        externalLabels:
+          cluster: home-infra
+
         # Resource limits for Prometheus
         resources:
           requests:
