@@ -617,8 +617,72 @@ spec:
           "type": "timeseries"
         },
         {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 30,
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "mode": "none" }
+              },
+              "unit": "short",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 58 },
+          "id": 40,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "keda_scaler_metrics_value{namespace=\"keda\", scaledObject=~\"climate-ref-.*\", scaler=\"redisScaler\"}",
+              "legendFormat": "{{ scaledObject }}"
+            }
+          ],
+          "title": "Queue Depth by Provider (KEDA)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "mode": "none" }
+              },
+              "unit": "short",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 58 },
+          "id": 41,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "kube_deployment_spec_replicas{namespace=\"climate-ref\", deployment=~\"climate-ref-(esmvaltool|pmp|ilamb)\"}",
+              "legendFormat": "{{ deployment }}"
+            }
+          ],
+          "title": "Worker Replicas",
+          "type": "timeseries"
+        },
+        {
           "collapsed": false,
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 58 },
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 66 },
           "id": 106,
           "title": "Worker Resources",
           "type": "row"
@@ -642,7 +706,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 59 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 67 },
           "id": 30,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -673,7 +737,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 59 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 67 },
           "id": 31,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -704,7 +768,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 67 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 75 },
           "id": 32,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -735,7 +799,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 67 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 75 },
           "id": 33,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
