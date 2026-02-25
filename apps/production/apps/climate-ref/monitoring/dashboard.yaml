@@ -300,11 +300,11 @@ spec:
           },
           "targets": [
             {
-              "expr": "count by (provider) (flower_worker_online{namespace=\"climate-ref\"} == 1)",
-              "legendFormat": "{{ provider }}"
+              "expr": "kube_deployment_status_available_replicas{namespace=\"climate-ref\", deployment=~\"climate-ref-(esmvaltool|pmp|ilamb|orchestrator)\"}",
+              "legendFormat": "{{ deployment }}"
             }
           ],
-          "title": "Online Workers by Provider",
+          "title": "Available Workers by Provider",
           "type": "stat"
         },
         {
@@ -561,44 +561,13 @@ spec:
               "color": { "mode": "thresholds" },
               "thresholds": {
                 "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 10 },
-                  { "color": "red", "value": 50 }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 50 },
-          "id": 20,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "reduceOptions": { "calcs": ["lastNotNull"] }
-          },
-          "targets": [
-            {
-              "expr": "clamp_min(sum(flower_events_total{namespace=\"climate-ref\", type=\"task-received\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-failed\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}), 0)",
-              "legendFormat": ""
-            }
-          ],
-          "title": "Pending Diagnostics",
-          "type": "stat"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "fieldConfig": {
-            "defaults": {
-              "color": { "mode": "thresholds" },
-              "thresholds": {
-                "steps": [
                   { "color": "purple", "value": null }
                 ]
               }
             },
             "overrides": []
           },
-          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 54 },
+          "gridPos": { "h": 4, "w": 12, "x": 0, "y": 50 },
           "id": 42,
           "options": {
             "colorMode": "value",
@@ -632,37 +601,6 @@ spec:
                 "pointSize": 5,
                 "showPoints": "never",
                 "spanNulls": true,
-                "stacking": { "mode": "normal" }
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": { "h": 8, "w": 18, "x": 6, "y": 50 },
-          "id": 21,
-          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
-          "targets": [
-            {
-              "expr": "clamp_min(sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-received\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-failed\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}), 0)",
-              "legendFormat": "{{ provider }}"
-            }
-          ],
-          "title": "Pending Tasks by Provider",
-          "type": "timeseries"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "fieldConfig": {
-            "defaults": {
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "axisBorderShow": false,
-                "drawStyle": "line",
-                "fillOpacity": 30,
-                "lineWidth": 2,
-                "pointSize": 5,
-                "showPoints": "never",
-                "spanNulls": true,
                 "stacking": { "mode": "none" }
               },
               "unit": "short",
@@ -670,7 +608,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 58 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 54 },
           "id": 40,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -702,7 +640,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 58 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 54 },
           "id": 41,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -716,7 +654,7 @@ spec:
         },
         {
           "collapsed": false,
-          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 66 },
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 62 },
           "id": 106,
           "title": "Worker Resources",
           "type": "row"
@@ -740,7 +678,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 67 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 63 },
           "id": 30,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -771,7 +709,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 67 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 63 },
           "id": 31,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -802,7 +740,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 75 },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 71 },
           "id": 32,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
@@ -833,7 +771,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 75 },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 71 },
           "id": 33,
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
