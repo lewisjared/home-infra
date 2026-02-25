@@ -48,11 +48,11 @@ spec:
           },
           "targets": [
             {
-              "expr": "sum(increase(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\"}[24h]))",
+              "expr": "sum(increase(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}[24h]))",
               "legendFormat": ""
             }
           ],
-          "title": "Tasks Succeeded (24h)",
+          "title": "Diagnostics Succeeded (24h)",
           "type": "stat"
         },
         {
@@ -78,11 +78,11 @@ spec:
           },
           "targets": [
             {
-              "expr": "sum(increase(flower_events_total{namespace=\"climate-ref\", type=\"task-failed\"}[24h]))",
+              "expr": "sum(increase(flower_events_total{namespace=\"climate-ref\", type=\"task-failed\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}[24h]))",
               "legendFormat": ""
             }
           ],
-          "title": "Tasks Failed (24h)",
+          "title": "Diagnostics Failed (24h)",
           "type": "stat"
         },
         {
@@ -338,15 +338,15 @@ spec:
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
             {
-              "expr": "histogram_quantile(0.50, sum by (le, task) (rate(flower_task_runtime_seconds_bucket{namespace=\"climate-ref\"}[5m])))",
+              "expr": "histogram_quantile(0.50, sum by (le, task) (rate(flower_task_runtime_seconds_bucket{namespace=\"climate-ref\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}[5m])))",
               "legendFormat": "p50 {{ task }}"
             },
             {
-              "expr": "histogram_quantile(0.95, sum by (le, task) (rate(flower_task_runtime_seconds_bucket{namespace=\"climate-ref\"}[5m])))",
+              "expr": "histogram_quantile(0.95, sum by (le, task) (rate(flower_task_runtime_seconds_bucket{namespace=\"climate-ref\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}[5m])))",
               "legendFormat": "p95 {{ task }}"
             },
             {
-              "expr": "histogram_quantile(0.99, sum by (le, task) (rate(flower_task_runtime_seconds_bucket{namespace=\"climate-ref\"}[5m])))",
+              "expr": "histogram_quantile(0.99, sum by (le, task) (rate(flower_task_runtime_seconds_bucket{namespace=\"climate-ref\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}[5m])))",
               "legendFormat": "p99 {{ task }}"
             }
           ],
@@ -569,7 +569,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": { "h": 8, "w": 6, "x": 0, "y": 50 },
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 50 },
           "id": 20,
           "options": {
             "colorMode": "value",
@@ -578,11 +578,45 @@ spec:
           },
           "targets": [
             {
-              "expr": "clamp_min(sum(flower_events_total{namespace=\"climate-ref\", type=\"task-received\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-failed\"}), 0)",
+              "expr": "clamp_min(sum(flower_events_total{namespace=\"climate-ref\", type=\"task-received\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum(flower_events_total{namespace=\"climate-ref\", type=\"task-failed\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}), 0)",
               "legendFormat": ""
             }
           ],
-          "title": "Pending Tasks",
+          "title": "Pending Diagnostics",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "steps": [
+                  { "color": "purple", "value": null }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 54 },
+          "id": 42,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "textMode": "value_and_name"
+          },
+          "targets": [
+            {
+              "expr": "sum(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\", task!=\"climate_ref_celery.worker_tasks.handle_result\"})",
+              "legendFormat": "diagnostics"
+            },
+            {
+              "expr": "sum(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\", task=\"climate_ref_celery.worker_tasks.handle_result\"})",
+              "legendFormat": "handle_result"
+            }
+          ],
+          "title": "Succeeded: Diagnostics vs handle_result",
           "type": "stat"
         },
         {
@@ -609,7 +643,7 @@ spec:
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
             {
-              "expr": "clamp_min(sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-received\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-failed\"}), 0)",
+              "expr": "clamp_min(sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-received\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}) - sum by (provider) (flower_events_total{namespace=\"climate-ref\", type=\"task-failed\", task!=\"climate_ref_celery.worker_tasks.handle_result\"}), 0)",
               "legendFormat": "{{ provider }}"
             }
           ],
