@@ -377,15 +377,11 @@ spec:
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
             {
-              "expr": "histogram_quantile(0.50, sum by (le, task) (rate(flower_task_prefetch_time_seconds_bucket{namespace=\"climate-ref\"}[5m])))",
-              "legendFormat": "p50 {{ task }}"
-            },
-            {
-              "expr": "histogram_quantile(0.95, sum by (le, task) (rate(flower_task_prefetch_time_seconds_bucket{namespace=\"climate-ref\"}[5m])))",
-              "legendFormat": "p95 {{ task }}"
+              "expr": "flower_task_prefetch_time_seconds{namespace=\"climate-ref\"}",
+              "legendFormat": "{{ task }}"
             }
           ],
-          "title": "Task Prefetch Wait Time (p50 / p95)",
+          "title": "Task Prefetch Wait Time",
           "type": "timeseries"
         },
         {
@@ -419,7 +415,7 @@ spec:
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
           "targets": [
             {
-              "expr": "dragonfly_used_memory{namespace=\"climate-ref\"}",
+              "expr": "dragonfly_memory_used_bytes{namespace=\"climate-ref\"}",
               "legendFormat": "used memory"
             }
           ],
@@ -451,7 +447,7 @@ spec:
           },
           "targets": [
             {
-              "expr": "dragonfly_used_memory{namespace=\"climate-ref\"}",
+              "expr": "dragonfly_memory_used_bytes{namespace=\"climate-ref\"}",
               "legendFormat": ""
             }
           ],
@@ -513,7 +509,7 @@ spec:
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
           "targets": [
             {
-              "expr": "rate(dragonfly_total_commands_processed{namespace=\"climate-ref\"}[5m])",
+              "expr": "rate(dragonfly_commands_processed_total{namespace=\"climate-ref\"}[5m])",
               "legendFormat": "commands/s"
             }
           ],
