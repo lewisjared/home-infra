@@ -15,6 +15,8 @@ repositories:
     url: https://kubernetes-sigs.github.io/headlamp/
   - name: jetstack
     url: https://charts.jetstack.io
+  - name: keda
+    url: https://kedacore.github.io/charts
   - name: kubernetes-dashboard
     url: https://kubernetes.github.io/dashboard
   - name: metrics-server

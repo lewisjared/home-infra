@@ -1,0 +1,24 @@
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: climate-ref-pmp
+  namespace: climate-ref
+spec:
+  scaleTargetRef:
+    name: climate-ref-pmp
+  minReplicaCount: 0
+  maxReplicaCount: 4
+  cooldownPeriod: 600
+  pollingInterval: 15
+  triggers:
+    - type: redis
+      metadata:
+        address: climate-ref-dragonfly.climate-ref.svc:6379
+        listName: pmp
+        listLength: "1"
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-prometheus.monitoring.svc:9090
+        query: sum(flower_worker_number_of_currently_executing_tasks{namespace="climate-ref", provider="pmp"})
+        threshold: "1"

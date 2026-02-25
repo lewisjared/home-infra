@@ -11,3 +11,4 @@ resources:
   - esgpull/
   - jobs/
   - monitoring/
+  - autoscaling/

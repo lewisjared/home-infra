@@ -4,6 +4,7 @@ resources:
   - cilium-gateway/
   - traefik/
   - external-dns/
+  - keda/
   - metrics-server/
   - pull-secrets/
   - technitium-rbac/
