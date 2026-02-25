@@ -134,47 +134,53 @@ spec:
 
     # Provider configurations
     providers:
-      orchestrator: {}
+      orchestrator:
+        env:
+          # Only handles handle_result/handle_failure callbacks - minimal resources needed
+          CELERY_WORKER_CONCURRENCY: "1"
       esmvaltool:
         replicaCount: 4
-        # autoscaling:
-        #   enabled: false
-        #   minReplicas: 1
-        #   maxReplicas: 10
         resources:
           requests:
-            memory: 8Gi
+            memory: 16Gi
             cpu: "4"
         env:
           CELERY_WORKER_CONCURRENCY: "2"
+          CELERY_TASK_TIME_LIMIT: "21600" # 6 hours
+          CELERY_TASK_SOFT_TIME_LIMIT: "19800" # 5.5 hours
+          CELERY_VISIBILITY_TIMEOUT: "21600"
+          CELERY_WORKER_MAX_MEMORY_PER_CHILD: "16000000" # 16 GB (KB) - recycle before OOM
+          CELERY_WORKER_MAX_TASKS_PER_CHILD: "20" # Recycle after 20 tasks (long-running)
       pmp:
         replicaCount: 4
-        # autoscaling:
-        #   enabled: false
-        #   minReplicas: 1
-        #   maxReplicas: 10
         resources:
           requests:
             memory: 8Gi
             cpu: "4"
         env:
           CELERY_WORKER_CONCURRENCY: "2"
+          CELERY_TASK_TIME_LIMIT: "7200" # 2 hours
+          CELERY_TASK_SOFT_TIME_LIMIT: "6600" # 1 hour 50 min
+          CELERY_VISIBILITY_TIMEOUT: "7200"
+          CELERY_WORKER_MAX_MEMORY_PER_CHILD: "6291456" # 6 GB (KB)
+          CELERY_WORKER_MAX_TASKS_PER_CHILD: "20" # Recycle after 20 tasks (long-running)
           # Use synchronous Dask scheduler to avoid crashes from excessive
           # parallelism when running multiple executions on the same machine.
           # See: https://github.com/Climate-REF/climate-ref/issues/437
           DASK_SCHEDULER: synchronous
       ilamb:
         replicaCount: 2
-        # autoscaling:
-        #   enabled: false
-        #   minReplicas: 1
-        #   maxReplicas: 10
         resources:
           requests:
             memory: 8Gi
             cpu: "4"
         env:
           CELERY_WORKER_CONCURRENCY: "2"
+          CELERY_TASK_TIME_LIMIT: "1800" # 30 minutes
+          CELERY_TASK_SOFT_TIME_LIMIT: "1500" # 25 minutes
+          CELERY_VISIBILITY_TIMEOUT: "1800"
+          CELERY_WORKER_MAX_MEMORY_PER_CHILD: "6291456" # 6 GB (KB)
+          CELERY_WORKER_MAX_TASKS_PER_CHILD: "50" # Recycle after 50 tasks
           # Use synchronous Dask scheduler to avoid crashes from excessive
           # parallelism when running multiple executions on the same machine.
           # See: https://github.com/Climate-REF/climate-ref/issues/437

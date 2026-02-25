@@ -615,6 +615,141 @@ spec:
           ],
           "title": "Pending Tasks by Provider",
           "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 58 },
+          "id": 106,
+          "title": "Worker Resources",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "mode": "none" }
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 59 },
+          "id": 30,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"climate-ref\", container!=\"\", pod=~\"climate-ref-(esmvaltool|pmp|ilamb|orchestrator).*\"})",
+              "legendFormat": "{{ pod }}"
+            }
+          ],
+          "title": "Worker Memory Usage (per pod)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "mode": "none" }
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 59 },
+          "id": 31,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace=\"climate-ref\", pod=~\"climate-ref-(esmvaltool|pmp|ilamb|orchestrator).*\"}[1h]))",
+              "legendFormat": "{{ pod }}"
+            }
+          ],
+          "title": "Pod Restarts (1h window)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "bars",
+                "fillOpacity": 50,
+                "lineWidth": 1,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": { "mode": "normal" }
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 67 },
+          "id": 32,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "sum by (task) (increase(flower_events_total{namespace=\"climate-ref\", type=\"task-succeeded\"}[1h]))",
+              "legendFormat": "{{ task }}"
+            }
+          ],
+          "title": "Tasks Completed per Hour (by diagnostic)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "mode": "none" }
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 67 },
+          "id": 33,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            {
+              "expr": "avg by (pod) (avg_over_time(container_memory_working_set_bytes{namespace=\"climate-ref\", container!=\"\", pod=~\"climate-ref-(esmvaltool|pmp|ilamb).*\"}[1h]))",
+              "legendFormat": "avg {{ pod }}"
+            },
+            {
+              "expr": "max by (pod) (max_over_time(container_memory_working_set_bytes{namespace=\"climate-ref\", container!=\"\", pod=~\"climate-ref-(esmvaltool|pmp|ilamb).*\"}[1h]))",
+              "legendFormat": "peak {{ pod }}"
+            }
+          ],
+          "title": "Worker Memory (avg vs peak, 1h rolling)",
+          "type": "timeseries"
         }
       ],
       "schemaVersion": 39,
