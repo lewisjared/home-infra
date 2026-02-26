@@ -94,7 +94,25 @@ kubectl -n climate-ref create job --from=cronjob/esgf-fetch manual-fetch-$(date 
 
 This uses `intake-esgf` to search the ESGF Globus catalog and download CMIP6/Obs4MIPs data to the NFS volume.
 
-### 5. Ingest data and solve
+### 5. Fetch and ingest obs4REF observation data
+
+Downloads curated observation datasets from `obs4ref.climate-ref.org` and ingests them into the database:
+
+```bash
+# Fetch obs4REF datasets (downloads to /ref/cache/climate_ref/obs4REF/)
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
+  ref datasets fetch-data --registry obs4ref
+
+# Ingest into the database
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
+  ref datasets ingest --source-type obs4mips /ref/cache/climate_ref/obs4REF
+```
+
+These are reference/observation datasets (ERA-INT, CERES-EBAF, GPCP, HadISST, WOA2023, etc.)
+that are in the process of being added to Obs4MIPs.
+This only needs to be re-run after a version upgrade that adds new obs4REF datasets.
+
+### 6. Ingest CMIP6 data and solve
 
 After CMIP6 data has been downloaded:
 
@@ -145,6 +163,18 @@ kubectl -n climate-ref logs job/<ref-ingest-solve-job-name>
 
 ```bash
 kubectl -n climate-ref create job --from=cronjob/esgf-fetch manual-fetch-$(date +%s)
+```
+
+### Fetch and ingest obs4REF data
+
+```bash
+# Fetch obs4REF datasets
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
+  ref datasets fetch-data --registry obs4ref
+
+# Ingest into the database
+kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
+  ref datasets ingest --source-type obs4mips /ref/cache/climate_ref/obs4REF
 ```
 
 ### Trigger ingest + solve
