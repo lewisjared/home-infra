@@ -6,9 +6,9 @@ metadata:
   namespace: climate-ref
 spec:
   interval: 1h
-  url: oci://ghcr.io/climate-ref/charts/ref
+  url: oci://ghcr.io/climate-ref/charts/climate-ref-aft
   ref:
-    tag: 0.11.1
+    tag: 0.9.1_15c510d
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -36,7 +36,68 @@ spec:
     recreate: true
     cleanupOnFail: true
   values:
-    # Global image configuration
+    # Preserve resource naming from the original "ref" chart
+    nameOverride: "ref"
+
+    api:
+      enabled: true
+      image:
+        repository: ghcr.io/climate-ref/climate-ref-frontend
+        tag: main
+      env:
+        ENVIRONMENT: production
+        SECRET_KEY: changethis # TODO: replace with a proper secret
+        REF_DATABASE_URL: sqlite:////ref/ref.db
+        REF_CONFIGURATION: /app/.ref
+      httpRoute:
+        enabled: true
+        hostnames:
+          - climate-ref.home.lewelly.com
+          - api.climate-ref.home.lewelly.com
+        parentRefs:
+          - name: home-gateway
+            namespace: traefik
+            sectionName: websecure
+        filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: traefik.io
+              kind: Middleware
+              name: authelia-forwardauth
+        annotations:
+          external-dns.alpha.kubernetes.io/hostname: climate-ref.home.lewelly.com
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - ALL
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+      volumes:
+        - name: ref-data
+          persistentVolumeClaim:
+            claimName: climate-ref-state
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: ref-data
+          mountPath: /ref
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+
+    # Global worker image configuration
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
@@ -98,7 +159,6 @@ spec:
 
     # Flower (Celery monitoring UI) configuration
     flower:
-      enabled: true
       image:
         repository: mher/flower
         tag: "2.0.1@sha256:51c3c3db5be343e6335e3dbca5348708932bbcca992df6a39f1dad91e3b340df"
@@ -106,14 +166,30 @@ spec:
       env:
         FLOWER_UNAUTHENTICATED_API: "true"
         FLOWER_TASK_RUNTIME_METRIC_BUCKETS: "30,60,120,180,300,450,600,900,1200,1800"
+      httpRoute:
+        enabled: true
+        hostnames:
+          - flower.climate-ref.home.lewelly.com
+        parentRefs:
+          - name: home-gateway
+            namespace: traefik
+            sectionName: websecure
+        filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: traefik.io
+              kind: Middleware
+              name: authelia-forwardauth
+        annotations:
+          external-dns.alpha.kubernetes.io/hostname: flower.climate-ref.home.lewelly.com
       service:
         type: ClusterIP
         port: 5555
-      securityContext:
+      podSecurityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
-      containerSecurityContext:
+      securityContext:
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
         runAsNonRoot: true
