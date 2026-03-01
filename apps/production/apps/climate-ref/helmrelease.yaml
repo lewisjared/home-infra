@@ -43,7 +43,7 @@ spec:
       enabled: true
       image:
         repository: ghcr.io/climate-ref/climate-ref-frontend
-        tag: main
+        tag: main@sha256:6ed0f96d504c726b1849ba30331319db56c12c384e9ba39989998c5957dab675
       env:
         ENVIRONMENT: production
         SECRET_KEY: changethis # TODO: replace with a proper secret
@@ -101,7 +101,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: v0.11.1
+        tag: v0.11.1@sha256:39c5cc1b6f8025f2931c81679ae8acddffc9271c643801587ce1691f9881d99d
       env:
         COLUMNS: "160"
         REF_CONFIGURATION: /ref/test-lazy
