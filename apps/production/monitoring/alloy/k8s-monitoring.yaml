@@ -75,6 +75,14 @@ spec:
         # Enable PSI (Pressure Stall Information) metrics
         extraArgs:
           - --collector.pressure
+        # Set instance label to the Kubernetes node name during discovery
+        # so it matches kube_node_info and dashboard variables
+        extraDiscoveryRules: |-
+          rule {
+            action = "replace"
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label = "instance"
+          }
         # Relabel to match kube-prometheus-stack recording rules and dashboards
         extraMetricProcessingRules: |-
           rule {
