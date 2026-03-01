@@ -46,7 +46,7 @@ spec:
       spec:
         initContainers:
           - name: setup-cache-dirs
-            image: busybox:latest
+            image: busybox:latest@sha256:b3255e7dfbcd10cb367af0d409747d511aeb66dfac98cf30e97e87e4207dd76f
             securityContext:
               runAsUser: 0
             # Create the cache directories and set permissions so that the runner can write to them.
@@ -77,7 +77,7 @@ spec:
                 mountPath: /home-config
         containers:
           - name: runner
-            image: ghcr.io/actions/actions-runner:latest
+            image: ghcr.io/actions/actions-runner:latest@sha256:8c3f5970b8ceb90cbd3e89b80c6806bb74d9c31686e9177c743323a4539d12f5
             command: ["/home/runner/run.sh"]
             volumeMounts:
               # RO CMIP6 archive
