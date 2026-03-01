@@ -1,0 +1,14 @@
+---
+# node_exporter version
+node_exporter_version: "1.10.2"
+
+# Listen address (all interfaces - Prometheus scrapes directly from k8s)
+node_exporter_listen_address: "0.0.0.0:9100"
+
+# Architecture
+node_exporter_arch: "amd64"
+
+# Additional collectors to enable beyond defaults
+node_exporter_extra_collectors:
+  - hwmon
+  - thermal_zone

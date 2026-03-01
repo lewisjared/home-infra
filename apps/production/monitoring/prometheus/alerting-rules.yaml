@@ -124,6 +124,35 @@ spec:
             summary: "Flux {{ $labels.kind }}/{{ $labels.name }} reconciliation failing"
             description: "{{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} has been failing for 15 minutes."
 
+    - name: proxmox-alerts
+      rules:
+        - alert: ProxmoxNodeDown
+          expr: up{job="proxmox-node-exporter"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Proxmox host {{ $labels.instance }} is unreachable"
+            description: "node_exporter on Proxmox host {{ $labels.instance }} has been down for more than 5 minutes."
+
+        - alert: ProxmoxHighTemperature
+          expr: node_hwmon_temp_celsius{job="proxmox-node-exporter"} > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High temperature on Proxmox host {{ $labels.instance }}"
+            description: "Sensor {{ $labels.chip }}/{{ $labels.sensor }} on {{ $labels.instance }} is at {{ $value }}C."
+
+        - alert: ProxmoxCriticalTemperature
+          expr: node_hwmon_temp_celsius{job="proxmox-node-exporter"} > 95
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Critical temperature on Proxmox host {{ $labels.instance }}"
+            description: "Sensor {{ $labels.chip }}/{{ $labels.sensor }} on {{ $labels.instance }} is at {{ $value }}C. Immediate attention required."
+
     - name: storage-alerts
       rules:
         - alert: CephHealthWarning

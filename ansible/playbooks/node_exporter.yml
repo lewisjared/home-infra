@@ -1,0 +1,6 @@
+---
+- name: Deploy node_exporter to Proxmox hosts
+  hosts: proxmox
+  become: true
+  roles:
+    - node_exporter

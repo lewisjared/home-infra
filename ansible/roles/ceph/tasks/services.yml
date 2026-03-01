@@ -72,9 +72,12 @@
   register: ceph_osd_check
   failed_when: false
   changed_when: false
+  when: ceph_osd is defined
 
 - name: Create Ceph OSD
   ansible.builtin.command:
     cmd: "ceph-volume lvm create --data /dev/pve/{{ ceph_osd.lv_name }}"
-  when: ceph_osd_check.rc != 0
+  when:
+    - ceph_osd is defined
+    - ceph_osd_check.rc != 0
   register: ceph_osd_create

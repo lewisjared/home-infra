@@ -85,7 +85,40 @@ spec:
         serviceMonitorSelectorNilUsesHelmValues: false
         podMonitorSelectorNilUsesHelmValues: false
 
-        additionalScrapeConfigs: {}
+        additionalScrapeConfigs:
+          - job_name: proxmox-node-exporter
+            scrape_interval: 30s
+            static_configs:
+              - targets:
+                  - 10.10.20.10:9100 # churro
+                  - 10.10.20.11:9100 # mole
+                  - 10.10.20.12:9100 # taco
+                  - 10.10.20.13:9100 # nacho
+                  - 10.10.20.14:9100 # tamale
+                labels:
+                  job: proxmox-node-exporter
+                  cluster: home-infra
+            relabel_configs:
+              - source_labels: [__address__]
+                regex: '10\.10\.20\.10:.*'
+                target_label: instance
+                replacement: churro
+              - source_labels: [__address__]
+                regex: '10\.10\.20\.11:.*'
+                target_label: instance
+                replacement: mole
+              - source_labels: [__address__]
+                regex: '10\.10\.20\.12:.*'
+                target_label: instance
+                replacement: taco
+              - source_labels: [__address__]
+                regex: '10\.10\.20\.13:.*'
+                target_label: instance
+                replacement: nacho
+              - source_labels: [__address__]
+                regex: '10\.10\.20\.14:.*'
+                target_label: instance
+                replacement: tamale
     defaultRules:
       create: true
       rules:
