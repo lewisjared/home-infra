@@ -69,6 +69,26 @@ spec:
                 confirm_download: false
                 num_threads: 20
                 EOF
+
+                mkdir -p /home-config/dask
+                cat > /home-config/dask/config.yaml <<'EOF'
+                scheduler: synchronous
+                EOF
+
+                mkdir -p /home-config/esmvaltool
+                cat > /home-config/esmvaltool/config.yaml <<'EOF'
+                max_parallel_tasks: 2
+                dask:
+                  use: local_distributed
+                  profiles:
+                    local_distributed:
+                      cluster:
+                        type: distributed.LocalCluster
+                        n_workers: 2
+                        threads_per_worker: 2
+                        memory_limit: 4GiB
+                EOF
+
                 chmod -R 777 /home-config
             volumeMounts:
               - name: runner-cache
@@ -108,6 +128,8 @@ spec:
               # Set a reasonable width for the rich tracebacks
               - name: "COLUMNS"
                 value: "200"
+              - name: "USER"
+                value: "runner"
         volumes:
           - name: cmip6-data
             persistentVolumeClaim:
