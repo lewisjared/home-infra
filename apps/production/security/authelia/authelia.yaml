@@ -138,9 +138,9 @@ spec:
           # All protected apps - one_factor required
           # Note: *.domain matches subdomains but not apex, so both are needed
           - domain: home.lewelly.com
-            policy: one_factor
+            policy: bypass
           - domain: "*.home.lewelly.com"
-            policy: one_factor
+            policy: bypass
 
       # OIDC Provider Configuration
       identity_providers:
