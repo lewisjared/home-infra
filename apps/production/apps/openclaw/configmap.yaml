@@ -10,6 +10,7 @@ data:
       "gateway": {
         "port": 18789,
         "bind": "lan",
+        "trustedProxies": ["10.0.0.0/8"],
         "controlUi": {
           "allowedOrigins": [
             "https://openclaw.home.lewelly.com",
