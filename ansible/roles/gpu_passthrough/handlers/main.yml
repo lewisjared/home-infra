@@ -15,8 +15,8 @@
 
 - name: Wait for Ceph to recover after reboot
   ansible.builtin.command: ceph health
-  register: ceph_health
-  until: ceph_health.stdout is search("HEALTH_OK") or ceph_health.stdout is search("HEALTH_WARN")
+  register: gpu_passthrough_ceph_health
+  until: gpu_passthrough_ceph_health.stdout is search("HEALTH_OK") or gpu_passthrough_ceph_health.stdout is search("HEALTH_WARN")
   retries: 30
   delay: 10
   changed_when: false

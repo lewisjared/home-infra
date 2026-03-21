@@ -21,7 +21,7 @@
   gather_facts: false
 
   pre_tasks:
-    - name: Set Ceph noout flag before changes
+    - name: Set Ceph noout flag before changes  # noqa: run-once[task]
       ansible.builtin.command: ceph osd set noout
       changed_when: true
       run_once: true
@@ -30,7 +30,7 @@
     - gpu_passthrough
 
   post_tasks:
-    - name: Unset Ceph noout flag after all hosts complete
+    - name: Unset Ceph noout flag after all hosts complete  # noqa: run-once[task]
       ansible.builtin.command: ceph osd unset noout
       changed_when: true
       run_once: true

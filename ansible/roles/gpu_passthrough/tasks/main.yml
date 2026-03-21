@@ -15,10 +15,11 @@
 # Kernel parameters
 # ---------------------------------------------------------------------------
 - name: Check current GRUB cmdline
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: grep '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub
-  register: grub_cmdline
+  register: gpu_passthrough_grub_cmdline
   changed_when: false
+  failed_when: gpu_passthrough_grub_cmdline.rc > 1
 
 - name: Add iommu=pt to GRUB cmdline
   ansible.builtin.lineinfile:
@@ -26,7 +27,7 @@
     regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
     line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet iommu=pt"'
     backup: true
-  when: "'iommu=pt' not in grub_cmdline.stdout"
+  when: "'iommu=pt' not in gpu_passthrough_grub_cmdline.stdout"
   notify:
     - Update GRUB
     - Update initramfs
@@ -65,7 +66,7 @@
   ansible.builtin.copy:
     dest: /etc/modprobe.d/vfio.conf
     content: |
-      options vfio-pci ids={{ gpu_vfio_device_ids | join(',') }}
+      options vfio-pci ids={{ gpu_passthrough_vfio_device_ids | join(',') }}
       softdep amdgpu pre: vfio-pci
       softdep snd_hda_intel pre: vfio-pci
     mode: "0644"
