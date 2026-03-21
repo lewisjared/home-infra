@@ -135,7 +135,11 @@ spec:
             # networks:
             #   - 10.16.0.60/32
 
-          # All protected apps - one_factor required
+          # OpenClaw - two_factor required (autonomous AI agent)
+          - domain: openclaw.home.lewelly.com
+            policy: two_factor
+
+          # All other apps - bypass (temporary)
           # Note: *.domain matches subdomains but not apex, so both are needed
           - domain: home.lewelly.com
             policy: bypass
