@@ -250,6 +250,14 @@ spec:
               targetLabel: cluster
               replacement: home-infra
 
+    # Talos does not expose controller-manager, scheduler, or etcd metrics
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeEtcd:
+      enabled: false
+
     # Keep node-exporter disabled - using k8s-monitoring's version
     nodeExporter:
       enabled: false
