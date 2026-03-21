@@ -33,6 +33,27 @@ spec:
     controllers:
       main:
         strategy: Recreate
+        initContainers:
+          seed-config:
+            image:
+              repository: busybox
+              tag: "1.37"
+            command:
+              - sh
+              - -c
+              - |
+                if [ ! -f /home/node/.openclaw/openclaw.json ]; then
+                  cp /config-seed/openclaw.json /home/node/.openclaw/openclaw.json
+                  echo "Seeded openclaw.json from ConfigMap"
+                else
+                  echo "openclaw.json already exists, skipping seed"
+                fi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
         containers:
           main:
             image:
@@ -118,13 +139,14 @@ spec:
         size: 10Gi
         globalMounts:
           - path: /home/node/.openclaw
-      config:
+      config-seed:
         type: configMap
         name: openclaw-config
-        globalMounts:
-          - path: /home/node/.openclaw/openclaw.json
-            subPath: openclaw.json
-            readOnly: true
+        advancedMounts:
+          main:
+            seed-config:
+              - path: /config-seed
+                readOnly: true
       tmp:
         type: emptyDir
         globalMounts:
