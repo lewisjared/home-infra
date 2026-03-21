@@ -66,6 +66,19 @@ resource "proxmox_virtual_environment_vm" "this" {
     }
   }
 
+  # PCI passthrough devices (e.g., GPU)
+  dynamic "hostpci" {
+    for_each = var.hostpci_devices
+    content {
+      device  = hostpci.value.device
+      mapping = hostpci.value.mapping
+      id      = hostpci.value.id
+      pcie    = hostpci.value.pcie
+      rombar  = hostpci.value.rombar
+      xvga    = hostpci.value.xvga
+    }
+  }
+
   # SCSI controller
   scsi_hardware = "virtio-scsi-single"
 

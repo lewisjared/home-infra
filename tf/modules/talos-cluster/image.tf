@@ -1,10 +1,11 @@
-# Create schematic with QEMU guest agent for Proxmox integration
+# Create schematic with QEMU guest agent and AMD GPU support
 resource "talos_image_factory_schematic" "this" {
   schematic = yamlencode({
     customization = {
       systemExtensions = {
         officialExtensions = [
-          "siderolabs/qemu-guest-agent"
+          "siderolabs/qemu-guest-agent",
+          "siderolabs/amdgpu"
         ]
       }
     }

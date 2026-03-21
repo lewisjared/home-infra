@@ -23,12 +23,17 @@ spec:
     keepHistory: false
   values:
     defaultPodOptions:
+      nodeSelector:
+        gpu: amd-igpu
       securityContext:
         runAsUser: 3000
         runAsGroup: 3000
         runAsNonRoot: true
         fsGroup: 3000
         fsGroupChangePolicy: OnRootMismatch
+        supplementalGroups:
+          - 44   # video
+          - 104  # render
 
     controllers:
       main:
@@ -105,6 +110,11 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /transcode
+      dri:
+        type: hostPath
+        hostPath: /dev/dri
+        globalMounts:
+          - path: /dev/dri
       tmp:
         type: emptyDir
         globalMounts:

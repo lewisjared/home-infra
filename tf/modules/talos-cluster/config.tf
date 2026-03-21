@@ -72,6 +72,21 @@ locals {
 
   # Worker specific patches
   worker_patches = local.common_patches
+
+  # GPU worker patches - applied only to workers with gpu_enabled = true
+  gpu_worker_patch = yamlencode({
+    machine = {
+      kernel = {
+        modules = [
+          { name = "amdgpu" },
+          { name = "drm" }
+        ]
+      }
+      nodeLabels = {
+        "gpu" = "amd-igpu"
+      }
+    }
+  })
 }
 
 # Generate control plane machine configuration
@@ -128,36 +143,41 @@ data "talos_machine_configuration" "worker" {
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
 
-  config_patches = concat(local.worker_patches, [
-    yamlencode({
-      machine = {
-        network = {
-          hostname = each.key
-          interfaces = concat(
-            # eth0 - Primary NIC (Kubernetes network)
-            [{
-              interface = "eth0"
-              addresses = ["${each.value.ip_address}${var.network_cidr}"]
-              routes = [{
-                network = "0.0.0.0/0"
-                gateway = var.network_gateway
-              }]
-            }],
-            # eth1 - Secondary NIC (Ceph storage network) - only if configured
-            each.value.ceph_ip_address != null ? [{
-              interface = "eth1"
-              addresses = ["${each.value.ceph_ip_address}${var.ceph_cidr}"]
-              # No routes - isolated L2 storage network
-            }] : []
-          )
+  config_patches = concat(
+    local.worker_patches,
+    # GPU patches - only for workers with gpu_enabled
+    each.value.gpu_enabled ? [local.gpu_worker_patch] : [],
+    [
+      yamlencode({
+        machine = {
+          network = {
+            hostname = each.key
+            interfaces = concat(
+              # eth0 - Primary NIC (Kubernetes network)
+              [{
+                interface = "eth0"
+                addresses = ["${each.value.ip_address}${var.network_cidr}"]
+                routes = [{
+                  network = "0.0.0.0/0"
+                  gateway = var.network_gateway
+                }]
+              }],
+              # eth1 - Secondary NIC (Ceph storage network) - only if configured
+              each.value.ceph_ip_address != null ? [{
+                interface = "eth1"
+                addresses = ["${each.value.ceph_ip_address}${var.ceph_cidr}"]
+                # No routes - isolated L2 storage network
+              }] : []
+            )
+          }
+          install = {
+            disk  = "/dev/sda"
+            image = data.talos_image_factory_urls.this.urls.installer
+          }
         }
-        install = {
-          disk  = "/dev/sda"
-          image = data.talos_image_factory_urls.this.urls.installer
-        }
-      }
-    })
-  ])
+      })
+    ]
+  )
 }
 
 # Generate talosconfig for CLI access

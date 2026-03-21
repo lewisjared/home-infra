@@ -114,3 +114,16 @@ variable "description" {
   description = "VM description"
   default     = "Managed by OpenTofu"
 }
+
+variable "hostpci_devices" {
+  type = list(object({
+    device  = string
+    mapping = optional(string)
+    id      = optional(string)
+    pcie    = optional(bool, true)
+    rombar  = optional(bool, true)
+    xvga    = optional(bool, false)
+  }))
+  description = "PCI devices to pass through to the VM"
+  default     = []
+}
