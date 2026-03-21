@@ -1,3 +1,4 @@
+---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -22,21 +23,24 @@ spec:
               down for more than 5 minutes.
 
         - alert: NodeHighCPU
-          expr: >-
-            100 - (avg by(instance)
-            (irate(node_cpu_seconds_total{mode="idle"}[5m]))
-            * 100) > 90
+          expr: |
+            100 - (avg by(instance) (irate(
+              node_cpu_seconds_total{mode="idle"}[5m]
+            )) * 100) > 90
           for: 30m
           labels:
             severity: warning
           annotations:
-            summary: "High CPU usage on {{ $labels.instance }}"
-            description: "CPU usage is above 90% for more than 30 minutes."
+            summary: "High CPU on {{ $labels.instance }}"
+            description: >-
+              CPU usage is above 90% for more than 30 minutes.
 
         - alert: ControlPlaneHighMemory
           expr: |
-            (1 - node_memory_MemAvailable_bytes
-            / node_memory_MemTotal_bytes) * 100 > 95
+            (
+              1 - node_memory_MemAvailable_bytes
+              / node_memory_MemTotal_bytes
+            ) * 100 > 95
             and on(instance) label_replace(
               kube_node_role{role="control-plane"},
               "instance", "$1", "node", "(.*)"
@@ -46,15 +50,18 @@ spec:
             severity: warning
           annotations:
             summary: >-
-              High memory on control-plane node {{ $labels.instance }}
+              High memory on control-plane node
+              {{ $labels.instance }}
             description: >-
               Memory usage is {{ $value | humanize }}%
               on {{ $labels.instance }}.
 
         - alert: WorkerHighMemory
           expr: |
-            (1 - node_memory_MemAvailable_bytes
-            / node_memory_MemTotal_bytes) * 100 > 85
+            (
+              1 - node_memory_MemAvailable_bytes
+              / node_memory_MemTotal_bytes
+            ) * 100 > 85
             and unless on(instance) label_replace(
               kube_node_role{role="control-plane"},
               "instance", "$1", "node", "(.*)"
@@ -64,15 +71,18 @@ spec:
             severity: warning
           annotations:
             summary: >-
-              High memory on worker node {{ $labels.instance }}
+              High memory on worker node
+              {{ $labels.instance }}
             description: >-
               Memory usage is {{ $value | humanize }}%
               on {{ $labels.instance }}.
 
         - alert: NodeDiskAlmostFull
-          expr: >-
-            (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
-            / node_filesystem_size_bytes) * 100 > 85
+          expr: |
+            (
+              1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+              / node_filesystem_size_bytes
+            ) * 100 > 85
           for: 10m
           labels:
             severity: warning
@@ -81,19 +91,13 @@ spec:
             description: >-
               Disk {{ $labels.mountpoint }} is above 85% full.
 
-    # Pod/Deployment/PVC alerts are handled by kube-prometheus-stack
-    # default rules:
-    #   kubernetesApps: KubePodCrashLooping, KubePodNotReady,
-    #     KubeDeploymentReplicasMismatch, KubeStatefulSetReplicasMismatch,
-    #     KubeJobFailed, KubeHpaMaxedOut, etc.
-    #   kubernetesStorage: KubePersistentVolumeFillingUp,
-    #     KubePersistentVolumeInodesFillingUp,
-    #     KubePersistentVolumeErrors
+    # Pod/Deployment/PVC alerts covered by kube-prometheus-stack
+    # default rules (kubernetesApps + kubernetesStorage)
 
     - name: certificate-alerts
       rules:
         - alert: CertificateExpiringSoon
-          expr: >-
+          expr: |
             certmanager_certificate_expiration_timestamp_seconds
             - time() < 604800
           for: 1h
@@ -108,7 +112,7 @@ spec:
               {{ $value | humanizeDuration }}.
 
         - alert: CertificateExpiryCritical
-          expr: >-
+          expr: |
             certmanager_certificate_expiration_timestamp_seconds
             - time() < 86400
           for: 10m
@@ -125,8 +129,9 @@ spec:
     - name: flux-alerts
       rules:
         - alert: FluxReconciliationFailure
-          expr: >-
-            gotk_reconcile_condition{status="False",type="Ready"} == 1
+          expr: |
+            gotk_reconcile_condition{status="False",type="Ready"}
+            == 1
           for: 30m
           labels:
             severity: warning
@@ -150,12 +155,14 @@ spec:
             summary: >-
               Proxmox host {{ $labels.instance }} is unreachable
             description: >-
-              node_exporter on Proxmox host {{ $labels.instance }}
-              has been down for more than 5 minutes.
+              node_exporter on Proxmox host
+              {{ $labels.instance }} has been down for more
+              than 5 minutes.
 
         - alert: ProxmoxHighTemperature
-          expr: >-
-            node_hwmon_temp_celsius{job="proxmox-node-exporter"} > 85
+          expr: |
+            node_hwmon_temp_celsius{job="proxmox-node-exporter"}
+            > 85
           for: 5m
           labels:
             severity: warning
@@ -168,8 +175,9 @@ spec:
               on {{ $labels.instance }} is at {{ $value }}C.
 
         - alert: ProxmoxCriticalTemperature
-          expr: >-
-            node_hwmon_temp_celsius{job="proxmox-node-exporter"} > 95
+          expr: |
+            node_hwmon_temp_celsius{job="proxmox-node-exporter"}
+            > 95
           for: 2m
           labels:
             severity: critical
@@ -186,16 +194,21 @@ spec:
           expr: |
             (
               1 - node_memory_MemAvailable_bytes{
-                job="proxmox-node-exporter", instance!="mole"}
+                job="proxmox-node-exporter",
+                instance!="mole"
+              }
               / node_memory_MemTotal_bytes{
-                job="proxmox-node-exporter", instance!="mole"}
+                job="proxmox-node-exporter",
+                instance!="mole"
+              }
             ) * 100 > 90
           for: 30m
           labels:
             severity: warning
           annotations:
             summary: >-
-              High memory on Proxmox host {{ $labels.instance }}
+              High memory on Proxmox host
+              {{ $labels.instance }}
             description: >-
               Memory usage is {{ $value | humanize }}%
               on {{ $labels.instance }}.
@@ -205,10 +218,12 @@ spec:
             (
               1 - node_filesystem_avail_bytes{
                 job="proxmox-node-exporter",
-                fstype!~"tmpfs|overlay|fuse.*|nfs.*"}
+                fstype!~"tmpfs|overlay|fuse.*|nfs.*"
+              }
               / node_filesystem_size_bytes{
                 job="proxmox-node-exporter",
-                fstype!~"tmpfs|overlay|fuse.*|nfs.*"}
+                fstype!~"tmpfs|overlay|fuse.*|nfs.*"
+              }
             ) * 100 > 85
           for: 10m
           labels:
@@ -218,5 +233,6 @@ spec:
               Disk almost full on Proxmox host
               {{ $labels.instance }}
             description: >-
-              {{ $labels.mountpoint }} on {{ $labels.instance }}
-              is {{ $value | humanize }}% full.
+              {{ $labels.mountpoint }} on
+              {{ $labels.instance }} is
+              {{ $value | humanize }}% full.
