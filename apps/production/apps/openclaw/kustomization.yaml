@@ -9,3 +9,5 @@ resources:
   - middleware.yaml
   - network-policy.yaml
   - openclaw-secret.yaml
+  - alerting-rules.yaml
+  - dashboard.yaml
