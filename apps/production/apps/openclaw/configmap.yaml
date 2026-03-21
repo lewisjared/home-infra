@@ -9,7 +9,14 @@ data:
     {
       "gateway": {
         "port": 18789,
-        "bind": "lan"
+        "bind": "lan",
+        "controlUi": {
+          "allowedOrigins": [
+            "https://openclaw.home.lewelly.com",
+            "http://localhost:18789",
+            "http://127.0.0.1:18789"
+          ]
+        }
       },
       "browser": {
         "enabled": false
