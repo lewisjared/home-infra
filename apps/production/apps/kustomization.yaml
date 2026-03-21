@@ -7,5 +7,4 @@ resources:
   - media/
   - climate-ref/
   - github-runners/
-  - openclaw/
   # Disabled apps in ./disabled/ directory
