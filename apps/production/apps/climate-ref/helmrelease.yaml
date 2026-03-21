@@ -46,7 +46,7 @@ spec:
         tag: main
       env:
         ENVIRONMENT: production
-        SECRET_KEY: changethis # TODO: replace with a proper secret
+        SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
         REF_DATABASE_URL: sqlite:////ref/ref.db
         REF_CONFIGURATION: /app/.ref
       httpRoute:
