@@ -7,7 +7,9 @@
 #   ansible-playbook playbooks/gpu_passthrough.yml
 #
 # After running:
-#   1. Create the PCI resource mapping in Proxmox (see scripts/create-gpu-mapping.sh)
+#   1. Create PCI resource mapping "igpu" in Proxmox UI:
+#      Datacenter > Resource Mappings > PCI Devices > Add
+#      Map 0000:01:00.0 (VGA controller) on nacho and tamale
 #   2. Run terraform apply to attach GPUs to worker VMs
 #
 # Safety:
