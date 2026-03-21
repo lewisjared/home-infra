@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: openclaw
+data:
+  openclaw.json: |
+    {
+      "gateway": {
+        "port": 18789,
+        "bind": "lan"
+      },
+      "browser": {
+        "enabled": false
+      },
+      "agents": {
+        "defaults": {
+          "model": {
+            "primary": "kilocode/kilo/auto"
+          },
+          "sandbox": {
+            "mode": "off"
+          }
+        }
+      },
+      "channels": {
+        "defaults": {
+          "dmPolicy": "pairing",
+          "groupPolicy": "allowlist"
+        },
+        "slack": {
+          "mode": "socket"
+        }
+      },
+      "session": {
+        "dmScope": "per-channel-peer"
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-env
+  namespace: openclaw
+data:
+  NODE_ENV: "production"
