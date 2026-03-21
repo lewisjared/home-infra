@@ -37,6 +37,9 @@ data:
           "mode": "socket",
           "dmPolicy": "pairing",
           "groupPolicy": "open"
+        },
+        "webchat": {
+          "dmPolicy": "open"
         }
       },
       "session": {
