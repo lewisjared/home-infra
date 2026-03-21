@@ -25,12 +25,10 @@ data:
         }
       },
       "channels": {
-        "defaults": {
-          "dmPolicy": "pairing",
-          "groupPolicy": "allowlist"
-        },
         "slack": {
-          "mode": "socket"
+          "mode": "socket",
+          "dmPolicy": "pairing",
+          "groupPolicy": "open"
         }
       },
       "session": {
