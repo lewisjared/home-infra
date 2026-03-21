@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: "2026.3.13"
+              tag: "2026.3.13-1"
             env:
               TZ: Australia/Melbourne
               # Bind to all interfaces (required for K8s service routing)
