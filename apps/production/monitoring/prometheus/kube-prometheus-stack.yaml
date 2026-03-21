@@ -123,7 +123,7 @@ spec:
       create: true
       rules:
         alertmanager: true
-        etcd: true
+        etcd: false # Talos-managed, not actionable
         configReloaders: true
         general: true
         k8sContainerCpuUsageSecondsTotal: true
@@ -137,7 +137,7 @@ spec:
         kubeApiserverBurnrate: true
         kubeApiserverHistogram: true
         kubeApiserverSlos: true
-        kubeControllerManager: true
+        kubeControllerManager: false # Talos-managed, targets not exposed
         kubelet: true
         kubeProxy: false
         kubePrometheusGeneral: true
@@ -146,7 +146,7 @@ spec:
         kubernetesResources: true
         kubernetesStorage: true
         kubernetesSystem: true
-        kubeSchedulerAlerting: true
+        kubeSchedulerAlerting: false # Talos-managed, targets not exposed
         kubeSchedulerRecording: true
         kubeStateMetrics: true
         network: true
@@ -155,7 +155,7 @@ spec:
         nodeExporterRecording: true
         prometheus: true
         prometheusOperator: true
-        windows: true
+        windows: false # No Windows nodes
 
     # Grafana - DISABLED in favor of Grafana Operator
     # See apps/production/monitoring/grafana/ for the new Grafana deployment
@@ -172,9 +172,15 @@ spec:
           group_by: ["alertname", "namespace"]
           group_wait: 30s
           group_interval: 5m
-          repeat_interval: 4h
+          repeat_interval: 12h
           receiver: "pushover-critical"
           routes:
+            - receiver: "null"
+              matchers:
+                - alertname = Watchdog
+            - receiver: "null"
+              matchers:
+                - alertname = InfoInhibitor
             - receiver: "pushover-critical"
               matchers:
                 - severity = critical
@@ -182,6 +188,7 @@ spec:
               matchers:
                 - severity = warning
         receivers:
+          - name: "null"
           - name: "pushover-critical"
             pushover_configs:
               - user_key_file: /etc/alertmanager/secrets/alertmanager-pushover/user_key
