@@ -11,6 +11,12 @@ data:
         "port": 18789,
         "bind": "lan",
         "trustedProxies": ["10.0.0.0/8"],
+        "auth": {
+          "mode": "trusted-proxy",
+          "trustedProxy": {
+            "userHeader": "Remote-User"
+          }
+        },
         "controlUi": {
           "allowedOrigins": [
             "https://openclaw.home.lewelly.com",
@@ -38,9 +44,6 @@ data:
           "dmPolicy": "pairing",
           "groupPolicy": "open"
         },
-        "webchat": {
-          "dmPolicy": "open"
-        }
       },
       "session": {
         "dmScope": "per-channel-peer"
