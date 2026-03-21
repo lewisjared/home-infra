@@ -42,8 +42,12 @@ spec:
               - sh
               - -c
               - |
-                cp /config-seed/openclaw.json /home/node/.openclaw/openclaw.json
-                echo "Seeded openclaw.json from ConfigMap"
+                if [ ! -f /home/node/.openclaw/openclaw.json ]; then
+                  cp /config-seed/openclaw.json /home/node/.openclaw/openclaw.json
+                  echo "Seeded openclaw.json from ConfigMap (first boot)"
+                else
+                  echo "openclaw.json exists, skipping seed"
+                fi
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
