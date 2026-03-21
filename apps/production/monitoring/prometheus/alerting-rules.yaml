@@ -23,10 +23,8 @@ spec:
               down for more than 5 minutes.
 
         - alert: NodeHighCPU
-          expr: |
-            100 - (avg by(instance) (irate(
-              node_cpu_seconds_total{mode="idle"}[5m]
-            )) * 100) > 90
+          # yamllint disable-line rule:line-length
+          expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
           for: 30m
           labels:
             severity: warning
@@ -36,15 +34,8 @@ spec:
               CPU usage is above 90% for more than 30 minutes.
 
         - alert: ControlPlaneHighMemory
-          expr: |
-            (
-              1 - node_memory_MemAvailable_bytes
-              / node_memory_MemTotal_bytes
-            ) * 100 > 95
-            and on(instance) label_replace(
-              kube_node_role{role="control-plane"},
-              "instance", "$1", "node", "(.*)"
-            )
+          # yamllint disable-line rule:line-length
+          expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 95 and on(instance) label_replace(kube_node_role{role="control-plane"}, "instance", "$1", "node", "(.*)")
           for: 30m
           labels:
             severity: warning
@@ -57,15 +48,8 @@ spec:
               on {{ $labels.instance }}.
 
         - alert: WorkerHighMemory
-          expr: |
-            (
-              1 - node_memory_MemAvailable_bytes
-              / node_memory_MemTotal_bytes
-            ) * 100 > 85
-            and unless on(instance) label_replace(
-              kube_node_role{role="control-plane"},
-              "instance", "$1", "node", "(.*)"
-            )
+          # yamllint disable-line rule:line-length
+          expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 85 and unless on(instance) label_replace(kube_node_role{role="control-plane"}, "instance", "$1", "node", "(.*)")
           for: 30m
           labels:
             severity: warning
@@ -78,11 +62,8 @@ spec:
               on {{ $labels.instance }}.
 
         - alert: NodeDiskAlmostFull
-          expr: |
-            (
-              1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
-              / node_filesystem_size_bytes
-            ) * 100 > 85
+          # yamllint disable-line rule:line-length
+          expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes) * 100 > 85
           for: 10m
           labels:
             severity: warning
@@ -97,9 +78,8 @@ spec:
     - name: certificate-alerts
       rules:
         - alert: CertificateExpiringSoon
-          expr: |
-            certmanager_certificate_expiration_timestamp_seconds
-            - time() < 604800
+          # yamllint disable-line rule:line-length
+          expr: certmanager_certificate_expiration_timestamp_seconds - time() < 604800
           for: 1h
           labels:
             severity: warning
@@ -112,9 +92,8 @@ spec:
               {{ $value | humanizeDuration }}.
 
         - alert: CertificateExpiryCritical
-          expr: |
-            certmanager_certificate_expiration_timestamp_seconds
-            - time() < 86400
+          # yamllint disable-line rule:line-length
+          expr: certmanager_certificate_expiration_timestamp_seconds - time() < 86400
           for: 10m
           labels:
             severity: critical
@@ -129,9 +108,8 @@ spec:
     - name: flux-alerts
       rules:
         - alert: FluxReconciliationFailure
-          expr: |
-            gotk_reconcile_condition{status="False",type="Ready"}
-            == 1
+          # yamllint disable-line rule:line-length
+          expr: gotk_reconcile_condition{status="False",type="Ready"} == 1
           for: 30m
           labels:
             severity: warning
@@ -160,9 +138,8 @@ spec:
               than 5 minutes.
 
         - alert: ProxmoxHighTemperature
-          expr: |
-            node_hwmon_temp_celsius{job="proxmox-node-exporter"}
-            > 85
+          # yamllint disable-line rule:line-length
+          expr: node_hwmon_temp_celsius{job="proxmox-node-exporter"} > 85
           for: 5m
           labels:
             severity: warning
@@ -175,9 +152,8 @@ spec:
               on {{ $labels.instance }} is at {{ $value }}C.
 
         - alert: ProxmoxCriticalTemperature
-          expr: |
-            node_hwmon_temp_celsius{job="proxmox-node-exporter"}
-            > 95
+          # yamllint disable-line rule:line-length
+          expr: node_hwmon_temp_celsius{job="proxmox-node-exporter"} > 95
           for: 2m
           labels:
             severity: critical
@@ -191,17 +167,8 @@ spec:
               Immediate attention required.
 
         - alert: ProxmoxHighMemory
-          expr: |
-            (
-              1 - node_memory_MemAvailable_bytes{
-                job="proxmox-node-exporter",
-                instance!="mole"
-              }
-              / node_memory_MemTotal_bytes{
-                job="proxmox-node-exporter",
-                instance!="mole"
-              }
-            ) * 100 > 90
+          # yamllint disable-line rule:line-length
+          expr: (1 - node_memory_MemAvailable_bytes{job="proxmox-node-exporter",instance!="mole"} / node_memory_MemTotal_bytes{job="proxmox-node-exporter",instance!="mole"}) * 100 > 90
           for: 30m
           labels:
             severity: warning
@@ -214,17 +181,8 @@ spec:
               on {{ $labels.instance }}.
 
         - alert: ProxmoxDiskAlmostFull
-          expr: |
-            (
-              1 - node_filesystem_avail_bytes{
-                job="proxmox-node-exporter",
-                fstype!~"tmpfs|overlay|fuse.*|nfs.*"
-              }
-              / node_filesystem_size_bytes{
-                job="proxmox-node-exporter",
-                fstype!~"tmpfs|overlay|fuse.*|nfs.*"
-              }
-            ) * 100 > 85
+          # yamllint disable-line rule:line-length
+          expr: (1 - node_filesystem_avail_bytes{job="proxmox-node-exporter",fstype!~"tmpfs|overlay|fuse.*|nfs.*"} / node_filesystem_size_bytes{job="proxmox-node-exporter",fstype!~"tmpfs|overlay|fuse.*|nfs.*"}) * 100 > 85
           for: 10m
           labels:
             severity: warning
