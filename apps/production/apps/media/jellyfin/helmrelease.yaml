@@ -71,7 +71,7 @@ spec:
               limits:
                 memory: 8Gi
             securityContext:
-              allowPrivilegeEscalation: false
+              privileged: true
               readOnlyRootFilesystem: true
 
     service:
