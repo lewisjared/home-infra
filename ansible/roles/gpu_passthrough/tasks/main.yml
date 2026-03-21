@@ -1,0 +1,75 @@
+---
+# =============================================================================
+# GPU Passthrough Configuration for Proxmox Hosts
+# Prepares hosts for PCI passthrough of AMD iGPUs to VMs
+# =============================================================================
+
+- name: Verify gpu_pci_address is defined
+  ansible.builtin.assert:
+    that:
+      - gpu_pci_address is defined
+      - gpu_pci_address | length > 0
+    fail_msg: "gpu_pci_address must be defined for {{ inventory_hostname }}"
+
+# ---------------------------------------------------------------------------
+# Kernel parameters
+# ---------------------------------------------------------------------------
+- name: Check current GRUB cmdline
+  ansible.builtin.command:
+    cmd: grep '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub
+  register: gpu_passthrough_grub_cmdline
+  changed_when: false
+  failed_when: gpu_passthrough_grub_cmdline.rc > 1
+
+- name: Add iommu=pt to GRUB cmdline
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet iommu=pt"'
+    backup: true
+  when: "'iommu=pt' not in gpu_passthrough_grub_cmdline.stdout"
+  notify:
+    - Update GRUB
+    - Update initramfs
+    - Reboot required
+
+# ---------------------------------------------------------------------------
+# VFIO kernel modules
+# ---------------------------------------------------------------------------
+- name: Load VFIO modules at boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/vfio.conf
+    content: |
+      vfio
+      vfio_iommu_type1
+      vfio_pci
+    mode: "0644"
+  notify:
+    - Update initramfs
+    - Reboot required
+
+# ---------------------------------------------------------------------------
+# Blacklist amdgpu so vfio-pci can claim the device
+# ---------------------------------------------------------------------------
+- name: Blacklist amdgpu driver
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/blacklist-amdgpu.conf
+    content: |
+      blacklist amdgpu
+      blacklist snd_hda_intel
+    mode: "0644"
+  notify:
+    - Update initramfs
+    - Reboot required
+
+- name: Configure vfio-pci device IDs
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/vfio.conf
+    content: |
+      options vfio-pci ids={{ gpu_passthrough_vfio_device_ids | join(',') }}
+      softdep amdgpu pre: vfio-pci
+      softdep snd_hda_intel pre: vfio-pci
+    mode: "0644"
+  notify:
+    - Update initramfs
+    - Reboot required

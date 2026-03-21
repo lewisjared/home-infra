@@ -1,0 +1,38 @@
+---
+# =============================================================================
+# GPU Passthrough Configuration
+# Configures Proxmox compute nodes for AMD iGPU PCI passthrough to VMs
+#
+# Usage:
+#   ansible-playbook playbooks/gpu_passthrough.yml
+#
+# After running:
+#   1. Create PCI resource mapping "igpu" in Proxmox UI:
+#      Datacenter > Resource Mappings > PCI Devices > Add
+#      Map 0000:01:00.0 (VGA controller) on nacho and tamale
+#   2. Run terraform apply to attach GPUs to worker VMs
+#
+# Safety:
+#   - Runs one host at a time (serial: 1) to protect Ceph quorum
+#   - Sets 'ceph osd set noout' before rebooting to prevent rebalancing
+#   - Waits for Ceph HEALTH_OK after each reboot before proceeding
+# =============================================================================
+- name: Configure GPU passthrough on compute nodes
+  hosts: nacho,tamale
+  serial: 1
+  gather_facts: false
+
+  pre_tasks:
+    - name: Set Ceph noout flag before changes  # noqa: run-once[task]
+      ansible.builtin.command: ceph osd set noout
+      changed_when: true
+      run_once: true
+
+  roles:
+    - gpu_passthrough
+
+  post_tasks:
+    - name: Unset Ceph noout flag after all hosts complete  # noqa: run-once[task]
+      ansible.builtin.command: ceph osd unset noout
+      changed_when: true
+      run_once: true

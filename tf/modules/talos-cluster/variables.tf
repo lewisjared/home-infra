@@ -89,6 +89,15 @@ variable "worker_nodes" {
     cpu_cores        = optional(number)
     memory_mb        = optional(number)
     disk_gb          = optional(number)
+    gpu_enabled     = optional(bool, false) # Enable AMD iGPU passthrough
+    hostpci_devices = optional(list(object({
+      device  = string
+      mapping = optional(string)
+      id      = optional(string)
+      pcie    = optional(bool, true)
+      rombar  = optional(bool, true)
+      xvga    = optional(bool, false)
+    })), [])
   }))
   description = "Worker node definitions"
 }

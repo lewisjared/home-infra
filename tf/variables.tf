@@ -254,6 +254,15 @@ variable "worker_nodes" {
     cpu_cores        = optional(number)
     memory_mb        = optional(number)
     disk_gb          = optional(number)
+    gpu_enabled     = optional(bool, false) # Enable AMD iGPU passthrough
+    hostpci_devices = optional(list(object({
+      device  = string
+      mapping = optional(string)
+      id      = optional(string)
+      pcie    = optional(bool, true)
+      rombar  = optional(bool, true)
+      xvga    = optional(bool, false)
+    })), [])
   }))
   description = "Worker node definitions"
   default = {
@@ -264,6 +273,8 @@ variable "worker_nodes" {
       ceph_ip_address  = "10.10.30.61"
       ceph_mac_address = "BC:24:11:30:02:61"
       vm_id            = 211
+      gpu_enabled      = true
+      hostpci_devices  = [{ device = "hostpci0", mapping = "igpu" }]
     }
     "talos-worker-2" = {
       proxmox_node     = "tamale"
@@ -272,6 +283,8 @@ variable "worker_nodes" {
       ceph_ip_address  = "10.10.30.62"
       ceph_mac_address = "BC:24:11:30:02:62"
       vm_id            = 212
+      gpu_enabled      = true
+      hostpci_devices  = [{ device = "hostpci0", mapping = "igpu" }]
     }
     "talos-worker-3" = {
       proxmox_node     = "churro"

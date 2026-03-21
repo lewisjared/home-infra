@@ -1,0 +1,23 @@
+---
+- name: Update initramfs
+  ansible.builtin.command: update-initramfs -u -k all
+  changed_when: true
+
+- name: Update GRUB
+  ansible.builtin.command: update-grub
+  changed_when: true
+
+- name: Reboot host
+  ansible.builtin.reboot:
+    msg: "Rebooting for GPU passthrough configuration"
+    reboot_timeout: 300
+  listen: "Reboot required"
+
+- name: Wait for Ceph to recover after reboot
+  ansible.builtin.command: ceph health
+  register: gpu_passthrough_ceph_health
+  until: gpu_passthrough_ceph_health.stdout is search("HEALTH_OK") or gpu_passthrough_ceph_health.stdout is search("HEALTH_WARN")
+  retries: 30
+  delay: 10
+  changed_when: false
+  listen: "Reboot required"

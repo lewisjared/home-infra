@@ -55,6 +55,9 @@ module "worker_vms" {
 
   iso_file_id = proxmox_virtual_environment_download_file.talos_iso[each.value.proxmox_node].id
 
+  # PCI passthrough (e.g., iGPU for hardware encoding)
+  hostpci_devices = each.value.hostpci_devices
+
   qemu_agent  = true
   on_boot     = true
   started     = true

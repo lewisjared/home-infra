@@ -1,0 +1,16 @@
+---
+# GPU PCI device IDs to bind to vfio-pci (vendor:device format)
+# These cover AMD Granite Ridge, Phoenix3 iGPUs and their HDMI audio controllers
+gpu_passthrough_vfio_device_ids:
+  - "1002:1900"  # AMD Phoenix3 (churro)
+  - "1002:13c0"  # AMD Granite Ridge (nacho, tamale)
+  - "1002:1640"  # Radeon HDMI Audio Controller (Rembrandt/Strix)
+
+# GRUB kernel parameters to add for IOMMU passthrough
+gpu_passthrough_kernel_params: "iommu=pt"
+
+# Proxmox PCI resource mapping name
+gpu_passthrough_mapping_name: "igpu"
+
+# Proxmox API endpoint (inherited from inventory or overridden)
+gpu_passthrough_proxmox_api_url: "https://{{ hostvars[groups['proxmox'][0]]['ansible_host'] }}:8006"
