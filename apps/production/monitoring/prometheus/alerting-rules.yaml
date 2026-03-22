@@ -24,7 +24,7 @@ spec:
 
         - alert: NodeHighCPU
           # yamllint disable-line rule:line-length
-          expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+          expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[5m])) * 100) > 90
           for: 30m
           labels:
             severity: warning
@@ -35,7 +35,7 @@ spec:
 
         - alert: ControlPlaneHighMemory
           # yamllint disable-line rule:line-length
-          expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 95 and on(instance) label_replace(kube_node_role{role="control-plane"}, "instance", "$1", "node", "(.*)")
+          expr: (1 - node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}) * 100 > 95 and on(instance) label_replace(kube_node_role{role="control-plane"}, "instance", "$1", "node", "(.*)")
           for: 30m
           labels:
             severity: warning
@@ -49,7 +49,7 @@ spec:
 
         - alert: WorkerHighMemory
           # yamllint disable-line rule:line-length
-          expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 85 unless on(instance) label_replace(kube_node_role{role="control-plane"}, "instance", "$1", "node", "(.*)")
+          expr: (1 - node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}) * 100 > 85 unless on(instance) label_replace(kube_node_role{role="control-plane"}, "instance", "$1", "node", "(.*)")
           for: 30m
           labels:
             severity: warning
@@ -63,7 +63,7 @@ spec:
 
         - alert: NodeDiskAlmostFull
           # yamllint disable-line rule:line-length
-          expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes) * 100 > 85
+          expr: (1 - node_filesystem_avail_bytes{job="node-exporter",fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{job="node-exporter"}) * 100 > 85
           for: 10m
           labels:
             severity: warning
