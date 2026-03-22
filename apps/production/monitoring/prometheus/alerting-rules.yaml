@@ -181,7 +181,7 @@ spec:
 
         - alert: ProxmoxHighMemory
           # yamllint disable-line rule:line-length
-          expr: (1 - node_memory_MemAvailable_bytes{job="proxmox-node-exporter",instance!="mole"} / node_memory_MemTotal_bytes{job="proxmox-node-exporter",instance!="mole"}) * 100 > 90
+          expr: (1 - node_memory_MemAvailable_bytes{job="proxmox-node-exporter",instance!~"mole|nacho|tamale"} / node_memory_MemTotal_bytes{job="proxmox-node-exporter",instance!~"mole|nacho|tamale"}) * 100 > 90
           for: 30m
           labels:
             severity: warning
