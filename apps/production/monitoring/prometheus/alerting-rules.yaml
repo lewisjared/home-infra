@@ -61,6 +61,19 @@ spec:
               Memory usage is {{ $value | humanize }}%
               on {{ $labels.instance }}.
 
+        - alert: NodeMemoryPressure
+          # yamllint disable-line rule:line-length
+          expr: rate(node_pressure_memory_stalled_seconds_total{job="node-exporter"}[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              Memory pressure on {{ $labels.instance }}
+            description: >-
+              Node {{ $labels.instance }} has memory pressure
+              (PSI stall > 5%) for 5 minutes.
+
         - alert: NodeDiskAlmostFull
           # yamllint disable-line rule:line-length
           expr: (1 - node_filesystem_avail_bytes{job="node-exporter",fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{job="node-exporter"}) * 100 > 85
@@ -179,6 +192,20 @@ spec:
             description: >-
               Memory usage is {{ $value | humanize }}%
               on {{ $labels.instance }}.
+
+        - alert: ProxmoxMemoryPressure
+          # yamllint disable-line rule:line-length
+          expr: rate(node_pressure_memory_stalled_seconds_total{job="proxmox-node-exporter"}[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              Memory pressure on Proxmox host
+              {{ $labels.instance }}
+            description: >-
+              Proxmox host {{ $labels.instance }} has memory
+              pressure (PSI stall > 5%) for 5 minutes.
 
         - alert: ProxmoxDiskAlmostFull
           # yamllint disable-line rule:line-length
