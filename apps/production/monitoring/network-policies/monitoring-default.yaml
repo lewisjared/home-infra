@@ -10,7 +10,7 @@ spec:
   policyTypes:
     - Ingress
 ---
-# Allow Prometheus to scrape all monitoring components
+# Allow Prometheus and Alloy to scrape all monitoring components
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -21,11 +21,21 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    # Allow Prometheus to scrape metrics from all pods
+    # Allow Prometheus and Alloy to scrape metrics from all pods
     - from:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: prometheus
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - alloy
+                  - alloy-metrics
+                  - alloy-logs
+                  - alloy-singleton
+                  - alloy-receiver
       ports:
         - protocol: TCP
           port: 3000 # Grafana metrics
