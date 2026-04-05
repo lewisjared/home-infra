@@ -5,3 +5,4 @@ resources:
   - helmrelease.yaml
   - httproute.yaml
   - radarr-secret.yaml
+  - replicationsource.yaml
