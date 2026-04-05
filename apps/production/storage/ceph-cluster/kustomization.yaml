@@ -8,3 +8,4 @@ resources:
   - storageclass.yaml
   - mon-endpoints-configmap.yaml
   - ceph-external-secrets.yaml
+  - volumesnapshotclass.yaml

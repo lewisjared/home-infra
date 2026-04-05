@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - oci-repository.yaml
   - middleware.yaml
+  - volsync-secret.yaml
   - pvc/
   - sabnzbd/
   - radarr/

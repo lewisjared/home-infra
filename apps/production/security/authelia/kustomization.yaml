@@ -7,3 +7,5 @@ resources:
   - authelia-secrets.yaml
   - users-database.yaml
   - httproute.yaml
+  - volsync-secret.yaml
+  - replicationsource.yaml

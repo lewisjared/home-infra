@@ -10,3 +10,4 @@ resources:
   - technitium-rbac/
   - reloader/
   - tuppr/
+  - volsync/
