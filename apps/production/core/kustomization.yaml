@@ -11,3 +11,4 @@ resources:
   - reloader/
   - tuppr/
   - volsync/
+  - snapshot-controller/
