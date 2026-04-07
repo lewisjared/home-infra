@@ -37,7 +37,7 @@ spec:
           seed-config:
             image:
               repository: busybox
-              tag: "1.37"
+              tag: "1.37@sha256:1487d0af5f52b4ba31c7e465126ee2123fe3f2305d638e7827681e7cf6c83d5e"
             command:
               - sh
               - -c
@@ -58,7 +58,7 @@ spec:
           main:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: "2026.3.13-1"
+              tag: "2026.3.13-1@sha256:a5a4c83b773aca85a8ba99cf155f09afa33946c0aa5cc6a9ccb6162738b5da02"
             env:
               TZ: Australia/Melbourne
               # Bind to all interfaces (required for K8s service routing)
