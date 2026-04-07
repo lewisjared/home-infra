@@ -2,34 +2,34 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", "docker:pinDigests", ":semanticCommits"],
   "kubernetes": {
-    "fileMatch": [
-      "infrastructure/.+\\.yaml$",
-      "apps/.+\\.yaml$",
-      "clusters/.+\\.yaml$"
+    "managerFilePatterns": [
+      "/infrastructure/.+\.yaml$/",
+      "/apps/.+\.yaml$/",
+      "/clusters/.+\.yaml$/"
     ]
   },
   "helm-values": {
-    "fileMatch": ["infrastructure/.+\\.yaml$", "apps/.+\\.yaml$"]
+    "managerFilePatterns": ["/infrastructure/.+\.yaml$/", "/apps/.+\.yaml$/"]
   },
   "flux": {
-    "fileMatch": ["clusters/.+\\.yaml$"]
+    "managerFilePatterns": ["/clusters/.+\.yaml$/"]
   },
   "packageRules": [
     {
       "description": "Group Flux updates",
-      "matchPackagePatterns": ["^flux"],
-      "groupName": "Flux"
+      "groupName": "Flux",
+      "matchPackageNames": ["/^flux/"]
     },
     {
       "description": "Group monitoring stack updates",
-      "matchPackagePatterns": [
-        "prometheus",
-        "grafana",
-        "loki",
-        "tempo",
-        "alloy"
-      ],
-      "groupName": "Monitoring Stack"
+      "groupName": "Monitoring Stack",
+      "matchPackageNames": [
+        "/prometheus/",
+        "/grafana/",
+        "/loki/",
+        "/tempo/",
+        "/alloy/"
+      ]
     }
   ]
 }
