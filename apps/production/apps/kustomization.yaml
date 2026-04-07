@@ -1,10 +1,20 @@
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - traefik-routes/
-  - homepage/
-  - podinfo/
-  - media/
-  - climate-ref/
-  - github-runners/
-  # Disabled apps in ./disabled/ directory
+  # Per-app Flux Kustomizations
+  - traefik-routes/ks.yaml
+  - homepage/ks.yaml
+  - podinfo/ks.yaml
+  - climate-ref/ks.yaml
+  - github-runners/ks.yaml
+  # Media stack
+  - media/shared/ks.yaml
+  - media/radarr/ks.yaml
+  - media/sonarr/ks.yaml
+  - media/bazarr/ks.yaml
+  - media/prowlarr/ks.yaml
+  - media/sabnzbd/ks.yaml
+  - media/deluge/ks.yaml
+  - media/jellyfin/ks.yaml
+  - media/jellyseerr/ks.yaml
