@@ -54,6 +54,9 @@ spec:
         # Enable remote write receiver for k8s-monitoring (Alloy)
         enableRemoteWriteReceiver: true
 
+        # Enable admin API for TSDB management (delete series, compact, etc.)
+        enableAdminAPI: true
+
         # Add cluster label to all metrics for dashboard filtering
         externalLabels:
           cluster: home-infra
