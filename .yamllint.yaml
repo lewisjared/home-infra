@@ -27,6 +27,7 @@ ignore: |
   kubeconfig
   tf/manifests/cilium/cilium-install.yaml
   clusters/production/flux-system
-  apps/production/apps/github-runners/secret.yaml
-  apps/production/apps/openclaw/openclaw-secret.yaml
   apps/production/apps/climate-ref/monitoring/dashboard.yaml
+  # SOPS-encrypted files use 4-space indentation hardcoded in Go's YAML serializer
+  **/*secret*.yaml
+  **/*secrets*.yaml
