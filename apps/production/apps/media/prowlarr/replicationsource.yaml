@@ -1,10 +1,10 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: prowlarr-config
+  name: prowlarr
   namespace: media
 spec:
-  sourcePVC: prowlarr-config
+  sourcePVC: prowlarr
   trigger:
     schedule: "0 16 * * *"
   kopia:

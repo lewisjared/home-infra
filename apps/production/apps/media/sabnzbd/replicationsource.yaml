@@ -1,10 +1,10 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: sabnzbd-config
+  name: sabnzbd
   namespace: media
 spec:
-  sourcePVC: sabnzbd-config
+  sourcePVC: sabnzbd
   trigger:
     schedule: "0 16 * * *"
   kopia:

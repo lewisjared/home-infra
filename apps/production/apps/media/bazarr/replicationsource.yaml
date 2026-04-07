@@ -1,10 +1,10 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: bazarr-config
+  name: bazarr
   namespace: media
 spec:
-  sourcePVC: bazarr-config
+  sourcePVC: bazarr
   trigger:
     schedule: "0 16 * * *"
   kopia:

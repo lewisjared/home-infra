@@ -1,10 +1,10 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: sonarr-config
+  name: sonarr
   namespace: media
 spec:
-  sourcePVC: sonarr-config
+  sourcePVC: sonarr
   trigger:
     schedule: "0 16 * * *"
   kopia:

@@ -1,10 +1,10 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: jellyseerr-config
+  name: jellyseerr
   namespace: media
 spec:
-  sourcePVC: jellyseerr-config
+  sourcePVC: jellyseerr
   trigger:
     schedule: "0 16 * * *"
   kopia:
