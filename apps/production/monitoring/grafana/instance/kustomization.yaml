@@ -4,3 +4,4 @@ resources:
   - grafana.yaml
   - datasources.yaml
   - dashboards.yaml
+  - volsync-dashboard.yaml
