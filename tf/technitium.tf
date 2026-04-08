@@ -40,6 +40,7 @@ variable "technitium_nodes" {
     proxmox_node = string
     ip_address   = string
     vm_id        = number
+    storage_pool = optional(string) # Override default storage pool
   }))
   description = "Technitium DNS container definitions"
   default = {
@@ -79,8 +80,7 @@ module "technitium_lxc" {
   vlan_id = 20
   gateway = "10.10.20.1"
 
-  # Use Ceph RBD storage for HA (allows live migration)
-  storage_pool = "proxmox-vms"
+  storage_pool = "local-lvm"
 
   # Resource allocation
   cpu_cores    = 2
