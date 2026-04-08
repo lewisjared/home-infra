@@ -10,9 +10,11 @@ spec:
     kind: GitRepository
     name: flux-system
   path: ./apps/production/apps
-  prune: true
-  wait: true
-  timeout: 5m0s
+  # prune temporarily disabled during per-app ks.yaml migration
+  # to prevent deletion of resources transferring ownership.
+  # Re-enable after all per-app Kustomizations are stable.
+  prune: false
+  wait: false
   dependsOn:
     - name: core
     - name: storage
