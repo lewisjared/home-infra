@@ -1,3 +1,14 @@
+---
+name: new-app
+description: >
+  Scaffold a new Kubernetes application deployment in this home-infra GitOps repository.
+  Use this skill whenever the user wants to add, deploy, or create a new app, service,
+  or container in the cluster -- including media apps (*arr stack), monitoring exporters,
+  self-hosted services, or any Docker container. Triggers on phrases like "add app",
+  "deploy", "new service", "new app", "install", or when the user mentions a container
+  image they want running in the cluster.
+---
+
 # New App
 
 Scaffold a complete Kubernetes application deployment following this repository's
@@ -5,8 +16,6 @@ GitOps patterns: bjw-s app-template HelmRelease, per-app Flux Kustomization (`ks
 Gateway API HTTPRoute with Authelia forward-auth, and VolSync backup.
 
 ## Input
-
-$ARGUMENTS
 
 If the user hasn't provided enough detail, gather the following before writing any files:
 
