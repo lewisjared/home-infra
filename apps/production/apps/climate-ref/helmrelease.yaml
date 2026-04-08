@@ -43,7 +43,7 @@ spec:
       enabled: true
       image:
         repository: ghcr.io/climate-ref/climate-ref-frontend
-        tag: main@sha256:03497a878f6fba5327167839d632ada0937ed6a74b59881b923f5f49ff9b9033
+        tag: v0.2.0@sha256:7ec3baaf9be1aa0fe181ef1d9f05512732135f795840cb401103061e6fc56e31
       env:
         ENVIRONMENT: production
         SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
