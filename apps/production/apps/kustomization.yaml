@@ -21,3 +21,5 @@ resources:
   - media/deluge/ks.yaml
   - media/jellyfin/ks.yaml
   - media/jellyseerr/ks.yaml
+  # Headlamp
+  - headlamp/ks.yaml
