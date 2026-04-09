@@ -15,10 +15,6 @@ spec:
     name: flux-system
   dependsOn:
     - name: core
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-gpg
   components:
     - ../../../../components/alerts
   postBuild:

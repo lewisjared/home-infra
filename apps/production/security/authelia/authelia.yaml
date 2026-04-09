@@ -139,6 +139,12 @@ spec:
           - domain: openclaw.home.lewelly.com
             policy: one_factor
 
+          # Headlamp - admins only
+          - domain: headlamp.home.lewelly.com
+            policy: one_factor
+            subject:
+              - "group:admins"
+
           # All other apps - bypass (temporary)
           # Note: *.domain matches subdomains but not apex, so both are needed
           - domain: home.lewelly.com
