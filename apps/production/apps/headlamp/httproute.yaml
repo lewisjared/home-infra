@@ -11,7 +11,8 @@ metadata:
 spec:
   parentRefs:
     - name: home-gateway
-      namespace: cilium-gateway
+      namespace: traefik
+      sectionName: websecure
   hostnames:
     - headlamp.home.lewelly.com
   rules:
