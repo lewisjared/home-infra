@@ -8,7 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/climate-ref-aft
   ref:
-    tag: 0.9.1_15c510d
+    tag: 0.12.3_9d77784
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -101,7 +101,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: v0.11.1@sha256:39c5cc1b6f8025f2931c81679ae8acddffc9271c643801587ce1691f9881d99d
+        tag: v0.12.3@sha256:1fa7da50c3d143b01d4a1a9539c2aa59a23e2a69f230bf43b3733f4c61f40ca1
       env:
         COLUMNS: "160"
         REF_CONFIGURATION: /ref/test-lazy
