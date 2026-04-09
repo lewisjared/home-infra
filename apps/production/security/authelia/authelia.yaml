@@ -163,7 +163,7 @@ spec:
             # Headlamp OIDC Client
             - client_id: headlamp
               client_name: Headlamp Kubernetes Dashboard
-              client_secret: "$pbkdf2-sha512$310000$j1BmlOwgn.U.jLoCVe.1aQ$vgdSMEB37OSq1w58zQC9IeCc/DC0TTjqfteWfgiklXiWWRKTfoPXkU/vGPJyk3r5GEWw7Jx.agdPX2yrvkOsNQ"
+              client_secret: "$pbkdf2-sha512$310000$NZoFNtjW56fjxsrN1sIOMw$xzJLY7ztkfkyPYsh4hWiSBj3lFMesRoEhHzU8H0A3LLKFt/pNESOeTAg2jWRuLO/r2JBtn8PSS7INgEXBTrRrg"
               public: false
               authorization_policy: one_factor
               redirect_uris:

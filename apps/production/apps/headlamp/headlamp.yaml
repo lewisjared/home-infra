@@ -54,6 +54,15 @@ spec:
     ingress:
       enabled: false
 
+    # OIDC Configuration
+    config:
+      oidc:
+        secret:
+          create: false
+        externalSecret:
+          enabled: true
+          name: headlamp-oidc-secret
+
     serviceAccount:
       create: true
       name: headlamp
