@@ -48,7 +48,7 @@ spec:
         ENVIRONMENT: production
         SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
         REF_DATABASE_URL: sqlite:////ref/ref.db
-        REF_CONFIGURATION: /app/.ref
+        REF_CONFIGURATION: /ref/test-lazy
       httpRoute:
         enabled: true
         hostnames:
