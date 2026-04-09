@@ -2,8 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  - secret.yaml
   - pvc/
   - controller/
   - cache-server/
-  - runners/
+  - runners-ref/
+  - runners-vela/
