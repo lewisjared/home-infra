@@ -121,40 +121,12 @@ spec:
       - Remote-Name
 ```
 
-### `replicationsource.yaml` (if volsync backup needed)
+### VolSync backup
 
-```yaml
-apiVersion: volsync.backube/v1alpha1
-kind: ReplicationSource
-metadata:
-  name: <app-name>
-  namespace: <namespace>
-spec:
-  sourcePVC: <app-name>
-  trigger:
-    schedule: "0 16 * * *"
-  kopia:
-    accessModes:
-      - ReadWriteOnce
-    compression: zstd-fastest
-    copyMethod: Snapshot
-    moverSecurityContext:
-      runAsUser: 3000
-      runAsGroup: 3000
-      fsGroup: 3000
-    moverVolumes:
-      - mountPath: repository
-        volumeSource:
-          nfs:
-            path: /mnt/tank/backups/k8s
-            server: 10.10.20.20
-    parallelism: 2
-    repository: volsync-secret
-    retain:
-      daily: 7
-    storageClassName: rook-ceph-block
-    volumeSnapshotClassName: csi-ceph-blockpool
-```
+VolSync backup is now handled by the `components/volsync` Kustomize Component.
+Add it to the `ks.yaml` `spec.components` list rather than creating a per-app
+`replicationsource.yaml`. Set `VOLSYNC_CLAIM` in `postBuild.substitute` if the
+PVC name differs from the app name (e.g., `deluge-config` instead of `deluge`).
 
 ### `namespace.yaml` (if app has its own namespace)
 
@@ -198,10 +170,25 @@ spec:
     provider: sops
     secretRef:
       name: sops-gpg
+  # Kustomize Components -- add based on app needs:
+  components:
+    # Always include alerts for reconciliation failure notifications:
+    - <relative-path-to>/components/alerts
+    # Include volsync if the app has a config PVC to back up:
+    - <relative-path-to>/components/volsync
   postBuild:
     substitute:
       APP: <app-name>
+      # Volsync overrides (only if using volsync component):
+      # VOLSYNC_CLAIM: <pvc-name>     # default: ${APP} -- override if PVC name differs
+      # VOLSYNC_PUID: "3000"          # default: 3000
+      # VOLSYNC_PGID: "3000"          # default: 3000
 ```
+
+Component paths are relative to the repo root (same basis as `spec.path`):
+
+- From `apps/production/apps/<app>/`: `../../../../components/<name>`
+- From `apps/production/apps/media/<app>/`: `../../../../../components/<name>`
 
 ## Step 4: Register in parent kustomization
 

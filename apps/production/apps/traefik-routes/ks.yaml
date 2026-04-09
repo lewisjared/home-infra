@@ -16,6 +16,8 @@ spec:
   dependsOn:
     - name: core
     - name: security
+  components:
+    - ../../../../components/alerts
   postBuild:
     substitute:
       APP: traefik-routes

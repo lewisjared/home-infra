@@ -8,6 +8,7 @@ resources:
   - podinfo/ks.yaml
   - climate-ref/ks.yaml
   - github-runners/ks.yaml
+  # Vela
   - vela/gitrepository.yaml
   - vela/ks.yaml
   # Media stack

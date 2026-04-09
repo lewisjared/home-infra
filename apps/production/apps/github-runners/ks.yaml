@@ -20,6 +20,8 @@ spec:
     provider: sops
     secretRef:
       name: sops-gpg
+  components:
+    - ../../../../components/alerts
   postBuild:
     substitute:
       APP: github-runners

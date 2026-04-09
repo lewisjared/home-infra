@@ -19,6 +19,9 @@ spec:
     provider: sops
     secretRef:
       name: sops-gpg
+  components:
+    - ../../../../../components/volsync
+    - ../../../../../components/alerts
   postBuild:
     substitute:
       APP: jellyseerr

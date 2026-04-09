@@ -1,10 +1,10 @@
+---
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-  name: radarr
-  namespace: media
+  name: ${VOLSYNC_CLAIM:=${APP}}
 spec:
-  sourcePVC: radarr
+  sourcePVC: ${VOLSYNC_CLAIM:=${APP}}
   trigger:
     schedule: "0 16 * * *"
   kopia:
@@ -13,9 +13,9 @@ spec:
     compression: zstd-fastest
     copyMethod: Snapshot
     moverSecurityContext:
-      runAsUser: 3000
-      runAsGroup: 3000
-      fsGroup: 3000
+      runAsUser: ${VOLSYNC_PUID:=3000}
+      runAsGroup: ${VOLSYNC_PGID:=3000}
+      fsGroup: ${VOLSYNC_PGID:=3000}
     moverVolumes:
       - mountPath: repository
         volumeSource:
