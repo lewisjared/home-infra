@@ -55,12 +55,7 @@ spec:
       enabled: false
 
     config:
-      oidc:
-        secret:
-          create: false
-        externalSecret:
-          enabled: true
-          name: headlamp-oidc
+      sessionTTL: 2592000
 
     clusterRoleBinding:
       create: false
