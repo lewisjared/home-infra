@@ -54,6 +54,17 @@ spec:
     ingress:
       enabled: false
 
+    config:
+      oidc:
+        secret:
+          create: false
+        externalSecret:
+          enabled: true
+          name: headlamp-oidc
+
+    clusterRoleBinding:
+      create: false
+
     serviceAccount:
       create: true
       name: headlamp

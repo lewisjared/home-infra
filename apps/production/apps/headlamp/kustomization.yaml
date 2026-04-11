@@ -9,3 +9,4 @@ resources:
   - httproute.yaml
   - rbac.yaml
   - token-secret.yaml
+  - oidc-secret.yaml
