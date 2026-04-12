@@ -56,6 +56,10 @@ spec:
 
     config:
       sessionTTL: 2592000
+      inCluster: false
+      extraArgs:
+        - -kubeconfig
+        - /kubeconfig/config
 
     clusterRoleBinding:
       create: false
@@ -63,6 +67,16 @@ spec:
     serviceAccount:
       create: true
       name: headlamp
+
+    volumes:
+      - name: kubeconfig
+        configMap:
+          name: headlamp-kubeconfig
+
+    volumeMounts:
+      - name: kubeconfig
+        mountPath: /kubeconfig
+        readOnly: true
 
     podAnnotations:
       app.kubernetes.io/part-of: home-infra
