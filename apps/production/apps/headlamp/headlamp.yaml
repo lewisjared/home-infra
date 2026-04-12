@@ -55,7 +55,6 @@ spec:
       enabled: false
 
     config:
-      sessionTTL: "2592000"
       inCluster: false
       extraArgs:
         - -kubeconfig
