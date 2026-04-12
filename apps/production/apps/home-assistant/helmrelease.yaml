@@ -35,8 +35,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/home-assistant/home-assistant
-              tag: "2026.4.2"
+              repository: ghcr.io/home-operations/home-assistant
+              tag: 2026.4.2@sha256:924ebacc26fee0fc2f85183014939f01c1a3115a512d93e4158a64c5dd5d6f48
             env:
               TZ: Australia/Melbourne
             probes:
