@@ -62,6 +62,12 @@ spec:
               name: authelia-forwardauth
         annotations:
           external-dns.alpha.kubernetes.io/hostname: climate-ref.home.lewelly.com
+      # Frontend image ships USER "app" (non-numeric); kubelet can't verify
+      # non-root without an explicit runAsUser.
+      podSecurityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       resources:
         requests:
           cpu: 100m
