@@ -103,6 +103,7 @@ spec:
       volumeMounts:
         - name: ref-data
           mountPath: /ref
+          readOnly: true
         - name: tmp
           mountPath: /tmp
 
