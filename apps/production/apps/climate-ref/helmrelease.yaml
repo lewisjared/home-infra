@@ -45,6 +45,26 @@ spec:
         HOME: /tmp
         SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
         REF_CONFIGURATION: /ref/test-lazy
+        # Frontend image's climate_ref_core omits cv_cmip7_aft.yaml; init
+        # container seeds it onto the shared /ref volume from the worker image.
+        REF_DIMENSIONS_CV_PATH: /ref/cv_cmip7_aft.yaml
+      initContainers:
+        - name: copy-dimensions-cv
+          image: ghcr.io/climate-ref/climate-ref:v0.13.0
+          command:
+            - sh
+            - -c
+            - cp /app/.venv/lib/python3.11/site-packages/climate_ref_core/pycmec/cv_cmip7_aft.yaml /ref/cv_cmip7_aft.yaml
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: ref-data
+              mountPath: /ref
       httpRoute:
         enabled: true
         hostnames:
