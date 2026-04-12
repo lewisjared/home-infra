@@ -64,61 +64,12 @@ spec:
                 drop:
                   - ALL
 
-      code-server:
-        strategy: Recreate
-        containers:
-          main:
-            image:
-              repository: ghcr.io/coder/code-server
-              tag: "4.100.3"
-            args:
-              - --auth
-              - none
-              - --port
-              - "8443"
-              - --user-data-dir
-              - /config/.code-server
-              - --extensions-dir
-              - /config/.code-server/extensions
-              - /config
-            env:
-              TZ: Australia/Melbourne
-            probes:
-              liveness: &csprobes
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /healthz
-                    port: &csport 8443
-                  initialDelaySeconds: 10
-                  periodSeconds: 30
-                  timeoutSeconds: 5
-                  failureThreshold: 3
-              readiness: *csprobes
-            resources:
-              requests:
-                cpu: 10m
-                memory: 256Mi
-              limits:
-                memory: 1Gi
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
-
     service:
       main:
         controller: main
         ports:
           http:
             port: *port
-      code-server:
-        controller: code-server
-        ports:
-          http:
-            port: *csport
 
     persistence:
       config:
@@ -127,13 +78,8 @@ spec:
         storageClass: rook-ceph-block
         accessMode: ReadWriteOnce
         size: 10Gi
-        advancedMounts:
-          main:
-            main:
-              - path: /config
-          code-server:
-            main:
-              - path: /config
+        globalMounts:
+          - path: /config
       tmp:
         type: emptyDir
         globalMounts:
