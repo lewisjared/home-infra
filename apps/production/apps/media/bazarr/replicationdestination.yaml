@@ -6,9 +6,10 @@ metadata:
   namespace: media
 spec:
   trigger:
-    manual: restore-once
+    manual: restore-apr7
   kopia:
     repository: volsync-secret
+    restoreAsOf: "2026-04-07T16:01:00Z"
     sourceIdentity:
       sourceName: bazarr
       sourceNamespace: media
