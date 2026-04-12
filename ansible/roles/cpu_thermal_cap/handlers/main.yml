@@ -1,0 +1,8 @@
+---
+# Handlers for cpu_thermal_cap role
+
+- name: Restart cpu-thermal-cap
+  ansible.builtin.systemd:
+    name: cpu-thermal-cap.service
+    state: restarted
+    daemon_reload: true

@@ -1,0 +1,6 @@
+---
+- name: Apply CPU frequency cap to suppress EC fan oscillation
+  hosts: proxmox
+  become: true
+  roles:
+    - cpu_thermal_cap

@@ -1,0 +1,47 @@
+---
+# =============================================================================
+# CPU Thermal Cap for Proxmox Hosts
+# =============================================================================
+# Consumer Ryzen mini-PCs (Meigao F1WSA class) expose no PWM sysfs, no vendor
+# WMI, and no ACPI fan object -- fans are driven entirely by the EC. The EC's
+# curve reacts to boost-clock spikes (1.5 -> 5 GHz), producing audible
+# ramp-up/ramp-down cycles. Capping scaling_max_freq and softening EPP
+# suppresses the spikes so the fan stays at a steady RPM.
+# =============================================================================
+
+- name: Skip host when cpu_thermal_cap is disabled
+  ansible.builtin.meta: end_host
+  when: not cpu_thermal_cap_enabled
+
+- name: Verify amd-pstate-epp driver is active
+  ansible.builtin.slurp:
+    src: /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver
+  register: cpu_scaling_driver
+
+- name: Fail if scaling driver is not amd-pstate-epp
+  ansible.builtin.fail:
+    msg: >-
+      Expected scaling_driver=amd-pstate-epp, got
+      {{ cpu_scaling_driver.content | b64decode | trim }}.
+      Role assumes amd-pstate-epp active mode; adjust governor/EPP for other drivers.
+  when: (cpu_scaling_driver.content | b64decode | trim) != 'amd-pstate-epp'
+
+# =============================================================================
+# Systemd Unit
+# =============================================================================
+
+- name: Deploy cpu-thermal-cap systemd unit
+  ansible.builtin.template:
+    src: cpu-thermal-cap.service.j2
+    dest: /etc/systemd/system/cpu-thermal-cap.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart cpu-thermal-cap
+
+- name: Enable and start cpu-thermal-cap
+  ansible.builtin.systemd:
+    name: cpu-thermal-cap.service
+    state: started
+    enabled: true
+    daemon_reload: true
