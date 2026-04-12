@@ -8,7 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/climate-ref-aft
   ref:
-    tag: 0.12.3_9d77784
+    tag: 0.1.0_pr-7
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -40,14 +40,10 @@ spec:
     nameOverride: "ref"
 
     api:
-      enabled: true
-      image:
-        repository: ghcr.io/climate-ref/climate-ref-frontend
-        tag: v0.2.0@sha256:7ec3baaf9be1aa0fe181ef1d9f05512732135f795840cb401103061e6fc56e31
       env:
         ENVIRONMENT: production
+        HOME: /tmp
         SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
-        REF_DATABASE_URL: sqlite:////ref/ref.db
         REF_CONFIGURATION: /ref/test-lazy
       httpRoute:
         enabled: true
@@ -66,18 +62,6 @@ spec:
               name: authelia-forwardauth
         annotations:
           external-dns.alpha.kubernetes.io/hostname: climate-ref.home.lewelly.com
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-      securityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: true
-        runAsNonRoot: true
-        capabilities:
-          drop:
-            - ALL
       resources:
         requests:
           cpu: 100m
@@ -97,32 +81,13 @@ spec:
         - name: tmp
           mountPath: /tmp
 
-    # Global worker image configuration
+    # Global worker configuration
     defaults:
-      image:
-        repository: ghcr.io/climate-ref/climate-ref
-        tag: v0.12.3@sha256:1fa7da50c3d143b01d4a1a9539c2aa59a23e2a69f230bf43b3733f4c61f40ca1
       env:
         COLUMNS: "160"
+        HOME: /tmp
         REF_CONFIGURATION: /ref/test-lazy
-        REF_SOFTWARE_ROOT: "/ref/software"
         REF_CMIP6_PARSER: drs
-        CONDA_PKGS_DIRS: /tmp/conda-pkgs
-        XDG_CONFIG_HOME: /home/app/.config
-      serviceAccount:
-        create: true
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-      securityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: true
-        runAsNonRoot: true
-        capabilities:
-          drop:
-            - ALL
       # Persistent NFS volumes for CMIP6 data, observations, and REF state
       volumes:
         - name: ref-data
@@ -148,21 +113,11 @@ spec:
           mountPath: /data/cmip6
         - name: obs-data
           mountPath: /data/obs
-        - name: config
-          mountPath: /home/app/.config
         - name: tmp
           mountPath: /tmp
-        - name: esmvaltool-config
-          mountPath: /home/app/.config/esmvaltool/config.yaml
-          subPath: config.yaml
-          readOnly: true
 
     # Flower (Celery monitoring UI) configuration
     flower:
-      image:
-        repository: mher/flower
-        tag: "2.0.1@sha256:51c3c3db5be343e6335e3dbca5348708932bbcca992df6a39f1dad91e3b340df"
-      replicaCount: 1
       env:
         FLOWER_UNAUTHENTICATED_API: "true"
         FLOWER_TASK_RUNTIME_METRIC_BUCKETS: "30,60,120,180,300,450,600,900,1200,1800"
@@ -182,22 +137,6 @@ spec:
               name: authelia-forwardauth
         annotations:
           external-dns.alpha.kubernetes.io/hostname: flower.climate-ref.home.lewelly.com
-      service:
-        type: ClusterIP
-        port: 5555
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-      securityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: true
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        capabilities:
-          drop:
-            - ALL
 
     # Dragonfly configuration (Celery broker and result backend)
     dragonfly:
@@ -212,7 +151,6 @@ spec:
     providers:
       orchestrator:
         env:
-          # Only handles handle_result/handle_failure callbacks - minimal resources needed
           CELERY_WORKER_CONCURRENCY: "1"
       esmvaltool:
         replicaCount: 4
