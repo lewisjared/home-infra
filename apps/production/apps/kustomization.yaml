@@ -23,3 +23,7 @@ resources:
   - media/jellyseerr/ks.yaml
   # Headlamp
   - headlamp/ks.yaml
+  # Home Assistant + code-server
+  - home-assistant/ks.yaml
+  # ESPHome
+  - esphome/ks.yaml

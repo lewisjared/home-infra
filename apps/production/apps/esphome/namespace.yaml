@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: esphome
+  labels:
+    app.kubernetes.io/part-of: home-infra
+    # Required for hostNetwork: true (ESPHome needs node network access
+    # to reach IoT devices on VLAN 50 for OTA programming)
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged

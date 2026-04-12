@@ -145,6 +145,22 @@ spec:
             subject:
               - "group:admins"
 
+          # Home Assistant - bypass (built-in auth, mobile app needs direct API/websocket)
+          - domain: ha.home.lewelly.com
+            policy: bypass
+
+          # Home Assistant code editor - admins only
+          - domain: code-server.home.lewelly.com
+            policy: one_factor
+            subject:
+              - "group:admins"
+
+          # ESPHome dashboard - admins only
+          - domain: esphome.home.lewelly.com
+            policy: one_factor
+            subject:
+              - "group:admins"
+
           # All other apps - bypass (temporary)
           # Note: *.domain matches subdomains but not apex, so both are needed
           - domain: home.lewelly.com
