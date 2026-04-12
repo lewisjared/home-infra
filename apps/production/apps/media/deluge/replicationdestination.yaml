@@ -1,0 +1,31 @@
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: deluge-restore
+  namespace: media
+spec:
+  trigger:
+    manual: restore-apr7
+  kopia:
+    repository: volsync-secret
+    restoreAsOf: "2026-04-07T16:01:00Z"
+    sourceIdentity:
+      sourceName: deluge-config
+      sourceNamespace: media
+    copyMethod: Snapshot
+    accessModes:
+      - ReadWriteOnce
+    capacity: 1Gi
+    storageClassName: rook-ceph-block
+    volumeSnapshotClassName: csi-ceph-blockpool
+    moverSecurityContext:
+      runAsUser: 3000
+      runAsGroup: 3000
+      fsGroup: 3000
+    moverVolumes:
+      - mountPath: repository
+        volumeSource:
+          nfs:
+            path: /mnt/tank/backups/k8s
+            server: 10.10.20.20
