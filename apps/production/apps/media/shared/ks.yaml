@@ -16,3 +16,7 @@ spec:
   dependsOn:
     - name: core
     - name: storage
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg

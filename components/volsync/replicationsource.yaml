@@ -25,6 +25,7 @@ spec:
     parallelism: 2
     repository: volsync-secret
     retain:
-      daily: 7
+      daily: 30
+      monthly: 6
     storageClassName: rook-ceph-block
     volumeSnapshotClassName: csi-ceph-blockpool
