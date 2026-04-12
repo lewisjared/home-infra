@@ -12,7 +12,6 @@ spec:
     sourceIdentity:
       sourceName: bazarr
       sourceNamespace: media
-      sourcePath: /data
     copyMethod: Snapshot
     accessModes:
       - ReadWriteOnce
