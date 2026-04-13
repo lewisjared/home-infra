@@ -34,3 +34,15 @@ repos:
     rev: v3.0.0
     hooks:
       - id: forbid-secrets
+
+  # ansible-lint must run from ansible/ so it picks up ansible.cfg
+  # (roles_path is relative). Using a local hook keeps that explicit
+  # and uses the ansible-lint already installed on the dev machine.
+  - repo: local
+    hooks:
+      - id: ansible-lint
+        name: ansible-lint
+        entry: bash -c 'cd ansible && ansible-lint'
+        language: system
+        pass_filenames: false
+        files: ^ansible/.*\.(yml|yaml|j2)$
