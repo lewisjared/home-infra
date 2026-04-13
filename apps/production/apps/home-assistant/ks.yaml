@@ -21,6 +21,7 @@ spec:
     - name: core
   components:
     - ../../../../components/alerts
+    - ../../../../components/volsync
   postBuild:
     substitute:
       APP: home-assistant
