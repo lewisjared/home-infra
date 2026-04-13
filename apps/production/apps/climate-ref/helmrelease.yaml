@@ -45,7 +45,9 @@ spec:
         HOME: /tmp
         SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
         REF_CONFIGURATION: /ref/test-lazy
-        REF_READ_ONLY_DATABASE: "true"
+        # TODO(Climate-REF/ref-app#29): re-enable once provider.configure()
+        # stops writing to the DB at startup.
+        # REF_READ_ONLY_DATABASE: "true"
       httpRoute:
         enabled: true
         hostnames:
@@ -82,9 +84,10 @@ spec:
         - name: tmp
           emptyDir: {}
       volumeMounts:
+        # TODO(Climate-REF/ref-app#29): restore readOnly once provider.configure()
+        # stops writing to the DB at startup.
         - name: ref-data
           mountPath: /ref
-          readOnly: true
         - name: tmp
           mountPath: /tmp
 
