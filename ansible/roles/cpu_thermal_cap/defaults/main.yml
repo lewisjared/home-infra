@@ -6,13 +6,13 @@ cpu_thermal_cap_enabled: false
 # Hard ceiling for scaling_max_freq in kHz.
 # 4 GHz suppresses the Ryzen boost spikes (1.5 -> 5 GHz) that trigger
 # aggressive EC fan ramping on consumer mini-PCs with no exposed PWM.
-cpu_max_freq_khz: 4000000
+cpu_thermal_cap_max_freq_khz: 4000000
 
 # cpufreq governor. For amd-pstate-epp (active mode) 'powersave' is the
 # correct smart governor -- 'performance' pins to max and defeats EPP.
-cpu_governor: powersave
+cpu_thermal_cap_governor: powersave
 
 # Energy Performance Preference hint. Consumed by amd-pstate-epp when
 # governor is 'powersave'. Options: performance, balance_performance,
 # balance_power, power.
-cpu_epp: balance_performance
+cpu_thermal_cap_epp: balance_performance
