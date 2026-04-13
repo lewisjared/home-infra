@@ -16,15 +16,15 @@
 - name: Verify amd-pstate-epp driver is active
   ansible.builtin.slurp:
     src: /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver
-  register: cpu_scaling_driver
+  register: cpu_thermal_cap_scaling_driver
 
 - name: Fail if scaling driver is not amd-pstate-epp
   ansible.builtin.fail:
     msg: >-
       Expected scaling_driver=amd-pstate-epp, got
-      {{ cpu_scaling_driver.content | b64decode | trim }}.
+      {{ cpu_thermal_cap_scaling_driver.content | b64decode | trim }}.
       Role assumes amd-pstate-epp active mode; adjust governor/EPP for other drivers.
-  when: (cpu_scaling_driver.content | b64decode | trim) != 'amd-pstate-epp'
+  when: (cpu_thermal_cap_scaling_driver.content | b64decode | trim) != 'amd-pstate-epp'
 
 # =============================================================================
 # Systemd Unit
