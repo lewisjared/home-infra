@@ -51,6 +51,9 @@ spec:
     # Prometheus configuration
     prometheus:
       prometheusSpec:
+        # External URL used in alert generatorURL links (e.g. Slack)
+        externalUrl: https://prometheus.home.lewelly.com
+
         # Enable remote write receiver for k8s-monitoring (Alloy)
         enableRemoteWriteReceiver: true
 
@@ -224,6 +227,8 @@ spec:
               - severity = warning
             equal: ["alertname", "namespace"]
       alertmanagerSpec:
+        # External URL used in silence/alert links sent to Slack/Pushover
+        externalUrl: https://alertmanager.home.lewelly.com
         secrets:
           - alertmanager-pushover
           - alertmanager-slack
