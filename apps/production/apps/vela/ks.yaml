@@ -1,4 +1,30 @@
 ---
+# Local home-infra resources for the vela app.
+# GitRepository points at the vela code repo.
+# Flux image-automation resources watch ghcr for new builds.
+# The ghcr pull secret is used by ImageRepository.
+#
+# Kept in a separate Kustomization from the remote app manifests
+# so the GitRepository exists before the `vela` Kustomization below
+# tries to reconcile from it.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vela-infra
+  namespace: flux-system
+spec:
+  interval: 5m
+  path: ./apps/production/apps/vela
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -14,6 +40,7 @@ spec:
   wait: true
   timeout: 10m
   dependsOn:
+    - name: vela-infra
     - name: database
     - name: core
     - name: storage
