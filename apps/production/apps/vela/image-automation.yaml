@@ -11,7 +11,7 @@
 #     `ghcr-pull-secret` in flux-system. Managed in home-infra.
 #   - Git write: reuses the existing `flux-system` secret attached to
 #     the vela GitRepository (must have write scope on lewisjared/vela).
-apiVersion: image.toolkit.fluxcd.io/v1beta2
+apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository
 metadata:
   name: vela-engine
@@ -22,7 +22,7 @@ spec:
   secretRef:
     name: ghcr-pull-secret
 ---
-apiVersion: image.toolkit.fluxcd.io/v1beta2
+apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImagePolicy
 metadata:
   name: vela-engine
@@ -39,7 +39,7 @@ spec:
     numerical:
       order: asc
 ---
-apiVersion: image.toolkit.fluxcd.io/v1beta1
+apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageUpdateAutomation
 metadata:
   name: vela
