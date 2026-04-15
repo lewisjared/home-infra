@@ -99,15 +99,14 @@ spec:
           watch: false
 
       session:
+        remember_me: 1M
         cookies:
           - domain: home.lewelly.com
             subdomain: auth
-            authelia_url: https://auth.home.lewelly.com
             name: authelia_session
             same_site: lax
             expiration: 24h
             inactivity: 4h
-            remember_me: 1M
 
       storage:
         local:
