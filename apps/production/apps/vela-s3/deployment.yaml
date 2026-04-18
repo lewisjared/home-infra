@@ -52,7 +52,7 @@ spec:
             - name: S3PROXY_CORS_ALLOW_ALL
               value: "true"
             - name: JCLOUDS_PROVIDER
-              value: filesystem
+              value: filesystem-nio2
             - name: JCLOUDS_FILESYSTEM_BASEDIR
               value: /data
             - name: LOG_LEVEL
