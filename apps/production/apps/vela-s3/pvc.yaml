@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: vela-data-catalog-nfs
+  name: vela-data-catalog-ro-nfs
 spec:
   capacity:
     storage: 1Ti
   accessModes:
     - ReadOnlyMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: vela-data-catalog-nfs
+  storageClassName: vela-data-catalog-ro-nfs
   nfs:
     server: 10.10.20.20
     path: /mnt/tank/vela/data-catalog
@@ -22,12 +22,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: vela-data-catalog
+  name: vela-data-catalog-ro
   namespace: vela-s3
 spec:
   accessModes:
     - ReadOnlyMany
-  storageClassName: vela-data-catalog-nfs
+  storageClassName: vela-data-catalog-ro-nfs
   resources:
     requests:
       storage: 1Ti
