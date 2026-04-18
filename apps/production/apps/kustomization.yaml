@@ -10,6 +10,7 @@ resources:
   - github-runners/ks.yaml
   # Vela
   - vela/ks.yaml
+  - vela-s3/ks.yaml
   # Media stack
   - media/shared/ks.yaml
   - media/radarr/ks.yaml

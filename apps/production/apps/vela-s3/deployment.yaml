@@ -1,0 +1,96 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3proxy
+  namespace: vela-s3
+  labels:
+    app.kubernetes.io/name: s3proxy
+    app.kubernetes.io/part-of: home-infra
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: s3proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: s3proxy
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: s3proxy
+          image: andrewgaul/s3proxy:sha-a890ccb@sha256:c094e40be4e8699bc7377e8f36934c8603e211fed12b66494346301f3109b982
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: s3
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: S3PROXY_ENDPOINT
+              value: http://0.0.0.0:80
+            - name: S3PROXY_AUTHORIZATION
+              value: aws-v4
+            - name: S3PROXY_IDENTITY
+              valueFrom:
+                secretKeyRef:
+                  name: s3proxy-credentials
+                  key: S3PROXY_IDENTITY
+            - name: S3PROXY_CREDENTIAL
+              valueFrom:
+                secretKeyRef:
+                  name: s3proxy-credentials
+                  key: S3PROXY_CREDENTIAL
+            - name: S3PROXY_CORS_ALLOW_ALL
+              value: "true"
+            - name: JCLOUDS_PROVIDER
+              value: filesystem
+            - name: JCLOUDS_FILESYSTEM_BASEDIR
+              value: /data
+            - name: LOG_LEVEL
+              value: info
+          volumeMounts:
+            - name: data-catalog
+              mountPath: /data/data-catalog
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: data-catalog
+          persistentVolumeClaim:
+            claimName: vela-data-catalog
+            readOnly: true
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
