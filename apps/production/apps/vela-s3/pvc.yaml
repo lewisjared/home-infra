@@ -12,7 +12,7 @@ spec:
   storageClassName: vela-data-catalog-ro-nfs
   nfs:
     server: 10.10.20.20
-    path: /mnt/tank/vela/data-catalog
+    path: /mnt/fast/vela/data-catalog
   mountOptions:
     - nfsvers=4.2
     - hard
