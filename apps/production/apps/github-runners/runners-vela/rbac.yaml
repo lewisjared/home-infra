@@ -47,6 +47,11 @@ rules:
   - apiGroups: ["traefik.io"]
     resources: ["ingressroutes", "middlewares", "traefikservices"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Gateway API: preview workflow creates per-PR HTTPRoutes attached to
+  # the shared home-gateway so external-dns publishes the DNS record.
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
