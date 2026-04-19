@@ -18,9 +18,9 @@ spec:
     - ro
   csi:
     driver: nfs.csi.k8s.io
-    volumeHandle: 10.10.20.20#mnt/fast/vela/data-catalog#vela-data-catalog-ro
+    volumeHandle: 10.10.30.20#mnt/fast/vela/data-catalog#vela-data-catalog-ro
     volumeAttributes:
-      server: 10.10.20.20
+      server: 10.10.30.20
       share: /mnt/fast/vela/data-catalog
 ---
 apiVersion: v1

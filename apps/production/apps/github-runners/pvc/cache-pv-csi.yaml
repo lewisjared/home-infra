@@ -17,9 +17,9 @@ spec:
     - nconnect=8
   csi:
     driver: nfs.csi.k8s.io
-    volumeHandle: 10.10.20.20#mnt/fast/github-runners/cache#github-runners-cache
+    volumeHandle: 10.10.30.20#mnt/fast/github-runners/cache#github-runners-cache
     volumeAttributes:
-      server: 10.10.20.20
+      server: 10.10.30.20
       share: /mnt/fast/github-runners/cache
 ---
 apiVersion: v1
