@@ -16,7 +16,15 @@ rules:
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   # Core resources within preview namespaces
   - apiGroups: [""]
-    resources: ["pods", "services", "configmaps", "secrets", "persistentvolumeclaims", "serviceaccounts"]
+    resources:
+      [
+        "pods",
+        "services",
+        "configmaps",
+        "secrets",
+        "persistentvolumeclaims",
+        "serviceaccounts",
+      ]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: [""]
     resources: ["pods/log"]
@@ -35,6 +43,9 @@ rules:
   # Networking
   - apiGroups: ["networking.k8s.io"]
     resources: ["ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["traefik.io"]
+    resources: ["ingressroutes", "middlewares", "traefikservices"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
