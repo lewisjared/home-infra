@@ -88,7 +88,7 @@ spec:
       volumes:
         - name: data-catalog
           persistentVolumeClaim:
-            claimName: vela-data-catalog-ro
+            claimName: vela-data-catalog-ro-csi
             readOnly: true
         - name: tmp
           emptyDir:
