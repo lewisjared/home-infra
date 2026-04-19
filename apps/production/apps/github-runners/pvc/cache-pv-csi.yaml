@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: github-runners-cache-csi
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: github-runners-cache-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.20.20#mnt/fast/github-runners/cache#github-runners-cache
+    volumeAttributes:
+      server: 10.10.20.20
+      share: /mnt/fast/github-runners/cache
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: github-runners-cache-csi
+  namespace: github-runners
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: github-runners-cache-csi
+  volumeName: github-runners-cache-csi
+  resources:
+    requests:
+      storage: 100Gi

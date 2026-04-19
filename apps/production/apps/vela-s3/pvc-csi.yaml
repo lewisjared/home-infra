@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: vela-data-catalog-ro-csi
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: vela-data-catalog-ro-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+    - ro
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.20.20#mnt/fast/vela/data-catalog#vela-data-catalog-ro
+    volumeAttributes:
+      server: 10.10.20.20
+      share: /mnt/fast/vela/data-catalog
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vela-data-catalog-ro-csi
+  namespace: vela-s3
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: vela-data-catalog-ro-csi
+  volumeName: vela-data-catalog-ro-csi
+  resources:
+    requests:
+      storage: 1Ti

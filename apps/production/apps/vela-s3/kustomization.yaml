@@ -4,6 +4,7 @@ namespace: vela-s3
 resources:
   - namespace.yaml
   - pvc.yaml
+  - pvc-csi.yaml
   - secret.sops.yaml
   - deployment.yaml
   - service.yaml

@@ -5,6 +5,8 @@
 repositories:
   - name: cloudnative-pg
     url: https://cloudnative-pg.github.io/charts
+  - name: csi-driver-nfs
+    url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
   - name: authelia
     url: https://charts.authelia.com
   - name: external-dns
