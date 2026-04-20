@@ -81,6 +81,8 @@ spec:
       port: 8333
       enableAuth: true
       existingConfigSecret: seaweedfs-s3-identities
+      logs:
+        type: emptyDir
       resources:
         requests: {cpu: 50m, memory: 256Mi}
         limits: {memory: 512Mi}
