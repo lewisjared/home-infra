@@ -35,17 +35,13 @@ spec:
 
     # Chart templates read driver.config.driver to pick iscsi vs nfs
     # mount helpers. Full connection config lives in the external Secret
-    # (existingConfigSecret below).
+    # referenced by driver.existingConfigSecret.
     driver:
+      existingConfigSecret: democratic-csi-iscsi-config
       config:
         driver: freenas-api-iscsi
 
-    # Driver config lives in an external Secret (SOPS-encrypted). The
-    # Secret key `driver-config-file.yaml` is rendered into the controller
-    # pod at /etc/csi-config/driver-config-file.yaml.
     controller:
-      driver:
-        existingConfigSecret: democratic-csi-iscsi-config
       externalAttacher:
         enabled: true
       externalProvisioner:
@@ -54,10 +50,6 @@ spec:
         enabled: true
       externalSnapshotter:
         enabled: true
-
-    node:
-      driver:
-        existingConfigSecret: democratic-csi-iscsi-config
 
     # Talos kubelet path.
     kubeletHostPath: /var/lib/kubelet
