@@ -21,6 +21,7 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: cache-server
           image: ghcr.io/falcondev-oss/github-actions-cache-server:latest@sha256:fdc457c9dfcecf0ad2cfb11511327c74d6d654a7d2489023afdf1f7334d62628
@@ -69,6 +70,6 @@ spec:
       volumes:
         - name: cache
           persistentVolumeClaim:
-            claimName: github-runners-cache-csi
+            claimName: github-actions-cache
         - name: app-data
           emptyDir: {}
