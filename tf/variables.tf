@@ -45,13 +45,13 @@ variable "kubeconfig_context_name" {
 variable "talos_version" {
   type        = string
   description = "Talos Linux version"
-  default     = "v1.11.5"
+  default     = "v1.12.6"
 }
 
 variable "kubernetes_version" {
   type        = string
   description = "Kubernetes version"
-  default     = "v1.34.2"
+  default     = "v1.35.4"
 }
 
 # =============================================================================

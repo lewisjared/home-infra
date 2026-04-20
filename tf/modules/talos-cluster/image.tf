@@ -5,7 +5,9 @@ resource "talos_image_factory_schematic" "this" {
       systemExtensions = {
         officialExtensions = [
           "siderolabs/qemu-guest-agent",
-          "siderolabs/amdgpu"
+          "siderolabs/amdgpu",
+          "siderolabs/iscsi-tools",
+          "siderolabs/util-linux-tools",
         ]
       }
     }
