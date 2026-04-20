@@ -13,3 +13,4 @@ resources:
   - tuppr/
   - volsync/
   - snapshot-controller/
+  - spegel/
