@@ -21,7 +21,7 @@ module "controlplane_vms" {
   ceph_vlan_id     = var.ceph_vlan_id
   ceph_mac_address = each.value.ceph_mac_address
 
-  iso_file_id = proxmox_virtual_environment_download_file.talos_iso[each.value.proxmox_node].id
+  iso_file_id = proxmox_download_file.talos_iso[each.value.proxmox_node].id
 
   qemu_agent  = true
   on_boot     = true
@@ -53,7 +53,7 @@ module "worker_vms" {
   ceph_vlan_id     = var.ceph_vlan_id
   ceph_mac_address = each.value.ceph_mac_address
 
-  iso_file_id = proxmox_virtual_environment_download_file.talos_iso[each.value.proxmox_node].id
+  iso_file_id = proxmox_download_file.talos_iso[each.value.proxmox_node].id
 
   # PCI passthrough (e.g., iGPU for hardware encoding)
   hostpci_devices = each.value.hostpci_devices

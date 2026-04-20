@@ -147,7 +147,7 @@ variable "ceph_vlan_id" {
 
 variable "proxmox_hosts" {
   type = map(object({
-    default_interface = string  # Default parent interface for VLANs (e.g., "vmbr0")
+    default_interface = string # Default parent interface for VLANs (e.g., "vmbr0")
     vlans = map(object({
       ip        = string
       interface = optional(string) # Override interface for this VLAN (e.g., dedicated NIC for storage)
@@ -254,7 +254,7 @@ variable "worker_nodes" {
     cpu_cores        = optional(number)
     memory_mb        = optional(number)
     disk_gb          = optional(number)
-    gpu_enabled     = optional(bool, false) # Enable AMD iGPU passthrough
+    gpu_enabled      = optional(bool, false) # Enable AMD iGPU passthrough
     hostpci_devices = optional(list(object({
       device  = string
       mapping = optional(string)
@@ -318,7 +318,7 @@ variable "controlplane_memory_mb" {
 variable "controlplane_disk_gb" {
   type        = number
   description = "Default disk size in GB for control plane nodes"
-  default     = 20
+  default     = 40
 }
 
 variable "worker_cpu_cores" {
@@ -336,7 +336,7 @@ variable "worker_memory_mb" {
 variable "worker_disk_gb" {
   type        = number
   description = "Default disk size in GB for worker nodes"
-  default     = 50
+  default     = 100
 }
 
 variable "storage_pool" {

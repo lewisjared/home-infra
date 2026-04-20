@@ -69,7 +69,7 @@ locals {
     kind       = local.kubeconfig_raw.kind
     clusters = [
       for c in local.kubeconfig_raw.clusters : {
-        name = local.new_context_name
+        name    = local.new_context_name
         cluster = c.cluster
       }
     ]

@@ -4,9 +4,9 @@ resource "proxmox_virtual_environment_container" "this" {
   description = var.description
   tags        = var.tags
 
-  unprivileged = var.unprivileged
+  unprivileged  = var.unprivileged
   start_on_boot = var.on_boot
-  started      = var.started
+  started       = var.started
 
   operating_system {
     template_file_id = var.template_file_id

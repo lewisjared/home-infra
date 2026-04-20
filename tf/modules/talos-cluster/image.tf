@@ -31,7 +31,7 @@ locals {
 }
 
 # Download Talos ISO to each Proxmox node
-resource "proxmox_virtual_environment_download_file" "talos_iso" {
+resource "proxmox_download_file" "talos_iso" {
   for_each = local.proxmox_nodes
 
   content_type = "iso"

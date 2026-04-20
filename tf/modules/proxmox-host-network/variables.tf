@@ -13,7 +13,7 @@ variable "vlans" {
 
 variable "proxmox_hosts" {
   type = map(object({
-    default_interface = string  # Default parent interface for VLANs
+    default_interface = string # Default parent interface for VLANs
     vlans = map(object({
       ip        = string
       interface = optional(string) # Override interface for this VLAN

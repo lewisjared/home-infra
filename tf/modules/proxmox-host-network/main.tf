@@ -26,7 +26,7 @@ locals {
   ]...)
 }
 
-resource "proxmox_virtual_environment_network_linux_vlan" "host_vlan" {
+resource "proxmox_network_linux_vlan" "host_vlan" {
   for_each = local.host_vlans
 
   node_name = each.value.host_name
