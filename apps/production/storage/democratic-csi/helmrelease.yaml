@@ -25,6 +25,9 @@ spec:
         namespace: democratic-csi
       interval: 1h
   values:
+    image:
+      tag: v1.9.5
+
     csiDriver:
       name: "org.democratic-csi.iscsi"
 
