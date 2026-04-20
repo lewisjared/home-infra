@@ -67,7 +67,7 @@ spec:
                 cpu: 100m
                 memory: 512Mi
               limits:
-                memory: 4Gi
+                memory: 8Gi
           - name: dind
             image: docker:27-dind
             args:
@@ -89,9 +89,9 @@ spec:
             resources:
               requests:
                 cpu: 200m
-                memory: 1Gi
+                memory: 256Mi
               limits:
-                memory: 8Gi
+                memory: 16Gi
         volumes:
           - name: work
             emptyDir: {}
