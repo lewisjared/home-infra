@@ -21,6 +21,32 @@ locals {
             port    = 7445
           }
         }
+        # Kubelet image GC — defaults (85%/80%)
+        kubelet = {
+          extraConfig = {
+            imageGCHighThresholdPercent = 75
+            imageGCLowThresholdPercent  = 65
+          }
+          # Bind-mount the host paths the iscsi-tools extension populates
+          # into the kubelet's mount namespace so CSI node DaemonSets
+          # (democratic-csi) can hostPath-mount /etc/iscsi and /var/lib/iscsi.
+          # Without these, kubelet's view of /etc/iscsi is overlay-masked
+          # and hostPath.type=Directory checks fail.
+          extraMounts = [
+            {
+              destination = "/etc/iscsi"
+              type        = "bind"
+              source      = "/etc/iscsi"
+              options     = ["bind", "rshared", "rw"]
+            },
+            {
+              destination = "/var/lib/iscsi"
+              type        = "bind"
+              source      = "/var/lib/iscsi"
+              options     = ["bind", "rshared", "rw"]
+            },
+          ]
+        }
       }
     })
   ]
