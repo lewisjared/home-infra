@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: climate-ref-obs-csi
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: climate-ref-obs-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.30.20#mnt/tank/climate-ref/obs#climate-ref-obs
+    volumeAttributes:
+      server: 10.10.30.20
+      share: /mnt/tank/climate-ref/obs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: climate-ref-obs-csi
+  namespace: climate-ref
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: climate-ref-obs-csi
+  volumeName: climate-ref-obs-csi
+  resources:
+    requests:
+      storage: 100Gi

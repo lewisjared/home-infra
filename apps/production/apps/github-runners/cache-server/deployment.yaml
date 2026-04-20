@@ -69,6 +69,6 @@ spec:
       volumes:
         - name: cache
           persistentVolumeClaim:
-            claimName: github-runners-cache
+            claimName: github-runners-cache-csi
         - name: app-data
           emptyDir: {}

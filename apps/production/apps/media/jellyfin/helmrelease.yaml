@@ -99,7 +99,7 @@ spec:
         globalMounts:
           - path: /cache
       media:
-        existingClaim: media-library
+        existingClaim: media-library-csi
         globalMounts:
           - path: /data/media
             subPath: media

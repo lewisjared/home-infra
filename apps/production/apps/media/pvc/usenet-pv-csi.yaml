@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: usenet-downloads-csi
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: usenet-downloads-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.30.20#mnt/tank/media/usenet#usenet-downloads
+    volumeAttributes:
+      server: 10.10.30.20
+      share: /mnt/tank/media/usenet
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: usenet-downloads-csi
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: usenet-downloads-csi
+  volumeName: usenet-downloads-csi
+  resources:
+    requests:
+      storage: 500Gi

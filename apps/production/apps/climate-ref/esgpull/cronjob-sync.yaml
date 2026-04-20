@@ -86,7 +86,7 @@ spec:
           volumes:
             - name: cmip6-data
               persistentVolumeClaim:
-                claimName: climate-ref-cmip6
+                claimName: climate-ref-cmip6-csi
             - name: tools
               emptyDir: {}
             - name: tmp

@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: climate-ref-esgpull-csi
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: climate-ref-esgpull-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.30.20#mnt/tank/climate-ref/esgpull#climate-ref-esgpull
+    volumeAttributes:
+      server: 10.10.30.20
+      share: /mnt/tank/climate-ref/esgpull
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: climate-ref-esgpull-csi
+  namespace: climate-ref
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: climate-ref-esgpull-csi
+  volumeName: climate-ref-esgpull-csi
+  resources:
+    requests:
+      storage: 1Gi

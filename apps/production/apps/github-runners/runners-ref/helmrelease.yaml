@@ -135,9 +135,9 @@ spec:
         volumes:
           - name: cmip6-data
             persistentVolumeClaim:
-              claimName: github-runners-cmip6
+              claimName: github-runners-cmip6-csi
           - name: runner-cache
             persistentVolumeClaim:
-              claimName: github-runners-cache
+              claimName: github-runners-cache-csi
           - name: home-config
             emptyDir: {}

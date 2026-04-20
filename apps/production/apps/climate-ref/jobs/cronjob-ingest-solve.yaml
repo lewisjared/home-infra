@@ -63,13 +63,13 @@ spec:
           volumes:
             - name: ref-data
               persistentVolumeClaim:
-                claimName: climate-ref-state
+                claimName: climate-ref-state-csi
             - name: cmip6-data
               persistentVolumeClaim:
-                claimName: climate-ref-cmip6
+                claimName: climate-ref-cmip6-csi
             - name: obs-data
               persistentVolumeClaim:
-                claimName: climate-ref-obs
+                claimName: climate-ref-obs-csi
             - name: config
               emptyDir: {}
             - name: tmp

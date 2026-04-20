@@ -2,8 +2,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - cmip6-pv.yaml
-  - obs-pv.yaml
-  - state-pv.yaml
+  - cmip6-pv-csi.yaml
+  - obs-pv-csi.yaml
   - state-pv-csi.yaml
-  - esgpull-pv.yaml
+  - esgpull-pv-csi.yaml

@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-library-csi
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: media-library-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.30.20#mnt/tank/media#media-library
+    volumeAttributes:
+      server: 10.10.30.20
+      share: /mnt/tank/media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-library-csi
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: media-library-csi
+  volumeName: media-library-csi
+  resources:
+    requests:
+      storage: 1Ti

@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: github-runners-cmip6-csi
+spec:
+  capacity:
+    storage: 5Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: github-runners-cmip6-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.30.20#mnt/tank/climate-ref/cmip6#github-runners-cmip6
+    volumeAttributes:
+      server: 10.10.30.20
+      share: /mnt/tank/climate-ref/cmip6
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: github-runners-cmip6-csi
+  namespace: github-runners
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: github-runners-cmip6-csi
+  volumeName: github-runners-cmip6-csi
+  resources:
+    requests:
+      storage: 5Ti
