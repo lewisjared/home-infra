@@ -5,6 +5,10 @@ metadata:
   namespace: database
 spec:
   instances: 1
+  # Single-instance cluster — disable the auto-generated PDB so node drains
+  # during Talos/k8s upgrades can evict postgres. CNPG's PreStop hook still
+  # performs a graceful shutdown.
+  enablePDB: false
   primaryUpdateStrategy: unsupervised
 
   postgresql:
