@@ -8,6 +8,17 @@ locals {
   gateway_api_version  = "v1.2.0"
   gateway_api_crds_url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/${local.gateway_api_version}/experimental-install.yaml"
 
+  # Registries proxied by the in-cluster Spegel P2P image cache
+  spegel_mirror_registries = [
+    "docker.io",
+    "ghcr.io",
+    "quay.io",
+    "gcr.io",
+    "registry.k8s.io",
+    "public.ecr.aws",
+    "mcr.microsoft.com",
+  ]
+
   # Common patches applied to all nodes
   common_patches = [
     yamlencode({
@@ -21,6 +32,27 @@ locals {
             port    = 7445
           }
         }
+        registries = {
+          mirrors = {
+            for reg in local.spegel_mirror_registries : reg => {
+              endpoints    = ["http://127.0.0.1:29999"]
+              overridePath = true
+            }
+          }
+        }
+        # Spegel requires containerd to keep unpacked layer blobs so peers
+        # can serve them.
+        # Talos defaults discard_unpacked_layers = true.
+        files = [
+          {
+            op      = "create"
+            path    = "/etc/cri/conf.d/20-customization.part"
+            content = <<-EOT
+              [plugins."io.containerd.cri.v1.images"]
+                discard_unpacked_layers = false
+            EOT
+          },
+        ]
         # Kubelet image GC — defaults (85%/80%)
         kubelet = {
           extraConfig = {
@@ -58,8 +90,8 @@ locals {
       machine = {
         features = {
           kubernetesTalosAPIAccess = {
-            enabled                    = true
-            allowedRoles               = ["os:admin"]
+            enabled                     = true
+            allowedRoles                = ["os:admin"]
             allowedKubernetesNamespaces = ["system-upgrade"]
           }
         }
@@ -71,7 +103,7 @@ locals {
         network = {
           cni = { name = "none" }
         }
-        proxy = { disabled = true }
+        proxy                          = { disabled = true }
         allowSchedulingOnControlPlanes = true
       }
     }),
@@ -127,10 +159,18 @@ data "talos_machine_configuration" "controlplane" {
   kubernetes_version = var.kubernetes_version
 
   config_patches = concat(local.controlplane_patches, [
+    # Talos v1.12 requires hostname via the dedicated HostnameConfig
+    # document; setting machine.network.hostname alongside it (or on its
+    # own) trips "static hostname is already set in v1alpha1 config".
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      hostname   = each.key
+      auto       = "off"
+    }),
     yamlencode({
       machine = {
         network = {
-          hostname = each.key
           interfaces = concat(
             # eth0 - Primary NIC (Kubernetes network)
             [{
@@ -175,9 +215,14 @@ data "talos_machine_configuration" "worker" {
     each.value.gpu_enabled ? [local.gpu_worker_patch] : [],
     [
       yamlencode({
+        apiVersion = "v1alpha1"
+        kind       = "HostnameConfig"
+        hostname   = each.key
+        auto       = "off"
+      }),
+      yamlencode({
         machine = {
           network = {
-            hostname = each.key
             interfaces = concat(
               # eth0 - Primary NIC (Kubernetes network)
               [{
