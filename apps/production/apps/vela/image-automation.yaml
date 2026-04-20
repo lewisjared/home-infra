@@ -73,7 +73,9 @@ metadata:
   name: vela
   namespace: flux-system
 spec:
-  interval: 1m
+  # 5m interval batches vela-engine + vela-api bumps into a single
+  # commit when both images build from the same merge.
+  interval: 5m
   sourceRef:
     kind: GitRepository
     name: vela
