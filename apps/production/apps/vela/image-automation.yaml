@@ -88,7 +88,10 @@ spec:
         name: fluxcdbot
         email: fluxcdbot@users.noreply.github.com
       messageTemplate: |
-        chore(deploy): bump to {{range .Changed.Changes}}{{println .NewValue}}{{end}}
+        chore(deploy): bump vela images
+
+        {{range .Changed.Changes}}- {{.NewValue}}
+        {{end}}
     push:
       branch: main
   update:
