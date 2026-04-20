@@ -45,11 +45,14 @@
   register: ceph_lv_check
   failed_when: false
   changed_when: false
+  when: ceph_osd is defined
 
 - name: Create thin LV for Ceph OSD in data pool
   ansible.builtin.command:
     cmd: "lvcreate -V {{ ceph_osd.lv_size }} -T pve/{{ ceph_osd.thin_pool }} -n {{ ceph_osd.lv_name }}"
-  when: ceph_lv_check.rc != 0
+  when:
+    - ceph_osd is defined
+    - ceph_lv_check.rc != 0
 
 # =============================================================================
 # Ceph Cluster Initialization (First Monitor Only)
@@ -116,11 +119,14 @@
   register: ceph_osd_check
   failed_when: false
   changed_when: false
+  when: ceph_osd is defined
 
 - name: Create Ceph OSD
   ansible.builtin.command:
     cmd: "pveceph osd create /dev/pve/{{ ceph_osd.lv_name }}"
-  when: ceph_osd_check.rc != 0
+  when:
+    - ceph_osd is defined
+    - ceph_osd_check.rc != 0
   register: ceph_osd_create
 
 # =============================================================================
