@@ -51,8 +51,12 @@ spec:
                 value: "false"
               - name: DOCKER_HOST
                 value: unix:///var/run/docker.sock
-              - name: ACTIONS_CACHE_URL
-                value: http://actions-cache-server.github-runners.svc.cluster.local:3000/
+            envFrom:
+              # ACTIONS_CACHE_URL + ACTIONS_RESULTS_URL point at the
+              # in-cluster falcondev cache server so actions/cache + buildx
+              # GHA cache run at LAN speed instead of WAN to Azure Blob.
+              - configMapRef:
+                  name: runner-shared-env
             volumeMounts:
               - name: work
                 mountPath: /home/runner/_work

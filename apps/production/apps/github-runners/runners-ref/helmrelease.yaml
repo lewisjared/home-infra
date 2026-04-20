@@ -117,8 +117,6 @@ spec:
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
-              - name: ACTIONS_CACHE_URL
-                value: http://actions-cache-server.github-runners.svc.cluster.local:3000/
               - name: REF_CONFIGURATION
                 value: /tmp/climate-ref-config
               - name: REF_DATASET_CACHE_DIR
@@ -130,6 +128,10 @@ spec:
                 value: "200"
               - name: "USER"
                 value: "runner"
+            envFrom:
+              # ACTIONS_CACHE_URL + ACTIONS_RESULTS_URL -> in-cluster falcondev cache server.
+              - configMapRef:
+                  name: runner-shared-env
         volumes:
           - name: cmip6-data
             persistentVolumeClaim:

@@ -1,0 +1,14 @@
+---
+# Shared env vars injected into every self-hosted runner container via
+# envFrom. Keeps cache/server URLs defined once so new runner scale sets
+# pick them up by referencing this ConfigMap.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runner-shared-env
+  namespace: github-runners
+data:
+  # actions/cache v1 protocol (legacy clients, buildx GHA cache driver).
+  ACTIONS_CACHE_URL: http://actions-cache-server.github-runners.svc.cluster.local:3000/
+  # actions/cache@v4 v2 / Twirp protocol. Falcondev cache-server serves both on the same port.
+  ACTIONS_RESULTS_URL: http://actions-cache-server.github-runners.svc.cluster.local:3000/
