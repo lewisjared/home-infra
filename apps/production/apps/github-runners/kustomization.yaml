@@ -8,3 +8,4 @@ resources:
   - runner-env/
   - runners-ref/
   - runners-vela/
+  - runners-vela-small/
