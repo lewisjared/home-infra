@@ -1,0 +1,12 @@
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: truenas-iscsi-fast
+driver: org.democratic-csi.iscsi
+deletionPolicy: Delete
+parameters:
+  csi.storage.k8s.io/snapshotter-secret-name: democratic-csi-iscsi-config
+  csi.storage.k8s.io/snapshotter-secret-namespace: democratic-csi
+  csi.storage.k8s.io/snapshotter-list-secret-name: democratic-csi-iscsi-config
+  csi.storage.k8s.io/snapshotter-list-secret-namespace: democratic-csi
