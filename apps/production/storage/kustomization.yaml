@@ -4,3 +4,4 @@ resources:
   - rook-ceph/
   - ceph-cluster/
   - csi-driver-nfs/
+  - seaweedfs/
