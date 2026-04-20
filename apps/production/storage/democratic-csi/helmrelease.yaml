@@ -25,9 +25,6 @@ spec:
         namespace: democratic-csi
       interval: 1h
   values:
-    image:
-      tag: v1.9.5
-
     csiDriver:
       name: "org.democratic-csi.iscsi"
 
@@ -45,6 +42,9 @@ spec:
         driver: freenas-api-iscsi
 
     controller:
+      driver:
+        image:
+          tag: v1.9.5
       externalAttacher:
         enabled: true
       externalProvisioner:
@@ -53,6 +53,11 @@ spec:
         enabled: true
       externalSnapshotter:
         enabled: true
+
+    node:
+      driver:
+        image:
+          tag: v1.9.5
 
     # Talos kubelet path.
     kubeletHostPath: /var/lib/kubelet
