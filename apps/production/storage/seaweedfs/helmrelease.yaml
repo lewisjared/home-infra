@@ -1,0 +1,96 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: seaweedfs
+  namespace: seaweedfs
+spec:
+  interval: 1h
+  url: https://seaweedfs.github.io/seaweedfs/helm
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: seaweedfs
+  namespace: seaweedfs
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: seaweedfs
+      version: "4.21.0"
+      sourceRef:
+        kind: HelmRepository
+        name: seaweedfs
+        namespace: seaweedfs
+      interval: 1h
+  values:
+    # Single master for home-lab scale. No raft quorum required at
+    # replicas=1; bump to 3 later if HA on master becomes important.
+    master:
+      replicas: 1
+      volumeSizeLimitMB: 30000
+      data:
+        type: persistentVolumeClaim
+        size: 5Gi
+        storageClass: rook-ceph-block
+      logs:
+        type: emptyDir
+      resources:
+        requests: {cpu: 50m, memory: 256Mi}
+        limits: {memory: 1Gi}
+
+    # Two volume servers backed by rook-ceph-block RBD PVCs. Replication
+    # is handled by the volume placement strategy, not PVC-level.
+    volume:
+      replicas: 2
+      dataDirs:
+        - name: data1
+          type: persistentVolumeClaim
+          size: 200Gi
+          storageClass: rook-ceph-block
+          maxVolumes: 0
+      index: leveldbLarge
+      logs:
+        type: emptyDir
+      resources:
+        requests: {cpu: 100m, memory: 512Mi}
+        limits: {memory: 2Gi}
+
+    # Filer owns S3 bucket + object-lock metadata. leveldb2 store keeps
+    # state on the PVC below.
+    filer:
+      replicas: 1
+      data:
+        type: persistentVolumeClaim
+        size: 20Gi
+        storageClass: rook-ceph-block
+      logs:
+        type: emptyDir
+      extraEnvironmentVars:
+        WEED_LEVELDB2_ENABLED: "true"
+        WEED_FILER_BUCKETS_FOLDER: "/buckets"
+      resources:
+        requests: {cpu: 100m, memory: 512Mi}
+        limits: {memory: 1Gi}
+
+    # S3 gateway — the endpoint consumers hit. IAM identities loaded
+    # from SOPS-encrypted Secret.
+    s3:
+      enabled: true
+      port: 8333
+      enableAuth: true
+      existingConfigSecret: seaweedfs-s3-identities
+      resources:
+        requests: {cpu: 50m, memory: 256Mi}
+        limits: {memory: 512Mi}
+      # Helm post-install hook creates buckets with versioning +
+      # object-lock enabled at creation time (required by S3 spec for
+      # compliance-mode retention).
+      createBuckets:
+        - name: vela-eventlog
+          objectLock: true
+          versioning: Enabled
+        - name: vela-backups
+          objectLock: true
+          versioning: Enabled

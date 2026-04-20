@@ -3,6 +3,16 @@
 # Phase 4: Pool and Credential Configuration
 # =============================================================================
 
+# Mgr Modules (required for Rook external bootstrap)
+- name: Enable prometheus mgr module
+  ansible.builtin.command:
+    cmd: "ceph mgr module enable prometheus"
+  register: ceph_mgr_prom
+  changed_when: "'already enabled' not in ceph_mgr_prom.stderr"
+  failed_when:
+    - ceph_mgr_prom.rc != 0
+    - "'already enabled' not in ceph_mgr_prom.stderr"
+
 # Pool Setup
 - name: Check if kubernetes pool exists
   ansible.builtin.command:

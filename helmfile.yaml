@@ -31,6 +31,8 @@ repositories:
     url: https://prometheus-community.github.io/helm-charts
   - name: rook-release
     url: https://charts.rook.io/release
+  - name: seaweedfs
+    url: https://seaweedfs.github.io/seaweedfs/helm
   - name: stakater
     url: https://stakater.github.io/stakater-charts
   - name: traefik
