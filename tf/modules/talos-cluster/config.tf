@@ -130,10 +130,7 @@ data "talos_machine_configuration" "controlplane" {
     yamlencode({
       machine = {
         network = {
-          # TODO: re-add `hostname = each.key` when bootstrapping fresh
-          # nodes. Talos v1.12 rejects reapplying a static hostname that's
-          # already recorded in the node's NodeIdentity, so we only set it
-          # implicitly on first install.
+          hostname = each.key
           interfaces = concat(
             # eth0 - Primary NIC (Kubernetes network)
             [{
@@ -180,9 +177,7 @@ data "talos_machine_configuration" "worker" {
       yamlencode({
         machine = {
           network = {
-            # TODO: re-add `hostname = each.key` when bootstrapping fresh
-            # nodes. Talos v1.12 rejects reapplying a static hostname that's
-            # already recorded in the node's NodeIdentity.
+            hostname = each.key
             interfaces = concat(
               # eth0 - Primary NIC (Kubernetes network)
               [{
