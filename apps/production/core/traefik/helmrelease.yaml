@@ -37,6 +37,23 @@ spec:
     recreate: true
     cleanupOnFail: true
   values:
+    # Run 2 replicas so a node drain / image pull never knocks out all
+    # ingress. Soft anti-affinity spreads them across nodes when possible.
+    deployment:
+      replicas: 2
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: traefik
+    podDisruptionBudget:
+      enabled: true
+      maxUnavailable: 1
+
     # Enable Gateway API provider
     providers:
       kubernetesGateway:
