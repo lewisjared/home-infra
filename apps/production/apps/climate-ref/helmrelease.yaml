@@ -71,6 +71,10 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+        # Skip recursive chown of the NFS-backed ref-data PVC (238k+ files)
+        # unless the root dir ownership is wrong. Default "Always" policy
+        # was causing the migrate pre-upgrade hook to time out at 10m.
+        fsGroupChangePolicy: OnRootMismatch
       resources:
         requests:
           cpu: 100m
@@ -93,6 +97,14 @@ spec:
 
     # Global worker configuration
     defaults:
+      # Same fsGroup as chart default, but skip recursive chown on mount
+      # unless root dir differs. Critical for the migrate pre-upgrade hook
+      # which otherwise stalls chowning the 238k-file state PVC.
+      podSecurityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       env:
         COLUMNS: "160"
         HOME: /tmp
