@@ -9,3 +9,4 @@ resources:
   - httproute.yaml
   - volsync-secret.yaml
   - replicationsource.yaml
+  - dragonfly.yaml
