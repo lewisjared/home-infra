@@ -115,6 +115,16 @@ spec:
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
+            # ILAMB integration tests load whole reference netCDFs into memory.
+            # GPCPv2.3 pr alone is ~1 GiB; gpp-WECANN, mrro-LORA and similar
+            # diagnostics OOM under the chart default.
+            # Give the runner enough headroom for the heaviest single test.
+            resources:
+              requests:
+                cpu: "1"
+                memory: 2Gi
+              limits:
+                memory: 8Gi
             volumeMounts:
               # RO CMIP6 archive
               - name: cmip6-data
