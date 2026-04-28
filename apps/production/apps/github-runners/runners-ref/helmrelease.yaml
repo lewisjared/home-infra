@@ -115,6 +115,15 @@ spec:
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
+            # ILAMB integration tests load whole reference netCDFs into memory under the synchronous Dask scheduler.
+            # GPCPv2.3 pr alone is ~1 GiB and several diagnostics OOM under the chart default.
+            # Give the runner enough headroom for the heaviest single test plus normal pytest overhead.
+            resources:
+              requests:
+                cpu: "1"
+                memory: 4Gi
+              limits:
+                memory: 16Gi
             volumeMounts:
               # RO CMIP6 archive
               - name: cmip6-data
