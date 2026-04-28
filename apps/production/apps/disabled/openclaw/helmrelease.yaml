@@ -58,7 +58,7 @@ spec:
           main:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: "2026.3.13-1@sha256:a5a4c83b773aca85a8ba99cf155f09afa33946c0aa5cc6a9ccb6162738b5da02"
+              tag: "2026.4.7-1@sha256:8a32028cc8dfe693d7a080956b5602066eada278c23b97fc073fe29c3239b281"
             env:
               TZ: Australia/Melbourne
               # Bind to all interfaces (required for K8s service routing)
