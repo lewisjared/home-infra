@@ -48,7 +48,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: dragonfly
-          image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.32.0@sha256:868bb35e6c8a039e8207c8bbf3688530fb7413f494b8fa5e15fc1bca6bfb6655
+          image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.38.0@sha256:243bf004df5e137d9432c35367d7c86e6d2b5bcb6700be4b6397fcb9306b794b
           # Dragonfly requires 256 MiB per io thread at startup; honour that minimum.
           args:
             - --proactor_threads=1
