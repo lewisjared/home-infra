@@ -44,6 +44,13 @@ spec:
       namespace: arc-system
     template:
       spec:
+        # The CMIP6 NFS share is written by climate-ref pods running as 1000:1000.
+        # Match that UID/GID here,
+        # so the runner can read every file produced by ref ingest / esgpull,
+        # regardless of umask or NFSv4 ACLs on individual files.
+        securityContext:
+          fsGroup: 1000
+          fsGroupChangePolicy: OnRootMismatch
         initContainers:
           - name: setup-cache-dirs
             image: busybox:latest@sha256:1487d0af5f52b4ba31c7e465126ee2123fe3f2305d638e7827681e7cf6c83d5e
@@ -58,6 +65,7 @@ spec:
               - -c
               - |
                 mkdir -p /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data
+                chown -R 1000:1000 /data/cache
                 chmod 777 /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data
 
                 mkdir -p /home-config/intake-esgf
@@ -99,6 +107,14 @@ spec:
           - name: runner
             image: ghcr.io/actions/actions-runner:latest@sha256:b57864c9fcda15ea4a270446aa9cfb108b819a26f6e71fc515f6caf6c27989c6
             command: ["/home/runner/run.sh"]
+            # Match the writer UID on the shared NFS share at 10.10.30.20:/mnt/tank/climate-ref/cmip6.
+            # The climate-ref ingest and esgpull cronjobs run as 1000:1000.
+            # Without this,
+            # the runner image's default UID 1001 hits EACCES on individual cached netCDFs,
+            # even though the directory listing succeeds.
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
             volumeMounts:
               # RO CMIP6 archive
               - name: cmip6-data
