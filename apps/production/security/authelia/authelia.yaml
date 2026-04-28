@@ -19,10 +19,7 @@ spec:
   chart:
     spec:
       chart: authelia
-      # Pinned to 0.10.x because 0.11+ removed the bundled redis subchart.
-      # The values.redis block below relies on it; migrating to a standalone
-      # redis deployment is tracked separately.
-      version: ">=0.10.0 <0.11.0"
+      version: ">=0.11.0 <0.12.0"
       sourceRef:
         kind: HelmRepository
         name: authelia
@@ -110,6 +107,13 @@ spec:
             same_site: lax
             expiration: 24h
             inactivity: 4h
+        redis:
+          enabled: true
+          # Points at the dragonfly StatefulSet defined in dragonfly.yaml.
+          host: authelia-redis.authelia.svc.cluster.local
+          port: 6379
+          password:
+            disabled: true
 
       storage:
         local:
@@ -288,20 +292,3 @@ spec:
       size: 1Gi
       accessModes:
         - ReadWriteOnce
-
-    # Redis dependency (lightweight session store)
-    redis:
-      enabled: true
-      architecture: standalone
-      auth:
-        enabled: false
-      master:
-        persistence:
-          enabled: false
-        resources:
-          requests:
-            cpu: 50m
-            memory: 32Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi

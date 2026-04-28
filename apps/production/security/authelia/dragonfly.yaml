@@ -1,0 +1,85 @@
+---
+# Single-replica Dragonfly used by Authelia as a Redis-compatible session store.
+# Sessions are intentionally ephemeral - losing the pod just signs everyone out.
+apiVersion: v1
+kind: Service
+metadata:
+  name: authelia-redis
+  namespace: authelia
+  labels:
+    app.kubernetes.io/name: dragonfly
+    app.kubernetes.io/instance: authelia-redis
+spec:
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+  selector:
+    app.kubernetes.io/name: dragonfly
+    app.kubernetes.io/instance: authelia-redis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: authelia-redis
+  namespace: authelia
+  labels:
+    app.kubernetes.io/name: dragonfly
+    app.kubernetes.io/instance: authelia-redis
+spec:
+  serviceName: authelia-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dragonfly
+      app.kubernetes.io/instance: authelia-redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dragonfly
+        app.kubernetes.io/instance: authelia-redis
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: dragonfly
+          image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.32.0
+          args:
+            - --proactor_threads=1
+            - --maxmemory=128mb
+          ports:
+            - name: redis
+              containerPort: 6379
+          readinessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 192Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
