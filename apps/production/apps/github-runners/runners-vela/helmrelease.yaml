@@ -69,7 +69,7 @@ spec:
               limits:
                 memory: 8Gi
           - name: dind
-            image: docker:27-dind
+            image: docker:27-dind@sha256:aa3df78ecf320f5fafdce71c659f1629e96e9de0968305fe1de670e0ca9176ce
             args:
               - dockerd
               - --host=unix:///var/run/docker.sock

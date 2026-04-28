@@ -48,7 +48,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: dragonfly
-          image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.32.0
+          image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.32.0@sha256:868bb35e6c8a039e8207c8bbf3688530fb7413f494b8fa5e15fc1bca6bfb6655
           args:
             - --proactor_threads=1
             - --maxmemory=128mb
