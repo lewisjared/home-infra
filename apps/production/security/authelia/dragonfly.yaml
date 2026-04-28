@@ -49,9 +49,10 @@ spec:
       containers:
         - name: dragonfly
           image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.32.0@sha256:868bb35e6c8a039e8207c8bbf3688530fb7413f494b8fa5e15fc1bca6bfb6655
+          # Dragonfly requires 256 MiB per io thread at startup; honour that minimum.
           args:
             - --proactor_threads=1
-            - --maxmemory=128mb
+            - --maxmemory=256mb
           ports:
             - name: redis
               containerPort: 6379
@@ -68,9 +69,9 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
+              memory: 320Mi
             limits:
-              memory: 192Mi
+              memory: 512Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
