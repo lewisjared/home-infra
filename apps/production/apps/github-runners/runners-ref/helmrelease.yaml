@@ -38,16 +38,13 @@ spec:
     githubConfigUrl: https://github.com/Climate-REF
     githubConfigSecret: github-app-secret
     minRunners: 0
-    maxRunners: 4
+    maxRunners: 6
     controllerServiceAccount:
       name: arc-controller-gha-rs-controller
       namespace: arc-system
     template:
       spec:
         # The CMIP6 NFS share is written by climate-ref pods running as 1000:1000.
-        # Match that UID/GID here,
-        # so the runner can read every file produced by ref ingest / esgpull,
-        # regardless of umask or NFSv4 ACLs on individual files.
         securityContext:
           fsGroup: 1000
           fsGroupChangePolicy: OnRootMismatch
@@ -120,7 +117,7 @@ spec:
             # Give the runner enough headroom for the heaviest single test plus normal pytest overhead.
             resources:
               requests:
-                cpu: "1"
+                cpu: "2"
                 memory: 4Gi
               limits:
                 memory: 16Gi

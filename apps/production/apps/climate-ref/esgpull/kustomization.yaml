@@ -1,6 +1,13 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: climate-ref
 resources:
-  - configmap-queries.yaml
   - cronjob-sync.yaml
+configMapGenerator:
+  - name: esgf-fetch-scripts
+    files:
+      - run-fetch.sh
+      - fetch-esgf.py
+generatorOptions:
+  disableNameSuffixHash: true
