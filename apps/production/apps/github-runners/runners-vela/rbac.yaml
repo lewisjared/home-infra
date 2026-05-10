@@ -52,6 +52,14 @@ rules:
   - apiGroups: ["gateway.networking.k8s.io"]
     resources: ["httproutes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Cluster-scoped PVs so the preview workflow can attach a per-PR
+  # read-only NFS PV with mountOptions (actimeo, nocto, large rsize)
+  # for the catalog mount. Inline `nfs:` volumes can't carry these.
+  # The PV is claimRef-pinned to the preview namespace's PVC and the
+  # PR-close teardown removes it.
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
