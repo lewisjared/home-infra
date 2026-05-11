@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ghcr-token-refresher-script
+  namespace: github-runners
+data:
+  refresh.sh: |
+    #!/bin/sh
+    # Mint a GitHub App installation token and write it as a
+    # dockerconfigjson Secret named `ghcr-pull-secret` into every
+    # namespace whose name matches `vela` or `vela-pr-*`.
+    #
+    # GH App installation tokens live 60 minutes; the CronJob fires
+    # every 10 minutes so a token is never older than 10 min when
+    # kubelet attempts a fresh image pull.
+    set -eu
+
+    : "${GITHUB_APP_ID:?missing}"
+    : "${GITHUB_APP_INSTALLATION_ID:?missing}"
+    : "${GITHUB_APP_PRIVATE_KEY_PATH:?missing}"
+
+    b64url() {
+      openssl base64 -A | tr '+/' '-_' | tr -d '='
+    }
+
+    now=$(date +%s)
+    header='{"alg":"RS256","typ":"JWT"}'
+    payload=$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' \
+      "$((now - 60))" "$((now + 540))" "${GITHUB_APP_ID}")
+    h=$(printf '%s' "$header" | b64url)
+    p=$(printf '%s' "$payload" | b64url)
+    sig=$(printf '%s.%s' "$h" "$p" \
+      | openssl dgst -sha256 -sign "${GITHUB_APP_PRIVATE_KEY_PATH}" -binary \
+      | b64url)
+    jwt="$h.$p.$sig"
+
+    token_resp=$(curl -sf -X POST \
+      -H "Authorization: Bearer ${jwt}" \
+      -H "Accept: application/vnd.github+json" \
+      "https://api.github.com/app/installations/${GITHUB_APP_INSTALLATION_ID}/access_tokens")
+    token=$(printf '%s' "${token_resp}" | jq -r '.token')
+    if [ -z "${token}" ] || [ "${token}" = "null" ]; then
+      echo "::error::failed to mint installation token" >&2
+      printf '%s\n' "${token_resp}" >&2
+      exit 1
+    fi
+
+    auth=$(printf 'x-access-token:%s' "${token}" | base64 | tr -d '\n')
+    dockerconfig=$(printf '{"auths":{"ghcr.io":{"auth":"%s"}}}' "${auth}")
+    encoded=$(printf '%s' "${dockerconfig}" | base64 | tr -d '\n')
+
+    # Match `vela` (production) and any preview namespace pair
+    # `vela-pr-<N>` / `vela-pr-<N>-backtest`. Other namespaces are
+    # left untouched so this CronJob can't leak a token by writing
+    # a secret somewhere unintended.
+    matched=0
+    for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
+      case "$ns" in
+        vela | vela-pr-*)
+          matched=$((matched + 1))
+          cat <<EOF | kubectl apply -f - >/dev/null
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: ghcr-pull-secret
+      namespace: ${ns}
+    type: kubernetes.io/dockerconfigjson
+    data:
+      .dockerconfigjson: ${encoded}
+    EOF
+          echo "refreshed ghcr-pull-secret in ${ns}"
+          ;;
+      esac
+    done
+    echo "refreshed ${matched} namespaces"
