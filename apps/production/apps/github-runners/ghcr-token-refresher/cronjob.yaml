@@ -54,9 +54,12 @@ spec:
                 - name: app-key
                   mountPath: /etc/github-app
                   readOnly: true
+              # readOnlyRootFilesystem omitted on purpose: the script
+              # runs `apk add --no-cache openssl` to grab the JWT-signing
+              # binary that alpine/k8s ships without, and apk needs to
+              # write to /var/cache/apk and /lib/apk/db.
               securityContext:
                 allowPrivilegeEscalation: false
-                readOnlyRootFilesystem: true
                 capabilities:
                   drop: ["ALL"]
               resources:
