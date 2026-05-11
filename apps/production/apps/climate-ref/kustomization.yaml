@@ -6,6 +6,7 @@ resources:
   - configmap-esmvaltool.yaml
   - helmrelease.yaml
   - middleware.yaml
+  - httproute.yaml
   - pvc/
   - esgpull/
   - jobs/

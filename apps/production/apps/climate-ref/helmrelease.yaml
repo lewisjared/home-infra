@@ -48,23 +48,10 @@ spec:
         # TODO(Climate-REF/ref-app#29): re-enable once provider.configure()
         # stops writing to the DB at startup.
         # REF_READ_ONLY_DATABASE: "true"
+      # Chart 0.1.0 template ignores httpRoute.filters, so we author our own
+      # HTTPRoutes in httproute.yaml and disable the chart-managed ones.
       httpRoute:
-        enabled: true
-        hostnames:
-          - climate-ref.home.lewelly.com
-          - api.climate-ref.home.lewelly.com
-        parentRefs:
-          - name: home-gateway
-            namespace: traefik
-            sectionName: websecure
-        filters:
-          - type: ExtensionRef
-            extensionRef:
-              group: traefik.io
-              kind: Middleware
-              name: authelia-forwardauth
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: climate-ref.home.lewelly.com
+        enabled: false
       podSecurityContext:
         fsGroupChangePolicy: OnRootMismatch
       volumes:
@@ -122,22 +109,9 @@ spec:
       env:
         FLOWER_UNAUTHENTICATED_API: "true"
         FLOWER_TASK_RUNTIME_METRIC_BUCKETS: "30,60,120,180,300,450,600,900,1200,1800"
+      # See httproute.yaml -- chart template ignores filters/middleware.
       httpRoute:
-        enabled: true
-        hostnames:
-          - flower.climate-ref.home.lewelly.com
-        parentRefs:
-          - name: home-gateway
-            namespace: traefik
-            sectionName: websecure
-        filters:
-          - type: ExtensionRef
-            extensionRef:
-              group: traefik.io
-              kind: Middleware
-              name: authelia-forwardauth
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: flower.climate-ref.home.lewelly.com
+        enabled: false
 
     # Dragonfly configuration (Celery broker and result backend)
     dragonfly:
