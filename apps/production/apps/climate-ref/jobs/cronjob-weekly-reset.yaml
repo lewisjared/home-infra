@@ -15,6 +15,7 @@ spec:
       backoffLimit: 0
       template:
         spec:
+          serviceAccountName: ref-weekly-reset
           restartPolicy: OnFailure
           securityContext:
             runAsNonRoot: true
@@ -24,6 +25,52 @@ spec:
             fsGroupChangePolicy: OnRootMismatch
             seccompProfile:
               type: RuntimeDefault
+          initContainers:
+            # Scales api + orchestrator to 0 so they release their NFS file
+            # handles on the SQLite DB, then copies kubectl into a shared
+            # volume so the main container can scale them back up after the
+            # reset completes.
+            - name: scale-down
+              image: alpine/k8s:1.31.5
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  echo "=== Scaling climate-ref-api + climate-ref-orchestrator to 0 ==="
+                  kubectl -n climate-ref scale deploy climate-ref-api climate-ref-orchestrator --replicas=0
+
+                  echo "=== Waiting for api + orchestrator pods to terminate ==="
+                  for i in $(seq 1 60); do
+                    count=$(kubectl -n climate-ref get pod \
+                      -l 'app.kubernetes.io/component in (api,orchestrator)' \
+                      --no-headers 2>/dev/null | wc -l)
+                    if [ "$count" -eq 0 ]; then
+                      echo "All pods terminated"
+                      break
+                    fi
+                    echo "[$i/60] $count pod(s) still running"
+                    sleep 5
+                  done
+
+                  echo "=== Installing kubectl into /kubectl for the main container ==="
+                  cp /usr/bin/kubectl /kubectl/kubectl
+                  chmod 755 /kubectl/kubectl
+              volumeMounts:
+                - name: kubectl
+                  mountPath: /kubectl
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                capabilities:
+                  drop:
+                    - ALL
           containers:
             - name: ref-weekly-reset
               image: ghcr.io/climate-ref/climate-ref:v0.13.2@sha256:a1b2f2217afc610eaccd1a2577ed52cdbb1b7ba0dc1bddfbc18f00825d00c255
@@ -37,6 +84,8 @@ spec:
                   value: /ref/software
                 - name: HOME
                   value: /tmp
+                - name: PATH
+                  value: /kubectl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               volumeMounts:
                 - name: ref-data
                   mountPath: /ref
@@ -48,6 +97,8 @@ spec:
                   mountPath: /tmp
                 - name: scripts
                   mountPath: /scripts
+                - name: kubectl
+                  mountPath: /kubectl
               resources:
                 requests:
                   memory: 1Gi
@@ -76,3 +127,5 @@ spec:
               configMap:
                 name: ref-job-scripts
                 defaultMode: 0755
+            - name: kubectl
+              emptyDir: {}
