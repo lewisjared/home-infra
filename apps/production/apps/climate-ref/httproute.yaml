@@ -1,0 +1,76 @@
+---
+# Locally-managed HTTPRoutes for climate-ref + flower.
+#
+# Chart climate-ref-aft 0.1.0 renders HTTPRoutes but its template ignores
+# `httpRoute.filters`, so the Authelia ExtensionRef declared in helmrelease.yaml
+# never landed on the route and both endpoints were publicly accessible.
+# See upstream issue: Climate-REF/climate-ref-aft#TODO.
+#
+# The chart-managed HTTPRoutes are disabled via {api,flower}.httpRoute.enabled=false
+# in helmrelease.yaml.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: climate-ref-api
+  namespace: climate-ref
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: climate-ref.home.lewelly.com
+  labels:
+    app.kubernetes.io/component: api
+    app.kubernetes.io/instance: climate-ref
+    app.kubernetes.io/name: ref
+spec:
+  parentRefs:
+    - name: home-gateway
+      namespace: traefik
+      sectionName: websecure
+  hostnames:
+    - climate-ref.home.lewelly.com
+    - api.climate-ref.home.lewelly.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia-forwardauth
+      backendRefs:
+        - name: climate-ref-api
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: climate-ref-flower
+  namespace: climate-ref
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: flower.climate-ref.home.lewelly.com
+  labels:
+    app.kubernetes.io/component: flower
+    app.kubernetes.io/instance: climate-ref
+    app.kubernetes.io/name: ref
+spec:
+  parentRefs:
+    - name: home-gateway
+      namespace: traefik
+      sectionName: websecure
+  hostnames:
+    - flower.climate-ref.home.lewelly.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia-forwardauth
+      backendRefs:
+        - name: climate-ref-flower
+          port: 5555
