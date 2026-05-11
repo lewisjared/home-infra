@@ -8,7 +8,8 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/climate-ref-aft
   ref:
-    tag: 0.1.0_pr-7
+    # Latest main; chart 0.1.0 plus the chore/align-ref-configuration merge.
+    tag: 0.1.0_c973751
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -41,7 +42,6 @@ spec:
 
     api:
       env:
-        ENVIRONMENT: production
         HOME: /tmp
         SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
         REF_CONFIGURATION: /ref/test-lazy
@@ -65,22 +65,8 @@ spec:
               name: authelia-forwardauth
         annotations:
           external-dns.alpha.kubernetes.io/hostname: climate-ref.home.lewelly.com
-      # Frontend image ships USER "app" (non-numeric); kubelet can't verify
-      # non-root without an explicit runAsUser.
       podSecurityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        # Skip recursive chown of the NFS-backed ref-data PVC (238k+ files)
-        # unless the root dir ownership is wrong. Default "Always" policy
-        # was causing the migrate pre-upgrade hook to time out at 10m.
         fsGroupChangePolicy: OnRootMismatch
-      resources:
-        requests:
-          cpu: 100m
-          memory: 1Gi
-        limits:
-          memory: 2Gi
       volumes:
         - name: ref-data
           persistentVolumeClaim:
@@ -97,17 +83,10 @@ spec:
 
     # Global worker configuration
     defaults:
-      # Same fsGroup as chart default, but skip recursive chown on mount
-      # unless root dir differs. Critical for the migrate pre-upgrade hook
-      # which otherwise stalls chowning the 238k-file state PVC.
       podSecurityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
       env:
         COLUMNS: "160"
-        HOME: /tmp
         REF_CONFIGURATION: /ref/test-lazy
         REF_CMIP6_PARSER: drs
       # Persistent NFS volumes for CMIP6 data, observations, and REF state
@@ -163,8 +142,6 @@ spec:
     # Dragonfly configuration (Celery broker and result backend)
     dragonfly:
       enabled: true
-      storage:
-        enabled: true
       extraArgs:
         - --proactor_threads=1
         - --maxmemory=1Gi

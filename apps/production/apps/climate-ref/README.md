@@ -5,36 +5,93 @@ Full CMIP6 ensemble evaluation using Climate REF on local Kubernetes with NFS-ba
 ## Architecture
 
 ```mermaid
-graph TD
-    subgraph CronJobs
-        FETCH[esgf-fetch<br/>daily 02:00]
-        INGEST[ref-ingest-solve<br/>daily 06:00]
+flowchart TB
+    subgraph ext[External]
+        user[User Browser]
+        esgfsrv[ESGF<br/>federated nodes]
     end
 
-    subgraph Services
-        FLOWER[Flower UI<br/>:5555 Authelia]
-        ORCH[Orchestrator<br/>Celery beat]
-        DRAGON[Dragonfly<br/>broker]
+    subgraph gw[traefik namespace]
+        gateway[home-gateway<br/>Gateway: websecure]
+        authelia[authelia-forwardauth<br/>Middleware]
     end
 
-    subgraph Workers[Celery Workers]
-        ESM[ESMValTool]
-        PMP[PMP]
-        ILAMB[ILAMB]
+    subgraph cr[climate-ref namespace]
+        subgraph httproutes[HTTPRoutes]
+            r1[climate-ref.home.lewelly.com<br/>api.climate-ref.home.lewelly.com]
+            r2[flower.climate-ref.home.lewelly.com]
+        end
+
+        api[ref-api<br/>Deployment<br/>UID 1000]
+        flower[ref-flower<br/>Deployment]
+
+        subgraph workers[Celery Workers]
+            orch[orchestrator<br/>concurrency=1]
+            esm[esmvaltool x4<br/>16Gi/4cpu]
+            pmp[pmp x4<br/>8Gi/4cpu]
+            ilamb[ilamb x2<br/>8Gi/4cpu]
+        end
+
+        dragon[(dragonfly<br/>Celery broker<br/>+ result backend<br/>1Gi)]
+
+        subgraph cron[CronJobs]
+            reset[ref-weekly-reset<br/>0 3 * * 0<br/>wipe DB + re-init]
+            solve[ref-ingest-solve<br/>0 */6 * * *<br/>ingest + capped solve]
+            esgf[esgf-fetch<br/>0 2 * * *]
+        end
+
+        subgraph cfg[ConfigMaps]
+            esgcfg[esgf-fetch-scripts<br/>run-fetch.sh<br/>fetch-esgf.py]
+            esmcfg[climate-ref-esmvaltool-config]
+        end
+
+        subgraph pvcs[PVCs RWX NFS]
+            state[(climate-ref-state-csi<br/>/ref state DB)]
+            cmip6[(climate-ref-cmip6-csi<br/>/data/cmip6 5Ti)]
+            obs[(climate-ref-obs-csi<br/>/data/obs)]
+        end
     end
 
-    subgraph NFS[NFS 10.10.20.20]
-        CMIP6[cmip6/ - CMIP6 model data 5Ti]
-        OBS[obs/ - Observation data 100Gi]
-        STATE[state/ - DB, conda envs, results]
+    subgraph storage[Storage]
+        nfs[(TrueNAS<br/>10.10.30.20<br/>/mnt/tank/climate-ref/*)]
     end
 
-    FLOWER --> ORCH
-    ORCH --> DRAGON
-    DRAGON --> ESM & PMP & ILAMB
-    FETCH --> CMIP6
-    INGEST --> CMIP6
-    ESM & PMP & ILAMB --> NFS
+    subgraph gh[github-runners namespace]
+        runners[arc-climate-ref<br/>Runner Pods<br/>UID 1000 RO]
+        ghcmip6[(github-runners-cmip6-csi)]
+    end
+
+    user --> gateway
+    gateway --> authelia
+    authelia --> r1 --> api
+    authelia --> r2 --> flower
+
+    api -->|enqueue tasks| dragon
+    api --> state
+    flower -->|monitor| dragon
+
+    orch <-->|broker| dragon
+    esm <-->|broker| dragon
+    pmp <-->|broker| dragon
+    ilamb <-->|broker| dragon
+
+    orch --> state
+    esm --> state & cmip6 & obs & esmcfg
+    pmp --> state & cmip6 & obs
+    ilamb --> state & cmip6 & obs
+
+    reset --> state & cmip6 & obs
+    solve --> state & cmip6
+    esgf --> cmip6
+    esgf -.mounts.-> esgcfg
+    esgf -->|HTTPS pull| esgfsrv
+
+    state -.NFS.-> nfs
+    cmip6 -.NFS.-> nfs
+    obs -.NFS.-> nfs
+
+    runners --> ghcmip6
+    ghcmip6 -.NFS same share.-> nfs
 ```
 
 ## Prerequisites
@@ -112,18 +169,27 @@ These are reference/observation datasets (ERA-INT, CERES-EBAF, GPCP, HadISST, WO
 that are in the process of being added to Obs4MIPs.
 This only needs to be re-run after a version upgrade that adds new obs4REF datasets.
 
-### 6. Ingest CMIP6 data and solve
+### 6. (Optional) Force a reset and a first solve
 
-After CMIP6 data has been downloaded:
+After the initial CMIP6 download, the two cron jobs take over:
+
+- `ref-weekly-reset` (Sun 03:00 UTC) wipes `$REF_CONFIGURATION`, keeps
+  `/ref/software` (conda envs) intact, re-migrates the DB, re-registers
+  providers, re-fetches obs4REF and re-ingests NFS CMIP6/obs.
+- `ref-ingest-solve` (every 6h) re-ingests CMIP6 and enqueues at most one new
+  execution per provider per tick, so the post-reset backlog drains gradually.
+
+Force a reset right now:
 
 ```bash
-kubectl -n climate-ref create job --from=cronjob/ref-ingest-solve manual-ingest-$(date +%s)
+kubectl -n climate-ref create job --from=cronjob/ref-weekly-reset manual-reset-$(date +%s)
 ```
 
-This runs two commands sequentially:
+And kick the solver:
 
-1. `ref datasets ingest --source-type cmip6 /data/cmip6` - ingests downloaded datasets into the database
-2. `ref solve` - triggers diagnostic evaluations for any new data
+```bash
+kubectl -n climate-ref create job --from=cronjob/ref-ingest-solve manual-solve-$(date +%s)
+```
 
 ## Monitoring
 
@@ -153,7 +219,8 @@ kubectl -n climate-ref logs deploy/climate-ref-ilamb
 # ESGF fetch job
 kubectl -n climate-ref logs job/<esgf-fetch-job-name> --all-containers
 
-# Ingest + solve job
+# Weekly reset / periodic ingest+solve jobs
+kubectl -n climate-ref logs job/<ref-weekly-reset-job-name>
 kubectl -n climate-ref logs job/<ref-ingest-solve-job-name>
 ```
 
@@ -177,10 +244,16 @@ kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
   ref datasets ingest --source-type obs4mips /ref/cache/climate_ref/obs4REF
 ```
 
-### Trigger ingest + solve
+### Force a weekly reset
 
 ```bash
-kubectl -n climate-ref create job --from=cronjob/ref-ingest-solve manual-ingest-$(date +%s)
+kubectl -n climate-ref create job --from=cronjob/ref-weekly-reset manual-reset-$(date +%s)
+```
+
+### Force an ingest + solve tick
+
+```bash
+kubectl -n climate-ref create job --from=cronjob/ref-ingest-solve manual-solve-$(date +%s)
 ```
 
 ### Check disk usage
@@ -199,10 +272,15 @@ ssh 10.10.20.20 du -sh /mnt/tank/climate-ref/*
 
 ## CronJob Schedule
 
-| Job                | Schedule        | Purpose                                 |
-|--------------------|-----------------|---------------------------------------- |
-| `esgf-fetch`       | Daily 02:00 UTC | Fetch CMIP6/Obs4MIPs data from ESGF     |
-| `ref-ingest-solve` | Daily 06:00 UTC | Ingest new data and trigger evaluations |
+| Job                | Schedule        | Purpose                                                                                                                                            |
+|--------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `esgf-fetch`       | Daily 02:00 UTC | Fetch CMIP6/Obs4MIPs data from ESGF                                                                                                                |
+| `ref-weekly-reset` | Sun 03:00 UTC   | Wipe `$REF_CONFIGURATION`, migrate DB, re-register providers, re-fetch obs4REF, re-ingest NFS data. No solve                                       |
+| `ref-ingest-solve` | Every 6 h       | Re-ingest CMIP6 and `ref solve --timeout 0 --one-per-diagnostic` (≤ 1 new execution per diagnostic per run — every diagnostic exercised each tick) |
+
+Both scripts live under `jobs/` (`run-weekly-reset.sh` and
+`run-ingest-solve.sh`) and are rendered into the `ref-job-scripts` ConfigMap.
+Tune the diagnostic strategy by editing those scripts.
 
 ## Troubleshooting
 
