@@ -4,3 +4,4 @@ resources:
   - rbac.yaml
   - script-configmap.yaml
   - cronjob.yaml
+  - ghcr-pat-secret.yaml
