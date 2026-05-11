@@ -2,16 +2,16 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: ref-ingest-solve
+  name: ref-weekly-reset
   namespace: climate-ref
 spec:
-  schedule: "0 */6 * * *"
+  schedule: "0 3 * * 0"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      activeDeadlineSeconds: 7200
+      activeDeadlineSeconds: 21600
       backoffLimit: 0
       template:
         spec:
@@ -25,11 +25,11 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           containers:
-            - name: ref-ingest-solve
+            - name: ref-weekly-reset
               image: ghcr.io/climate-ref/climate-ref:v0.13.2@sha256:a1b2f2217afc610eaccd1a2577ed52cdbb1b7ba0dc1bddfbc18f00825d00c255
               command:
                 - sh
-                - /scripts/run-ingest-solve.sh
+                - /scripts/run-weekly-reset.sh
               env:
                 - name: REF_CONFIGURATION
                   value: /ref/test-lazy
