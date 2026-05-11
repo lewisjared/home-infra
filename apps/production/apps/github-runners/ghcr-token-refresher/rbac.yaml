@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ghcr-token-refresher
+  namespace: github-runners
+---
+# Cluster-scoped because the refresher writes the pull secret into
+# every namespace matching `vela` or `vela-pr-*`, and Kubernetes RBAC
+# can't scope a rule to a name pattern. The CronJob's script applies
+# the policy in code: it only writes to namespaces that match the
+# pattern. `resourceNames: [ghcr-pull-secret]` further pins the
+# capability to a single secret name across the cluster.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ghcr-token-refresher
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["ghcr-pull-secret"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ghcr-token-refresher
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ghcr-token-refresher
+subjects:
+  - kind: ServiceAccount
+    name: ghcr-token-refresher
+    namespace: github-runners

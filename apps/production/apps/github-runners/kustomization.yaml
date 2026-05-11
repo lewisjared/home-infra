@@ -9,3 +9,4 @@ resources:
   - runners-ref/
   - runners-vela/
   - runners-vela-small/
+  - ghcr-token-refresher/
