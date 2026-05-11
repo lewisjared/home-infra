@@ -32,7 +32,7 @@ spec:
                 - /scripts/run-ingest-solve.sh
               env:
                 - name: REF_CONFIGURATION
-                  value: /ref/test-lazy
+                  value: /ref/home_2026-05-11
                 - name: REF_SOFTWARE_ROOT
                   value: /ref/software
                 - name: HOME
