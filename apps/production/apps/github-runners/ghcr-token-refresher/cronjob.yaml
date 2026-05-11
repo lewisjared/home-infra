@@ -23,10 +23,16 @@ spec:
         spec:
           serviceAccountName: ghcr-token-refresher
           restartPolicy: OnFailure
+          # runAsUser:0 because the script needs to `apk add openssl`
+          # at start (the JWT-signing binary alpine/k8s ships without)
+          # and apk requires root to mutate the package database. The
+          # github-runners namespace is already labelled
+          # pod-security.kubernetes.io/enforce=privileged. The container
+          # still drops ALL caps and forbids privilege escalation, so
+          # root-inside-container has no kernel surface to grab.
           securityContext:
-            runAsNonRoot: true
-            runAsUser: 65532
-            runAsGroup: 65532
+            runAsUser: 0
+            runAsGroup: 0
             seccompProfile:
               type: RuntimeDefault
           containers:
