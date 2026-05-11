@@ -272,11 +272,11 @@ ssh 10.10.20.20 du -sh /mnt/tank/climate-ref/*
 
 ## CronJob Schedule
 
-| Job                 | Schedule        | Purpose                                                                                                      |
-|---------------------|-----------------|--------------------------------------------------------------------------------------------------------------|
-| `esgf-fetch`        | Daily 02:00 UTC | Fetch CMIP6/Obs4MIPs data from ESGF                                                                          |
-| `ref-weekly-reset`  | Sun 03:00 UTC   | Wipe `$REF_CONFIGURATION`, migrate DB, re-register providers, re-fetch obs4REF, re-ingest NFS data. No solve |
-| `ref-ingest-solve`  | Every 6 h       | Re-ingest CMIP6 and `ref solve --timeout 0 --one-per-provider` (caps ≤ 1 new execution per provider per run) |
+| Job                | Schedule        | Purpose                                                                                                                                            |
+|--------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `esgf-fetch`       | Daily 02:00 UTC | Fetch CMIP6/Obs4MIPs data from ESGF                                                                                                                |
+| `ref-weekly-reset` | Sun 03:00 UTC   | Wipe `$REF_CONFIGURATION`, migrate DB, re-register providers, re-fetch obs4REF, re-ingest NFS data. No solve                                       |
+| `ref-ingest-solve` | Every 6 h       | Re-ingest CMIP6 and `ref solve --timeout 0 --one-per-diagnostic` (≤ 1 new execution per diagnostic per run — every diagnostic exercised each tick) |
 
 Both scripts live under `jobs/` (`run-weekly-reset.sh` and
 `run-ingest-solve.sh`) and are rendered into the `ref-job-scripts` ConfigMap.
