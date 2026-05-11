@@ -44,7 +44,7 @@ spec:
       env:
         HOME: /tmp
         SECRET_KEY: Slbc926qO9VmHJMLzXTjnbK19el5PqCcwhHg1LGe0eQ # Not used, but must not be "changethis"
-        REF_CONFIGURATION: /ref/test-lazy
+        REF_CONFIGURATION: /ref/home_2026-05-11
         # TODO(Climate-REF/ref-app#29): re-enable once provider.configure()
         # stops writing to the DB at startup.
         # REF_READ_ONLY_DATABASE: "true"
@@ -74,7 +74,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       env:
         COLUMNS: "160"
-        REF_CONFIGURATION: /ref/test-lazy
+        REF_CONFIGURATION: /ref/home_2026-05-11
         REF_CMIP6_PARSER: drs
       # Persistent NFS volumes for CMIP6 data, observations, and REF state
       volumes:

@@ -7,7 +7,7 @@
 # unsolved diagnostics a few executions at a time across the week.
 set -eu
 
-CONFIG_DIR=${REF_CONFIGURATION:-/ref/test-lazy}
+CONFIG_DIR=${REF_CONFIGURATION:-/ref/home_2026-05-11}
 
 echo "=== Wiping state dir ${CONFIG_DIR} (preserving /ref/software) ==="
 rm -rf "${CONFIG_DIR}"

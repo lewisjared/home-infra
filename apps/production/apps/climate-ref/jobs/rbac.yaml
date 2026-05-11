@@ -1,11 +1,11 @@
 ---
 # RBAC for the weekly-reset CronJob.
 #
-# The reset has to wipe /ref/test-lazy on the state PVC, but the live api +
-# orchestrator hold open file handles on the SQLite database. On NFS that
-# turns the unlink into a silly-rename (.nfsXXX) which `rm -rf` can't remove,
-# so the wipe phase fails. The cron scales api + orchestrator to 0 before
-# wiping and back to 1 after re-init.
+# The reset has to wipe the REF_CONFIGURATION dir on the state PVC,
+# but the live api + orchestrator hold open file handles on the SQLite database.
+# On NFS that turns the unlink into a silly-rename (.nfsXXX) which `rm -rf` can't remove,
+# so the wipe phase fails.
+# The cron scales api + orchestrator to 0 before wiping and back to 1 after re-init.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
