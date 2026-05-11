@@ -1,9 +1,16 @@
 ---
-# Refreshes the ghcr-pull-secret in every vela / vela-pr-* namespace.
-# Schedule is every 5 minutes so the secret is never older than 5 min
-# when kubelet retries an image pull (installation tokens live 60 min;
-# we trade a little extra GitHub API traffic for a much smaller window
-# of "kubelet sees an expired secret" failure).
+# Propagates the ghcr-pull-secret into every vela / vela-pr-* namespace.
+# Schedule is every 5 minutes so a freshly-created preview namespace
+# (`vela-pr-<N>` / `vela-pr-<N>-backtest`) gets a working pull secret
+# within five minutes of being created, even if the workflow that
+# created the namespace hasn't applied the secret yet.
+#
+# The secret holds a long-lived classic PAT with `read:packages`;
+# rotation is manual (sops-edit `ghcr-pat-secret.yaml`). GitHub App
+# installation tokens are deliberately NOT used here -- GHCR's
+# registry token-exchange refuses to grant `pull` scope to App
+# tokens for user-namespace packages (community discussion #24636,
+# unresolved as of 2026).
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -23,16 +30,10 @@ spec:
         spec:
           serviceAccountName: ghcr-token-refresher
           restartPolicy: OnFailure
-          # runAsUser:0 because the script needs to `apk add openssl`
-          # at start (the JWT-signing binary alpine/k8s ships without)
-          # and apk requires root to mutate the package database. The
-          # github-runners namespace is already labelled
-          # pod-security.kubernetes.io/enforce=privileged. The container
-          # still drops ALL caps and forbids privilege escalation, so
-          # root-inside-container has no kernel surface to grab.
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
             seccompProfile:
               type: RuntimeDefault
           containers:
@@ -41,31 +42,23 @@ spec:
               imagePullPolicy: IfNotPresent
               command: ["/bin/sh", "/opt/refresh/refresh.sh"]
               env:
-                - name: GITHUB_APP_ID
+                - name: GHCR_PULL_USER
                   valueFrom:
                     secretKeyRef:
-                      name: github-app-secret-vela
-                      key: github_app_id
-                - name: GITHUB_APP_INSTALLATION_ID
+                      name: ghcr-pat-secret
+                      key: ghcr_pull_user
+                - name: GHCR_PULL_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: github-app-secret-vela
-                      key: github_app_installation_id
-                - name: GITHUB_APP_PRIVATE_KEY_PATH
-                  value: /etc/github-app/github_app_private_key
+                      name: ghcr-pat-secret
+                      key: ghcr_pull_token
               volumeMounts:
                 - name: script
                   mountPath: /opt/refresh
                   readOnly: true
-                - name: app-key
-                  mountPath: /etc/github-app
-                  readOnly: true
-              # readOnlyRootFilesystem omitted on purpose: the script
-              # runs `apk add --no-cache openssl` to grab the JWT-signing
-              # binary that alpine/k8s ships without, and apk needs to
-              # write to /var/cache/apk and /lib/apk/db.
               securityContext:
                 allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
                 capabilities:
                   drop: ["ALL"]
               resources:
@@ -80,10 +73,3 @@ spec:
               configMap:
                 name: ghcr-token-refresher-script
                 defaultMode: 0o555
-            - name: app-key
-              secret:
-                secretName: github-app-secret-vela
-                items:
-                  - key: github_app_private_key
-                    path: github_app_private_key
-                defaultMode: 0o400
