@@ -34,7 +34,7 @@ rules:
     resources: ["deployments", "statefulsets", "replicasets"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["batch"]
-    resources: ["jobs", "cronjobs"]
+    resources: ["jobs", "jobs/status", "cronjobs"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   # CNPG PostgreSQL clusters
   - apiGroups: ["postgresql.cnpg.io"]
