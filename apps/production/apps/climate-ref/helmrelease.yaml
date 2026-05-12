@@ -8,8 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/climate-ref-aft
   ref:
-    # Latest main; chart 0.1.0 plus the chore/align-ref-configuration merge.
-    tag: 0.1.0_c973751
+    tag: 0.2.1
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
