@@ -76,6 +76,11 @@ spec:
         COLUMNS: "160"
         REF_CONFIGURATION: /ref/home_2026-05-11
         REF_CMIP6_PARSER: drs
+        # esmvaltool/pmp/ilamb providers use pooch.os_cache("climate_ref")
+        # for their reference data. With HOME on emptyDir that resolves to
+        # /tmp/.cache/climate_ref and re-downloads on every pod restart.
+        # Pin to the obs PVC so KEDA scale-ups don't refetch.
+        XDG_CACHE_HOME: /data/obs/cache
       # Persistent NFS volumes for CMIP6 data, observations, and REF state
       volumes:
         - name: ref-data
