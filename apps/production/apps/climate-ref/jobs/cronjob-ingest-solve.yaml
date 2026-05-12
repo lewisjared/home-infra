@@ -37,6 +37,10 @@ spec:
                   value: /ref/software
                 - name: HOME
                   value: /tmp
+                # Persist pooch downloads (provider reference data) across
+                # cron runs. See helmrelease.yaml defaults.env for context.
+                - name: XDG_CACHE_HOME
+                  value: /data/obs/cache
               volumeMounts:
                 - name: ref-data
                   mountPath: /ref

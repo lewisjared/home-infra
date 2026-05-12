@@ -84,6 +84,10 @@ spec:
                   value: /ref/software
                 - name: HOME
                   value: /tmp
+                # Persist pooch downloads (provider reference data) across
+                # cron runs. See helmrelease.yaml defaults.env for context.
+                - name: XDG_CACHE_HOME
+                  value: /data/obs/cache
                 - name: PATH
                   value: /kubectl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               volumeMounts:
