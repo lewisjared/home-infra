@@ -16,7 +16,6 @@ ref datasets fetch-data --registry obs4ref --output-directory "${OBS4REF_CACHE}"
 echo "=== Ingesting obs4mips from ${OBS4REF_CACHE} ==="
 ref -v datasets ingest --source-type obs4mips "${OBS4REF_CACHE}"
 
-
 echo "=== Ingesting CMIP6 from /data/cmip6 ==="
 ref -v datasets ingest --source-type cmip6 /data/cmip6
 
