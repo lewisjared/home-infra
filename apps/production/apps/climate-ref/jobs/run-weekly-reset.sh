@@ -1,13 +1,18 @@
 #!/bin/sh
 # Weekly full reset: wipe REF state config dir (DB + caches), keep
 # /ref/software (conda envs are expensive to rebuild), then re-init the
-# database, re-register providers and re-fetch obs4REF / NFS datasets.
+# database, re-register providers and re-ingest CMIP6 + obs4mips.
+#
+# obs4REF cache lives on a separate PVC (climate-ref-obs-csi, mounted at
+# /data/obs) so it survives the wipe. Only re-fetch when that PVC is empty,
+# which in practice means new clusters or PVC replacement.
 #
 # No solve happens here -- the periodic ingest+solve cron picks up the
 # unsolved diagnostics a few executions at a time across the week.
 set -eu
 
 CONFIG_DIR=${REF_CONFIGURATION:-/ref/home_2026-05-11}
+OBS4REF_CACHE=/data/obs/obs4REF
 
 echo "=== Wiping state dir ${CONFIG_DIR} (preserving /ref/software) ==="
 rm -rf "${CONFIG_DIR}"
@@ -19,14 +24,18 @@ ref db migrate
 echo "=== ref providers setup (skip env build + skip validate) ==="
 ref providers setup --skip-data --skip-validate
 
-echo "=== Fetching obs4REF observation cache ==="
-ref datasets fetch-data --registry obs4ref
+if [ ! -d "${OBS4REF_CACHE}" ] || [ -z "$(ls -A "${OBS4REF_CACHE}" 2>/dev/null)" ]; then
+    echo "=== obs4REF cache missing at ${OBS4REF_CACHE} -- fetching ==="
+    ref datasets fetch-data --registry obs4ref --output-directory "${OBS4REF_CACHE}"
+else
+    echo "=== obs4REF cache present at ${OBS4REF_CACHE} -- skipping fetch ==="
+fi
 
 echo "=== Ingesting CMIP6 from /data/cmip6 ==="
 ref -v datasets ingest --source-type cmip6 /data/cmip6
 
-echo "=== Ingesting obs4mips ==="
-ref -v datasets ingest --source-type obs4mips "${CONFIG_DIR}/cache/climate_ref/obs4REF"
+echo "=== Ingesting obs4mips from ${OBS4REF_CACHE} ==="
+ref -v datasets ingest --source-type obs4mips "${OBS4REF_CACHE}"
 
 echo "=== Scaling climate-ref-api + climate-ref-orchestrator back to 1 ==="
 kubectl -n climate-ref scale deploy climate-ref-api climate-ref-orchestrator --replicas=1
