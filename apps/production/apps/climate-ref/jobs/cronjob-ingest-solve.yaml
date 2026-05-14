@@ -54,10 +54,10 @@ spec:
                   mountPath: /scripts
               resources:
                 requests:
-                  memory: 1Gi
+                  memory: 2Gi
                   cpu: 500m
                 limits:
-                  memory: 2Gi
+                  memory: 4Gi
               securityContext:
                 allowPrivilegeEscalation: false
                 runAsNonRoot: true
