@@ -37,6 +37,12 @@ spec:
                   value: /ref/software
                 - name: HOME
                   value: /tmp
+                # Path-based DRS parser is dramatically faster than the
+                # content-based `complete` parser on a 60k+ file CMIP6 tree
+                # because it never opens netCDF files. Keep it aligned with
+                # the api/worker defaults in helmrelease.yaml.
+                - name: REF_CMIP6_PARSER
+                  value: drs
                 # Persist pooch downloads (provider reference data) across
                 # cron runs. See helmrelease.yaml defaults.env for context.
                 - name: XDG_CACHE_HOME
