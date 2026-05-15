@@ -69,6 +69,9 @@ spec:
 
     # Global worker configuration
     defaults:
+      image:
+        repository: ghcr.io/climate-ref/climate-ref
+        tag: v0.14.2@sha256:66db214b4303626d922832308805039999006bfb1f41161a6e00c54f2a4c590f
       podSecurityContext:
         fsGroupChangePolicy: OnRootMismatch
       env:
