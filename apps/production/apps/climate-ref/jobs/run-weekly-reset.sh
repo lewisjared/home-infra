@@ -32,7 +32,9 @@ else
 fi
 
 echo "=== Ingesting CMIP6 from /data/cmip6 ==="
-ref -v datasets ingest --source-type cmip6 /data/cmip6
+# --chunk-size streams the catalog in directory-aligned batches so peak
+# memory is bounded by chunk_size, not the full archive size (REF v0.14.1+).
+ref -v datasets ingest --source-type cmip6 --chunk-size 1000 /data/cmip6
 
 echo "=== Ingesting obs4mips from ${OBS4REF_CACHE} ==="
 ref -v datasets ingest --source-type obs4mips "${OBS4REF_CACHE}"
