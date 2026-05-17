@@ -9,8 +9,15 @@ metadata:
 # every namespace matching `vela` or `vela-pr-*`, and Kubernetes RBAC
 # can't scope a rule to a name pattern. The CronJob's script applies
 # the policy in code: it only writes to namespaces that match the
-# pattern. `resourceNames: [ghcr-pull-secret]` further pins the
-# capability to a single secret name across the cluster.
+# pattern. `resourceNames: [ghcr-pull-secret]` pins the mutate/read
+# verbs to a single secret name across the cluster.
+#
+# `create` is split into its own rule because Kubernetes RBAC ignores
+# `resourceNames` for `create` (the resource doesn't exist yet, so
+# its name can't be checked against the allowlist). Without this rule
+# the refresher's `kubectl apply` falls back to create in any
+# namespace where ghcr-pull-secret is missing (e.g. a fresh
+# `vela-pr-<N>-backtest` preview namespace) and fails with Forbidden.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -21,8 +28,11 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
     resourceNames: ["ghcr-pull-secret"]
-    verbs: ["get", "create", "update", "patch"]
+    verbs: ["get", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
