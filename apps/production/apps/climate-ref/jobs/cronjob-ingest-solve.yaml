@@ -30,6 +30,9 @@ spec:
               command:
                 - sh
                 - /scripts/run-ingest-solve.sh
+              envFrom:
+                - secretRef:
+                    name: climate-ref-orchestrator
               env:
                 - name: REF_CONFIGURATION
                   value: /ref/home_2026-05-11
