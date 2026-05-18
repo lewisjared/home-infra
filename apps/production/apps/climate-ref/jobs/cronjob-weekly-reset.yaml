@@ -73,7 +73,7 @@ spec:
                     - ALL
           containers:
             - name: ref-weekly-reset
-              image: ghcr.io/climate-ref/climate-ref:v0.14.2@sha256:66db214b4303626d922832308805039999006bfb1f41161a6e00c54f2a4c590f
+              image: ghcr.io/climate-ref/climate-ref:v0.14.3@sha256:770f9f1e3b05a5a4b70fabb0a50bdf2b686ad7994afb5f1a93fb7e419922bea2
               command:
                 - sh
                 - /scripts/run-weekly-reset.sh
