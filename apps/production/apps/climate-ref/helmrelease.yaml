@@ -71,7 +71,7 @@ spec:
     defaults:
       image:
         repository: ghcr.io/climate-ref/climate-ref
-        tag: v0.14.3@sha256:770f9f1e3b05a5a4b70fabb0a50bdf2b686ad7994afb5f1a93fb7e419922bea2
+        tag: ${CLIMATE_REF_IMAGE_TAG}
       podSecurityContext:
         fsGroupChangePolicy: OnRootMismatch
       env:
