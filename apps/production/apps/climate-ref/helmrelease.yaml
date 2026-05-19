@@ -8,7 +8,7 @@ spec:
   interval: 1h
   url: oci://ghcr.io/climate-ref/charts/climate-ref-aft
   ref:
-    tag: 0.2.1
+    tag: 0.2.2
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -98,9 +98,6 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
-        - name: esmvaltool-config
-          configMap:
-            name: climate-ref-esmvaltool-config
       volumeMounts:
         - name: ref-data
           mountPath: /ref
@@ -158,10 +155,6 @@ spec:
           CELERY_VISIBILITY_TIMEOUT: "7200"
           CELERY_WORKER_MAX_MEMORY_PER_CHILD: "6291456" # 6 GB (KB)
           CELERY_WORKER_MAX_TASKS_PER_CHILD: "20" # Recycle after 20 tasks (long-running)
-          # Use synchronous Dask scheduler to avoid crashes from excessive
-          # parallelism when running multiple executions on the same machine.
-          # See: https://github.com/Climate-REF/climate-ref/issues/437
-          DASK_SCHEDULER: synchronous
       ilamb:
         replicaCount: 2
         resources:
@@ -175,7 +168,3 @@ spec:
           CELERY_VISIBILITY_TIMEOUT: "1800"
           CELERY_WORKER_MAX_MEMORY_PER_CHILD: "6291456" # 6 GB (KB)
           CELERY_WORKER_MAX_TASKS_PER_CHILD: "50" # Recycle after 50 tasks
-          # Use synchronous Dask scheduler to avoid crashes from excessive
-          # parallelism when running multiple executions on the same machine.
-          # See: https://github.com/Climate-REF/climate-ref/issues/437
-          DASK_SCHEDULER: synchronous

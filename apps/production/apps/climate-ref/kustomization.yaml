@@ -3,7 +3,6 @@ kind: Kustomization
 namespace: climate-ref
 resources:
   - namespace.yaml
-  - configmap-esmvaltool.yaml
   - helmrelease.yaml
   - middleware.yaml
   - httproute.yaml
