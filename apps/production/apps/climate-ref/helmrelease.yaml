@@ -123,10 +123,30 @@ spec:
       extraArgs:
         - --proactor_threads=1
         - --maxmemory=1Gi
+      # Memory request==limit pins dragonfly's oom_score_adj near zero so
+      # it is evicted last under node memory pressure. Sized at maxmemory
+      # + ~50% overhead for connections, buffers, and process baseline.
+      # CPU has no limit to avoid throttling the broker.
+      resources:
+        requests:
+          cpu: 100m
+          memory: 1536Mi
+        limits:
+          memory: 1536Mi
 
     # Provider configurations
     providers:
       orchestrator:
+        # Memory request lifts orchestrator out of BestEffort QoS so it
+        # isn't first in line for node-pressure eviction. Solver loads the
+        # full dataset catalog into memory, so request leaves headroom over
+        # the ~200Mi steady-state baseline.
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 1Gi
         env:
           CELERY_WORKER_CONCURRENCY: "1"
       esmvaltool:
