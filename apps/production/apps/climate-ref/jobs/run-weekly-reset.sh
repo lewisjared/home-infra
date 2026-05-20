@@ -21,8 +21,14 @@ mkdir -p "${CONFIG_DIR}"
 echo "=== ref db migrate ==="
 ref db migrate
 
-echo "=== ref providers setup (skip env build + skip validate) ==="
-ref providers setup --skip-data --skip-validate
+echo "=== ref providers setup ==="
+# Full setup: builds conda envs, fetches each provider's reference registry
+# (esmvaltool OBS Tier 2, ilamb GPP/WECANN etc.) into the obs PVC pooch
+# cache at $XDG_CACHE_HOME/climate_ref/<provider>, and validates. Required
+# for diagnostics to find their reference observations -- without it,
+# esmvaltool fails with "No data sources found for project 'OBS'" and ilamb
+# hits FileNotFoundError on its reference netCDFs.
+ref providers setup
 
 if [ ! -d "${OBS4REF_CACHE}" ] || [ -z "$(ls -A "${OBS4REF_CACHE}" 2>/dev/null)" ]; then
     echo "=== obs4REF cache missing at ${OBS4REF_CACHE} -- fetching ==="
