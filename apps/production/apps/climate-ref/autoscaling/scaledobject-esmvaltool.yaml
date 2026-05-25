@@ -9,7 +9,10 @@ spec:
     name: climate-ref-esmvaltool
   minReplicaCount: 0
   maxReplicaCount: 4
-  cooldownPeriod: 600
+  # Long cooldown so a transient queue=0 dip — workers pulled the last batch
+  # but tasks are still running, before flower's currently-executing metric
+  # has been re-scraped — does not trip a scale-down mid-execution.
+  cooldownPeriod: 1800
   pollingInterval: 15
   triggers:
     - type: redis

@@ -109,6 +109,12 @@ spec:
                   mountPath: /scripts
                 - name: kubectl
                   mountPath: /kubectl
+                # Shadow $XDG_CACHE_HOME/mamba per-pod.
+                # `ref providers setup` shells out to micromamba; an NFS-stored
+                # proc dir leaves stale locks behind that break later runs.
+                # See helmrelease.yaml defaults.volumes for full rationale.
+                - name: mamba-cache
+                  mountPath: /data/obs/cache/mamba
               resources:
                 requests:
                   memory: 1Gi
@@ -138,4 +144,6 @@ spec:
                 name: ref-job-scripts
                 defaultMode: 0755
             - name: kubectl
+              emptyDir: {}
+            - name: mamba-cache
               emptyDir: {}
