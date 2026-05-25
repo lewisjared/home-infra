@@ -61,6 +61,12 @@ spec:
                   mountPath: /tmp
                 - name: scripts
                   mountPath: /scripts
+                # Shadow $XDG_CACHE_HOME/mamba per-pod.
+                # See helmrelease.yaml defaults.volumes for the full rationale —
+                # NFS locks on /data/obs/cache/mamba/proc race with concurrent
+                # worker access and crash micromamba mid-execution.
+                - name: mamba-cache
+                  mountPath: /data/obs/cache/mamba
               resources:
                 requests:
                   memory: 2Gi
@@ -89,3 +95,5 @@ spec:
               configMap:
                 name: ref-job-scripts
                 defaultMode: 0755
+            - name: mamba-cache
+              emptyDir: {}

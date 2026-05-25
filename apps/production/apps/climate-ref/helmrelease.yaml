@@ -98,6 +98,17 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
+        # Per-pod overlay for libmamba state.
+        # NFS does not provide reliable POSIX advisory locks,
+        # so multiple workers sharing $XDG_CACHE_HOME/mamba/proc on the obs PVC
+        # race on lock acquire,
+        # then micromamba returns empty stdout that the executor parses as JSON,
+        # marking the diagnostic execution failed.
+        # Mounting an emptyDir at $XDG_CACHE_HOME/mamba shadows the NFS path,
+        # giving each pod its own libmamba proc/locks while keeping
+        # the pooch reference cache at $XDG_CACHE_HOME/climate_ref persistent.
+        - name: mamba-cache
+          emptyDir: {}
       volumeMounts:
         - name: ref-data
           mountPath: /ref
@@ -107,6 +118,8 @@ spec:
           mountPath: /data/obs
         - name: tmp
           mountPath: /tmp
+        - name: mamba-cache
+          mountPath: /data/obs/cache/mamba
 
     # Flower (Celery monitoring UI) configuration
     flower:
@@ -123,6 +136,8 @@ spec:
       extraArgs:
         - --proactor_threads=1
         - --maxmemory=1Gi
+        # Evict cold keys at maxmemory instead of rejecting writes (noeviction).
+        - --cache_mode=true
       # Memory request==limit pins dragonfly's oom_score_adj near zero so
       # it is evicted last under node memory pressure. Sized at maxmemory
       # + ~50% overhead for connections, buffers, and process baseline.

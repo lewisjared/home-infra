@@ -9,7 +9,7 @@ spec:
     name: climate-ref-pmp
   minReplicaCount: 0
   maxReplicaCount: 4
-  cooldownPeriod: 600
+  cooldownPeriod: 1800
   pollingInterval: 15
   triggers:
     - type: redis
