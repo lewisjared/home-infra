@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - secret.sops.yaml
+  - limitrange.yaml
 # Patch only the Secret into flux-system so the main Kustomization's
 # substituteFrom (which reads from its own namespace) can find it.
 # A top-level `namespace:` directive would also rename the Namespace
