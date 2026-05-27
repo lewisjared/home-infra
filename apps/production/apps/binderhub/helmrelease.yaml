@@ -75,6 +75,11 @@ spec:
           enabled: false
 
     singleuser:
+      # Talos kernel doesn't expose iptables filter table to user pods, so the
+      # default block-cloud-metadata init container CrashLoops. Disable it —
+      # there's no cloud-provider metadata endpoint on this home cluster.
+      cloudMetadata:
+        blockWithIptables: false
       image:
         name: ghcr.io/climate-ref/climate-ref-tutorials
         tag: latest
