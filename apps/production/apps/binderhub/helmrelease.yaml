@@ -37,6 +37,11 @@ spec:
 
   values:
     hub:
+      # Cilium does not match kube-apiserver via ipBlock; the chart's default
+      # hub NetworkPolicy blocks LIST/WATCH pods and spawn times out.
+      # We disable hub + proxy NPs; singleuser NP below stays on.
+      networkPolicy:
+        enabled: false
       db:
         pvc:
           storageClassName: rook-ceph-block
@@ -62,6 +67,12 @@ spec:
       secretToken: ${PROXY_TOKEN}
       service:
         type: ClusterIP
+      chp:
+        networkPolicy:
+          enabled: false
+      traefik:
+        networkPolicy:
+          enabled: false
 
     singleuser:
       image:
