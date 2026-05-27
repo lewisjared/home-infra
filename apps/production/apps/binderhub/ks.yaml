@@ -27,8 +27,8 @@ spec:
     substitute:
       APP: binderhub
     substituteFrom:
-      # Sourced from secret.sops.yaml -> Secret/binderhub-secrets.
-      # Keys must match values in helmrelease.yaml: ${PROXY_TOKEN}, ${BINDER_HUB_TOKEN}.
+      # Sourced from prereqs/secret.sops.yaml -> Secret/binderhub-secrets (in flux-system).
+      # Key referenced in helmrelease.yaml: ${PROXY_TOKEN}.
       - kind: Secret
         name: binderhub-secrets
         optional: false

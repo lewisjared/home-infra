@@ -1,12 +1,12 @@
 ---
 # Public-facing HTTPRoute on the HTTP listener.
 # Cloudflare terminates TLS at the edge (Flexible mode); origin is HTTP.
-# DNS for binder.climate-ref.org is managed manually in Cloudflare,
+# DNS for hub.climate-ref.org is managed manually in Cloudflare,
 # NOT by external-dns (which is scoped to home.lewelly.com).
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: binderhub
+  name: jupyterhub
   namespace: binderhub
 spec:
   parentRefs:
@@ -14,12 +14,12 @@ spec:
       namespace: traefik
       sectionName: web
   hostnames:
-    - binder.climate-ref.org
+    - hub.climate-ref.org
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: binder
+        - name: proxy-public
           port: 80

@@ -1,73 +1,66 @@
-# BinderHub
+# JupyterHub for Climate-REF tutorials
 
-Self-hosted [BinderHub](https://binderhub.readthedocs.io/) restricted to a
-single repository: [`Climate-REF/climate-ref-tutorials`](https://github.com/Climate-REF/climate-ref-tutorials).
+Self-hosted [Zero-to-JupyterHub](https://z2jh.jupyter.org/) deployment that
+spawns a prebuilt singleuser image with the
+[`Climate-REF/climate-ref-tutorials`](https://github.com/Climate-REF/climate-ref-tutorials)
+notebooks baked in.
 
-- **Public URL**: <https://binder.climate-ref.org>
-- **Auth**: none (public)
-- **Image registry**: in-cluster (`registry.binderhub.svc.cluster.local:5000`)
+> The directory is still named `binderhub/` for git-history continuity. The
+> deployment was originally going to be BinderHub but on-cluster image builds
+> (dind/repo2docker) don't work on Talos workers (`/var/lib/dind` is
+> read-only ephemeral), so we switched to plain JupyterHub + a prebuilt image
+> built out-of-cluster by CI in the tutorials repo.
+
+- **Public URL**: <https://hub.climate-ref.org>
+- **Auth**: none (DummyAuthenticator — any username, no password)
+- **Singleuser image**: `ghcr.io/climate-ref/climate-ref-tutorials:latest`
 - **TLS**: terminated at Cloudflare edge; origin is HTTP
 - **Exposure**: home router 80/443 → traefik LoadBalancer → `home-gateway` web listener
 
 ## One-time out-of-band setup
 
-This is required before the service is reachable:
-
-1. **DNS**: add `binder.climate-ref.org` A record in Cloudflare pointing at the home WAN IP, **proxied** (orange cloud on).
-2. **TLS mode** (Cloudflare → SSL/TLS): set to **Flexible** (CF terminates HTTPS, talks HTTP to origin). Or use **Full** if you
-   later add an origin certificate.
-3. **Router port-forward**: forward 80/443 → traefik LoadBalancer IP
+1. **DNS**: add `hub.climate-ref.org` A record in Cloudflare pointing at the
+   home WAN IP, **proxied** (orange cloud on).
+2. **TLS mode** (Cloudflare → SSL/TLS): set to **Flexible** (CF terminates
+   HTTPS, talks HTTP to origin).
+3. **Router port-forward**: 80/443 → traefik LoadBalancer IP
    (`kubectl -n traefik get svc traefik` → EXTERNAL-IP).
-4. **Generate secrets** (openssl rand -hex 32) and encrypt apps/production/apps/binderhub/secret.sops.yaml
-
-## Repo whitelist
-
-Hard-coded in `helmrelease.yaml`:
-
-```yaml
-config:
-  GitHubRepoProvider:
-    allowed_specs:
-      - "^Climate-REF/climate-ref-tutorials/.*$"
-    banned_specs:
-      - "^(?!Climate-REF/climate-ref-tutorials/).*$"
-```
-
-Any URL like `/v2/gh/<other-org>/<other-repo>/...` is rejected by
-BinderHub before any build/spawn occurs.
+4. **Generate `PROXY_TOKEN`** (`openssl rand -hex 32`) and encrypt
+   `prereqs/secret.sops.yaml` (`sops --encrypt --in-place ...`).
+5. **Build & push the singleuser image** to
+   `ghcr.io/climate-ref/climate-ref-tutorials:latest` via CI in the tutorials
+   repo. Image must be Jupyter-compatible
+   (`jupyter/scipy-notebook`-style base; entrypoint runs
+   `jupyterhub-singleuser`).
 
 ## Abuse mitigations
 
 Layered controls — none alone is sufficient:
 
-- **Repo whitelist** (see above) — only one repo can be built.
-- **NetworkPolicy** on single-user pods — internet egress allowed but all
-  RFC1918 subnets are blocked except DNS.
+- **No code-build path** — only the prebuilt curated image can be spawned.
+- **NetworkPolicy** on singleuser pods — internet egress allowed, all
+  RFC1918 subnets blocked except DNS.
 - **ResourceQuota** — namespace capped at 8 CPU / 32Gi memory / 30 pods.
+- **LimitRange** — per-container default `1 CPU / 512Mi`, request
+  `50m / 64Mi`.
 - **Cull** — idle sessions killed after 10 min, hard-killed at 1h.
-- **Cloudflare** — sits in front; can flip on WAF rules / Cloudflare Access
-  for additional gating if abuse appears.
+- **Cloudflare** — sits in front; flip on WAF / Cloudflare Access if abuse
+  appears.
 
 ## Operating
 
 ```bash
 flux reconcile kustomization binderhub
 kubectl -n binderhub get pods
-kubectl -n binderhub logs deploy/binder
 kubectl -n binderhub logs deploy/hub
-kubectl -n binderhub get httproute binderhub -o yaml
-
-# Manual GC (instead of waiting for weekly CronJob)
-kubectl -n binderhub create job --from=cronjob/registry-gc registry-gc-manual
+kubectl -n binderhub logs deploy/proxy
+kubectl -n binderhub get httproute jupyterhub -o yaml
 ```
 
 ## Known limitations
 
-- Single replica for hub, proxy, registry (no HA).
-- Built images live on a RWO `rook-ceph-block` PVC; node failure during
-  reconcile may briefly stall the registry pod.
-- No metrics scrape configured yet — add a ServiceMonitor under
-  `apps/production/monitoring/` if usage justifies it.
-- DNS for `binder.climate-ref.org` is **not** managed by external-dns
-  (which is scoped to `home.lewelly.com`); it is maintained manually in
-  Cloudflare.
+- Single replica for hub + proxy (no HA).
+- DummyAuthenticator → no audit trail of who spawned what.
+- DNS for `hub.climate-ref.org` is **not** managed by external-dns
+  (scoped to `home.lewelly.com`); maintained manually in Cloudflare.
+- No per-user storage; every session starts fresh from the image.

@@ -1,31 +1,29 @@
 ---
-# BinderHub. Bundles JupyterHub (z2jh) as a chart dependency.
+# JupyterHub (z2jh) — public, no-auth Hub serving Climate-REF tutorials.
 #
-# Constraints:
-# - Public, no-auth (chose at design time, see README).
-# - Only Climate-REF/climate-ref-tutorials can be built. Enforced via
-#   GitHubRepoProvider.allowed_specs PLUS a defensive banned_specs regex.
-# - Images pushed to in-cluster docker-registry (registry-helmrelease.yaml).
-# - Cloudflare terminates TLS; origin is HTTP behind the `web` listener.
+# Replaces the original BinderHub plan: on-cluster image builds (dind/repo2docker)
+# don't work on Talos workers (hostPath /var/lib/dind is read-only ephemeral).
+# Instead, we spawn a prebuilt singleuser image
+# (ghcr.io/climate-ref/climate-ref-tutorials), built out-of-cluster by CI.
 #
-# Secrets ${PROXY_TOKEN} and ${BINDER_HUB_TOKEN} are injected via Flux
-# substituteFrom from binderhub-secrets (see ks.yaml).
+# Cloudflare terminates TLS; origin is HTTP behind the `web` listener.
+# ${PROXY_TOKEN} is injected via Flux substituteFrom (see ks.yaml).
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: binderhub
+  name: jupyterhub
   namespace: binderhub
 spec:
-  releaseName: binderhub
+  releaseName: jupyterhub
   interval: 30m
   timeout: 15m
   chart:
     spec:
-      chart: binderhub
-      version: "1.0.0-0.dev.git.3975.hec21488c"
+      chart: jupyterhub
+      version: "4.3.5"
       sourceRef:
         kind: HelmRepository
-        name: binderhub
+        name: jupyterhub
         namespace: binderhub
   install:
     createNamespace: false
@@ -38,108 +36,85 @@ spec:
     cleanupOnFail: true
 
   values:
-    # ----- BinderHub config -----
-    config:
-      BinderHub:
-        use_registry: true
-        image_prefix: registry.binderhub.svc.cluster.local:5000/binder/
-        hub_url: https://binder.climate-ref.org
-        hub_url_local: http://hub:8081
-        auth_enabled: false
-        about_message: |
-          Self-hosted BinderHub serving the Climate-REF tutorials.
-        per_repo_quota: 5
-        per_repo_quota_higher: 10
-        # BinderHub talks to JupyterHub's REST API with this token.
-        hub_token: ${BINDER_HUB_TOKEN}
-      GitHubRepoProvider:
-        allowed_specs:
-          - "^Climate-REF/climate-ref-tutorials/.*$"
-        banned_specs:
-          - "^(?!Climate-REF/climate-ref-tutorials/).*$"
-
-    # ----- In-cluster registry credentials (none, anonymous push/pull) -----
-    registry:
-      url: http://registry.binderhub.svc.cluster.local:5000
-      username: ""
-      password: ""
-
-    # ----- repo2docker image builder via dind -----
-    imageBuilderType: dind
-    dind:
+    hub:
+      db:
+        pvc:
+          storageClassName: rook-ceph-block
+          accessModes:
+            - ReadWriteOnce
+          storage: 1Gi
       resources:
         requests:
-          cpu: 200m
-          memory: 512Mi
+          cpu: 100m
+          memory: 256Mi
         limits:
-          memory: 4Gi
+          memory: 1Gi
+      # Public, no-auth via DummyAuthenticator. Any username, no password.
+      # Combined with NetworkPolicy + ResourceQuota + cull for abuse mitigation.
+      config:
+        JupyterHub:
+          authenticator_class: dummy
+        DummyAuthenticator:
+          password: ""
 
-    # ----- We author HTTPRoute ourselves (see httproute.yaml). -----
+    proxy:
+      # Fixed token avoids upgrade-time churn that would 502 active sessions.
+      secretToken: ${PROXY_TOKEN}
+      service:
+        type: ClusterIP
+
+    singleuser:
+      image:
+        name: ghcr.io/climate-ref/climate-ref-tutorials
+        tag: latest
+        pullPolicy: Always
+      # No per-user PVC; sessions are ephemeral.
+      storage:
+        type: none
+      memory:
+        guarantee: 512M
+        limit: 4G
+      cpu:
+        guarantee: 0.1
+        limit: 1.0
+      # Lock down user-pod egress: internet OK, internal subnets blocked except DNS.
+      networkPolicy:
+        enabled: true
+        egress:
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+                  except:
+                    - 10.0.0.0/8
+                    - 172.16.0.0/12
+                    - 192.168.0.0/16
+          - ports:
+              - port: 53
+                protocol: UDP
+              - port: 53
+                protocol: TCP
+      defaultUrl: "/lab"
+
+    cull:
+      enabled: true
+      timeout: 600 # 10 min idle -> kill
+      every: 60
+      maxAge: 3600 # 1h hard cap regardless of activity
+
+    # HTTPRoute is authored in httproute.yaml.
     ingress:
       enabled: false
 
-    # ----- JupyterHub (z2jh) sub-chart -----
-    jupyterhub:
-      hub:
-        db:
-          pvc:
-            storageClassName: rook-ceph-block
-            accessModes:
-              - ReadWriteOnce
-            storage: 1Gi
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            memory: 1Gi
-
-      proxy:
-        # Fixed token avoids upgrade-time churn that would 502 active sessions.
-        secretToken: ${PROXY_TOKEN}
-        service:
-          type: ClusterIP
-
-      singleuser:
-        # Ephemeral user sessions; no per-user PVCs.
-        storage:
-          type: none
-        memory:
-          guarantee: 512M
-          limit: 4G
-        cpu:
-          guarantee: 0.1
-          limit: 1.0
-        # Lock down user-pod egress: internet OK, internal subnets blocked except for kube-dns.
-        networkPolicy:
-          enabled: true
-          egress:
-            - to:
-                - ipBlock:
-                    cidr: 0.0.0.0/0
-                    except:
-                      - 10.0.0.0/8
-                      - 172.16.0.0/12
-                      - 192.168.0.0/16
-            - ports:
-                - port: 53
-                  protocol: UDP
-                - port: 53
-                  protocol: TCP
-
-      cull:
-        enabled: true
-        timeout: 600 # 10 min idle -> kill
-        every: 60
-        maxAge: 3600 # 1h hard cap regardless of activity
-
-      # Disable chart-managed ingress; HTTPRoute handles routing.
-      ingress:
+    # No prePuller; conserves cluster resources, OK for low-traffic.
+    prePuller:
+      hook:
+        enabled: false
+      continuous:
         enabled: false
 
-      # No prePuller; conserves cluster resources, OK for low-traffic.
-      prePuller:
-        hook:
-          enabled: false
-        continuous:
-          enabled: false
+    # scheduling.userPlaceholder reserves capacity for snappy spawns. Off for now.
+    scheduling:
+      userPlaceholder:
+        enabled: false
+      podPriority:
+        enabled: false
