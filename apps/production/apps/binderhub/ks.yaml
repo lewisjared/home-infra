@@ -16,6 +16,7 @@ spec:
   dependsOn:
     - name: core
     - name: storage
+    - name: binderhub-prereqs
   decryption:
     provider: sops
     secretRef:

@@ -1,0 +1,23 @@
+---
+# Bootstraps the namespace + SOPS-encrypted Secret consumed by the main
+# `binderhub` Flux Kustomization via `substituteFrom`. Must apply BEFORE
+# the main kustomization, hence the split: Flux resolves substituteFrom
+# against cluster state before applying, so the Secret must already exist.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: binderhub-prereqs
+  namespace: flux-system
+spec:
+  interval: 30m
+  path: ./apps/production/apps/binderhub/prereqs
+  prune: true
+  wait: true
+  timeout: 2m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
