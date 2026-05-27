@@ -1,7 +1,18 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: flux-system
 resources:
   - namespace.yaml
   - secret.sops.yaml
+# Patch only the Secret into flux-system so the main Kustomization's
+# substituteFrom (which reads from its own namespace) can find it.
+# A top-level `namespace:` directive would also rename the Namespace
+# resource, so this patch is scoped to the Secret.
+patches:
+  - target:
+      kind: Secret
+      name: binderhub-secrets
+    patch: |-
+      - op: replace
+        path: /metadata/namespace
+        value: flux-system
