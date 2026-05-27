@@ -1,0 +1,33 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: binderhub
+  namespace: flux-system
+spec:
+  interval: 30m
+  path: ./apps/production/apps/binderhub
+  prune: true
+  wait: true
+  timeout: 15m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: core
+    - name: storage
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
+  components:
+    - ../../../../components/alerts
+  postBuild:
+    substitute:
+      APP: binderhub
+    substituteFrom:
+      # Sourced from secret.sops.yaml -> Secret/binderhub-secrets.
+      # Keys must match values in helmrelease.yaml: ${PROXY_TOKEN}, ${BINDER_HUB_TOKEN}.
+      - kind: Secret
+        name: binderhub-secrets
+        optional: false

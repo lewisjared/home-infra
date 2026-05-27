@@ -1,0 +1,18 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: binderhub
+  namespace: binderhub
+spec:
+  interval: 6h
+  url: https://hub.jupyter.org/helm-chart/
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: twuni
+  namespace: binderhub
+spec:
+  interval: 6h
+  url: https://twuni.github.io/docker-registry.helm

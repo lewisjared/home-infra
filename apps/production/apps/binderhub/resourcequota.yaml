@@ -1,0 +1,15 @@
+---
+# Cap the blast radius of public, no-auth Binder sessions.
+# Total CPU/memory is sized so even 30 concurrent max-size user pods cannot starve the cluster.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: binderhub
+  namespace: binderhub
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 32Gi
+    limits.cpu: "16"
+    limits.memory: 64Gi
+    pods: "30"

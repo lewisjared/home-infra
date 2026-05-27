@@ -11,6 +11,8 @@ repositories:
     url: https://democratic-csi.github.io/charts/
   - name: authelia
     url: https://charts.authelia.com
+  - name: binderhub
+    url: https://hub.jupyter.org/helm-chart/
   - name: external-dns
     url: https://kubernetes-sigs.github.io/external-dns
   - name: grafana
@@ -39,3 +41,5 @@ repositories:
     url: https://stakater.github.io/stakater-charts
   - name: traefik
     url: https://traefik.github.io/charts
+  - name: twuni
+    url: https://twuni.github.io/docker-registry.helm
