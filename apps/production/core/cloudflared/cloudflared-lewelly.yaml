@@ -1,0 +1,82 @@
+---
+# Cloudflare Tunnel for *.lewelly.com (public-facing apps). Backend:
+# traefik public-gateway via in-cluster Service. CF dashboard maps each
+# public hostname (jellyfin.lewelly.com, ha.lewelly.com, auth.lewelly.com)
+# to https://traefik.traefik.svc.cluster.local:443 with originServerName
+# matching the hostname so SNI selects the *.lewelly.com cert.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared-lewelly
+  namespace: cloudflared
+  labels:
+    app: cloudflared
+    app.kubernetes.io/instance: lewelly
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudflared
+      app.kubernetes.io/instance: lewelly
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+        app.kubernetes.io/instance: lewelly
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: cloudflared
+                    app.kubernetes.io/instance: lewelly
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:2026.5.1
+          args:
+            - tunnel
+            - --no-autoupdate
+            - --metrics
+            - 0.0.0.0:2000
+            - run
+            - --token
+            - $(TUNNEL_TOKEN)
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflared-lewelly-token
+                  key: TUNNEL_TOKEN
+          ports:
+            - name: metrics
+              containerPort: 2000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: metrics
+            failureThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: metrics
+            failureThreshold: 1
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

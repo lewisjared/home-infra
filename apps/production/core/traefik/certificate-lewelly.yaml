@@ -1,0 +1,16 @@
+---
+# Wildcard cert for public-facing *.lewelly.com hostnames terminated at the traefik public-gateway listener.
+# DNS-01 via Cloudflare (lewelly.com zone).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lewelly-gateway-tls
+  namespace: traefik
+spec:
+  secretName: lewelly-gateway-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.lewelly.com"
+    - "lewelly.com"

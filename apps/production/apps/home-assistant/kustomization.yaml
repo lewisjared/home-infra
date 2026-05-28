@@ -7,4 +7,5 @@ resources:
   - middleware.yaml
   - helmrelease.yaml
   - httproute-ha.yaml
+  - httproute-ha-public.yaml
   - volsync-secret.yaml

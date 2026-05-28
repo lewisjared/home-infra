@@ -107,6 +107,14 @@ spec:
             same_site: lax
             expiration: 24h
             inactivity: 4h
+          # Public domain (cloudflared tunnel).
+          # Cookie scoped to lewelly.com so apps under *.lewelly.com can share the session via auth.lewelly.com.
+          - domain: lewelly.com
+            subdomain: auth
+            name: authelia_session_public
+            same_site: lax
+            expiration: 24h
+            inactivity: 4h
         redis:
           enabled: true
           # Points at the dragonfly StatefulSet defined in dragonfly.yaml.
@@ -172,6 +180,15 @@ spec:
           - domain: home.lewelly.com
             policy: bypass
           - domain: "*.home.lewelly.com"
+            policy: bypass
+
+          # Public (cloudflared tunnel) hosts. Default-policy=deny, so each
+          # public host must be listed explicitly.
+          - domain: auth.lewelly.com
+            policy: bypass
+          - domain: jellyfin.lewelly.com
+            policy: one_factor
+          - domain: ha.lewelly.com
             policy: bypass
 
       # OIDC Provider Configuration

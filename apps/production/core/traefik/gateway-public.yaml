@@ -1,0 +1,37 @@
+---
+# Public-facing Gateway. Internal HTTPRoutes use 'home-gateway' (traefik helm chart); public HTTPRoutes parentRef this 'public-gateway'.
+# Both Gateways share the same traefik pods + entrypoints; TLS cert is picked by SNI.
+# Internal/public separation is encoded in parentRefs.
+#
+# Cloudflared lewelly tunnel targets the traefik Service ClusterIP
+# (https://traefik.traefik.svc.cluster.local:443) with originServerName
+# set to the public hostname so traefik picks the *.lewelly.com cert and matches a public-gateway HTTPRoute.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: public-gateway
+  namespace: traefik
+  labels:
+    app.kubernetes.io/part-of: home-infra
+    exposure: public
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: web
+      port: 8000
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: websecure
+      port: 8443
+      protocol: HTTPS
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: lewelly-gateway-tls

@@ -1,20 +1,21 @@
 ---
-# Cloudflare Tunnel agent. Establishes outbound-only connection to CF edge,
-# replacing port-forward + HTTPRoute path that AU ISP blocks port 80 broke.
-# Public hostname mapping (hub.climate-ref.org -> proxy-public.binderhub:80)
-# is configured in the CF Zero Trust dashboard, NOT here -- token mode.
+# Cloudflare Tunnel for climate-ref.org.
+# Outbound-only tunnel to CF edge.
+# Public hostname mapping (hub.climate-ref.org -> proxy-public.binderhub:80) is configured in the CF Zero Trust dashboard, not here (token mode).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudflared
-  namespace: binderhub
+  name: cloudflared-climate-ref
+  namespace: cloudflared
   labels:
     app: cloudflared
+    app.kubernetes.io/instance: climate-ref
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: cloudflared
+      app.kubernetes.io/instance: climate-ref
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -24,6 +25,7 @@ spec:
     metadata:
       labels:
         app: cloudflared
+        app.kubernetes.io/instance: climate-ref
     spec:
       affinity:
         podAntiAffinity:
@@ -34,6 +36,7 @@ spec:
                 labelSelector:
                   matchLabels:
                     app: cloudflared
+                    app.kubernetes.io/instance: climate-ref
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:2026.5.1
@@ -73,4 +76,5 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
+              cpu: 500m
               memory: 256Mi

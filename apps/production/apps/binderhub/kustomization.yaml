@@ -6,5 +6,3 @@ resources:
   - helmrepository.yaml
   - resourcequota.yaml
   - helmrelease.yaml
-  - cloudflared-secret.sops.yaml
-  - cloudflared.yaml
