@@ -39,9 +39,21 @@ spec:
                   matchLabels:
                     app: cloudflared
                     app.kubernetes.io/instance: lewelly
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:2026.5.1
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           args:
             - tunnel
             - --no-autoupdate
