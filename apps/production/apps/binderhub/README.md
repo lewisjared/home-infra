@@ -52,7 +52,7 @@ kubectl -n binderhub delete pod -l component=singleuser-server
 ## Known limitations
 
 - Single replica for hub + proxy (no HA).
-- DummyAuthenticator → no audit trail of who spawned what.
+- DummyAuthenticator -> no audit trail of who spawned what.
 - DNS for `hub.climate-ref.org` is managed in CF dashboard (tunnel CNAME),
   not by external-dns (which is scoped to `home.lewelly.com`).
 - No per-user storage; every session starts fresh from the image.

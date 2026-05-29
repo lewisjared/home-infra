@@ -1,7 +1,7 @@
 ---
 # Fills in container resource defaults so the namespace ResourceQuota
-# (which enforces limits.cpu/memory + requests.cpu/memory) admits chart-managed
-# pods that don't set every field explicitly (proxy/chp, hub, binder, etc.).
+# (which enforces limits.cpu/memory + requests.cpu/memory)
+# admits chart-managed pods that don't set every field explicitly (proxy/chp, hub, binder, etc.).
 apiVersion: v1
 kind: LimitRange
 metadata:

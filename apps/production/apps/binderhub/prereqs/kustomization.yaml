@@ -9,6 +9,12 @@ resources:
 # substituteFrom (which reads from its own namespace) can find it.
 # A top-level `namespace:` directive would also rename the Namespace
 # resource, so this patch is scoped to the Secret.
+#
+# Namespace + LimitRange get `kustomize.toolkit.fluxcd.io/prune: disabled`
+# in preparation for a follow-up PR that moves them into the main
+# `binderhub` kustomization. The annotation makes them safe from
+# `binderhub-prereqs`'s prune cycle once they're removed from this
+# manifest set.
 patches:
   - target:
       kind: Secret
@@ -17,3 +23,19 @@ patches:
       - op: replace
         path: /metadata/namespace
         value: flux-system
+  - target:
+      kind: Namespace
+      name: binderhub
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          kustomize.toolkit.fluxcd.io/prune: disabled
+  - target:
+      kind: LimitRange
+      name: binderhub-defaults
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          kustomize.toolkit.fluxcd.io/prune: disabled
