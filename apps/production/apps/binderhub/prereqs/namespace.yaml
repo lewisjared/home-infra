@@ -4,8 +4,11 @@ kind: Namespace
 metadata:
   name: binderhub
   labels:
-    # BinderHub's dind builder + image-cleaner need privileged + hostPath.
-    # Drops PodSecurity from default `baseline` to `privileged` for this ns only.
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
+    # JupyterHub singleuser images typically run as root before sudo'ing
+    # to jovyan, which `restricted` disallows. `baseline` still permits
+    # root-in-container while blocking hostPath / privileged escalation
+    # / host namespaces. (The original `privileged` was for BinderHub's
+    # dind builder, which we no longer run.)
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/warn: baseline

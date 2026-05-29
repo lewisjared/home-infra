@@ -1,13 +1,9 @@
 ---
 # JupyterHub (z2jh) — public, no-auth Hub serving Climate-REF tutorials.
+# Spawns the prebuilt ghcr.io/climate-ref/climate-ref-tutorials image
 #
-# Replaces the original BinderHub plan: on-cluster image builds (dind/repo2docker)
-# don't work on Talos workers (hostPath /var/lib/dind is read-only ephemeral).
-# Instead, we spawn a prebuilt singleuser image
-# (ghcr.io/climate-ref/climate-ref-tutorials), built out-of-cluster by CI.
-#
-# Cloudflare terminates TLS; origin is HTTP behind the `web` listener.
-# ${PROXY_TOKEN} is injected via Flux substituteFrom (see ks.yaml).
+# Exposure: Cloudflare Tunnel (cloudflared in the `cloudflared` ns, token-mode) -> proxy-public.binderhub:80.
+#  No HTTPRoute, no traefik path.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -83,6 +79,7 @@ spec:
       image:
         name: ghcr.io/climate-ref/climate-ref-tutorials
         tag: latest
+        # This will fetch the latest image
         pullPolicy: Always
       # No per-user PVC; sessions are ephemeral.
       storage:
@@ -117,20 +114,6 @@ spec:
       every: 60
       maxAge: 3600 # 1h hard cap regardless of activity
 
-    # HTTPRoute is authored in httproute.yaml.
+    # No ingress; exposure is via cloudflared tunnel (see core/cloudflared/).
     ingress:
       enabled: false
-
-    # No prePuller; conserves cluster resources, OK for low-traffic.
-    prePuller:
-      hook:
-        enabled: false
-      continuous:
-        enabled: false
-
-    # scheduling.userPlaceholder reserves capacity for snappy spawns. Off for now.
-    scheduling:
-      userPlaceholder:
-        enabled: false
-      podPriority:
-        enabled: false
