@@ -7,7 +7,6 @@ resources:
   - homepage/ks.yaml
   - podinfo/ks.yaml
   - climate-ref/ks.yaml
-  - binderhub/prereqs/ks.yaml
   - binderhub/ks.yaml
   - github-runners/ks.yaml
   # Vela

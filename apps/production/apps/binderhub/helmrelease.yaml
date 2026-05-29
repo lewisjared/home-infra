@@ -59,8 +59,9 @@ spec:
           password: ""
 
     proxy:
-      # Fixed token avoids upgrade-time churn that would 502 active sessions.
-      secretToken: ${PROXY_TOKEN}
+      # No explicit secretToken: the z2jh chart auto-generates on first
+      # install and preserves the value across upgrades via a cluster
+      # lookup of the existing `hub` Secret. No 502 on rollouts.
       service:
         type: ClusterIP
       chp:

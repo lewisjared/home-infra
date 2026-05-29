@@ -16,7 +16,6 @@ spec:
   dependsOn:
     - name: core
     - name: storage
-    - name: binderhub-prereqs
   decryption:
     provider: sops
     secretRef:
@@ -26,9 +25,3 @@ spec:
   postBuild:
     substitute:
       APP: binderhub
-    substituteFrom:
-      # Sourced from prereqs/secret.sops.yaml -> Secret/binderhub-secrets (in flux-system).
-      # Key referenced in helmrelease.yaml: ${PROXY_TOKEN}.
-      - kind: Secret
-        name: binderhub-secrets
-        optional: false
