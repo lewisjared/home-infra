@@ -1,7 +1,9 @@
 ---
 # Public-facing jellyfin at jellyfin.lewelly.com via cloudflared lewelly tunnel + traefik public-gateway.
-# Authelia one_factor enforced via forwardauth middleware (see ../middleware.yaml).
-# Internal route at jellyfin.home.lewelly.com (see httproute.yaml) remains bypass for TV clients.
+# Authelia bypass (matches internal route): jellyfin web app sends
+# `Authorization: MediaBrowser ...` which makes authelia forwardauth
+# return 401 + WWW-Authenticate: Basic, triggering a browser native
+# sign-in popup. Jellyfin's own auth handles access control.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -18,12 +20,10 @@ spec:
   hostnames:
     - jellyfin.lewelly.com
   rules:
-    - filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: traefik.io
-            kind: Middleware
-            name: authelia-forwardauth
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
       backendRefs:
         - name: jellyfin
           port: 8096

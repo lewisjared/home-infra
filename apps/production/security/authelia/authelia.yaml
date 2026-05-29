@@ -186,8 +186,12 @@ spec:
           # public host must be listed explicitly.
           - domain: auth.lewelly.com
             policy: bypass
+          # Jellyfin web app sends `Authorization: MediaBrowser ...`,
+          # which trips authelia's basic-auth parser into responding
+          # 401 + WWW-Authenticate: Basic. Bypass and let jellyfin's
+          # native auth do the work (mirrors internal route).
           - domain: jellyfin.lewelly.com
-            policy: one_factor
+            policy: bypass
           - domain: ha.lewelly.com
             policy: bypass
 
