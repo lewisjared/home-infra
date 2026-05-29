@@ -59,9 +59,7 @@ spec:
           password: ""
 
     proxy:
-      # No explicit secretToken: the z2jh chart auto-generates on first
-      # install and preserves the value across upgrades via a cluster
-      # lookup of the existing `hub` Secret. No 502 on rollouts.
+      # No explicit secretToken: the z2jh chart auto-generates on first install
       service:
         type: ClusterIP
       chp:
