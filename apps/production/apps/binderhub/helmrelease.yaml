@@ -116,3 +116,17 @@ spec:
     # No ingress; exposure is via cloudflared tunnel (see core/cloudflared/).
     ingress:
       enabled: false
+
+    # No prePuller; conserves cluster resources, OK for low-traffic.
+    prePuller:
+      hook:
+        enabled: false
+      continuous:
+        enabled: false
+
+    # scheduling.userPlaceholder reserves capacity for snappy spawns. Off for now.
+    scheduling:
+      userPlaceholder:
+        enabled: false
+      podPriority:
+        enabled: false
