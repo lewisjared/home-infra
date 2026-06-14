@@ -7,7 +7,7 @@ resources:
   - homepage/ks.yaml
   - podinfo/ks.yaml
   - climate-ref/ks.yaml
-  - binderhub/ks.yaml
+  # - binderhub/ks.yaml  # disabled 2026-06-14
   - github-runners/ks.yaml
   # Vela
   - vela/ks.yaml
