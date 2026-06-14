@@ -294,7 +294,7 @@ variable "worker_nodes" {
       ceph_mac_address = "BC:24:11:30:02:63"
       vm_id            = 213
       cpu_cores        = 12
-      memory_mb        = 87040
+      memory_mb        = 82000
     }
   }
 }
@@ -330,7 +330,7 @@ variable "worker_cpu_cores" {
 variable "worker_memory_mb" {
   type        = number
   description = "Default memory in MB for worker nodes"
-  default     = 40960
+  default     = 42000
 }
 
 variable "worker_disk_gb" {
