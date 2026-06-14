@@ -42,6 +42,53 @@ spec:
             volumeMounts:
               - name: dind-externals
                 mountPath: /home/runner/tmpDir
+          # dind runs as a native sidecar (initContainer with restartPolicy:
+          # Always). The runner container below is not started until this
+          # sidecar passes its startupProbe, i.e. until dockerd is actually
+          # serving on the socket. Without this gate, on a cold scale-up from
+          # minRunners:0 the runner picks up the job and runs "Checking docker
+          # version" before dockerd has finished starting — the socket is
+          # missing and the job dies with "Value cannot be null. (network)".
+          - name: dind
+            image: docker:29-dind@sha256:ad68e89b675740867a3bb96488a93fea9209ad36c6305bfba2664912d6dcf11a
+            restartPolicy: Always
+            args:
+              - dockerd
+              - --host=unix:///var/run/docker.sock
+              - --group=$(DOCKER_GROUP_GID)
+            env:
+              - name: DOCKER_GROUP_GID
+                value: "123"
+            securityContext:
+              privileged: true
+            # Matches the upstream chart default dind startupProbe (since the
+            # gha-runner-scale-set 0.12.0 native-sidecar change): docker info,
+            # 5s interval, 24 retries (~120s window for a cold image pull).
+            startupProbe:
+              exec:
+                command: ["docker", "info"]
+              initialDelaySeconds: 0
+              periodSeconds: 5
+              failureThreshold: 24
+            volumeMounts:
+              - name: work
+                mountPath: /home/runner/_work
+              - name: dind-sock
+                mountPath: /var/run
+              - name: dind-externals
+                mountPath: /home/runner/externals
+              # Dedicated volume for docker graph driver. Without this, dind
+              # writes /var/lib/docker into its own containerd writable layer,
+              # producing nested overlayfs (overlay-on-overlay) and killing
+              # build throughput.
+              - name: docker-graph
+                mountPath: /var/lib/docker
+            resources:
+              requests:
+                cpu: 200m
+                memory: 256Mi
+              limits:
+                memory: 16Gi
         containers:
           - name: runner
             image: ghcr.io/actions/actions-runner:latest@sha256:b6614fce332517f74d0a76e7c762fb08e4f2ff13dcf333183397c8a5725b6e8e
@@ -68,36 +115,6 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 8Gi
-          - name: dind
-            image: docker:29-dind@sha256:ad68e89b675740867a3bb96488a93fea9209ad36c6305bfba2664912d6dcf11a
-            args:
-              - dockerd
-              - --host=unix:///var/run/docker.sock
-              - --group=$(DOCKER_GROUP_GID)
-            env:
-              - name: DOCKER_GROUP_GID
-                value: "123"
-            securityContext:
-              privileged: true
-            volumeMounts:
-              - name: work
-                mountPath: /home/runner/_work
-              - name: dind-sock
-                mountPath: /var/run
-              - name: dind-externals
-                mountPath: /home/runner/externals
-              # Dedicated volume for docker graph driver. Without this, dind
-              # writes /var/lib/docker into its own containerd writable layer,
-              # producing nested overlayfs (overlay-on-overlay) and killing
-              # build throughput.
-              - name: docker-graph
-                mountPath: /var/lib/docker
-            resources:
-              requests:
-                cpu: 200m
-                memory: 256Mi
-              limits:
-                memory: 16Gi
         volumes:
           - name: work
             emptyDir: {}
