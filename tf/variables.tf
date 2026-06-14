@@ -312,7 +312,7 @@ variable "controlplane_cpu_cores" {
 variable "controlplane_memory_mb" {
   type        = number
   description = "Default memory in MB for control plane nodes"
-  default     = 8192
+  default     = 6144
 }
 
 variable "controlplane_disk_gb" {
