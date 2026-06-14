@@ -330,7 +330,7 @@ variable "worker_cpu_cores" {
 variable "worker_memory_mb" {
   type        = number
   description = "Default memory in MB for worker nodes"
-  default     = 55296
+  default     = 40960
 }
 
 variable "worker_disk_gb" {
