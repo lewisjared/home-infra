@@ -1,0 +1,25 @@
+---
+# KubernetesUpgrade — declarative, GitOps-driven Kubernetes upgrades via tuppr.
+#
+# Only ONE KubernetesUpgrade may exist per cluster (enforced by the admission
+# webhook). It cannot run concurrently with the TalosUpgrade — tuppr serialises
+# the two. tuppr drives `talosctl upgrade-k8s` from an elected control-plane node.
+#
+# To upgrade: bump `spec.kubernetes.version` (keep it in sync with tf/variables.tf
+# kubernetes_version) and open a PR — in a SEPARATE PR from any Talos bump, and
+# only after the Talos upgrade has settled. At the version below (== current),
+# reconciling this CR is a no-op. See README.md for the full runbook.
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: KubernetesUpgrade
+metadata:
+  name: kubernetes
+spec:
+  kubernetes:
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+    version: v1.35.4 # keep in sync with tf/variables.tf -> kubernetes_version
+
+  healthChecks:
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.exists(c, c.type == "Ready" && c.status == "True")
+      timeout: 10m

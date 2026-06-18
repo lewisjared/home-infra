@@ -1,0 +1,46 @@
+---
+# TalosUpgrade — declarative, GitOps-driven Talos OS upgrades via tuppr.
+#
+# How the installer image is chosen (verified against tuppr 0.1.6 source):
+# tuppr reads each node's live `machine.install.image`
+# (Terraform sets this to factory.talos.dev/nocloud-installer/<schematic>:<version>),
+# keeps the repository — i.e. the `nocloud-installer` flavor and the extensions
+# schematic — and substitutes ONLY the version tag with `spec.talos.version`.
+# A built-in guard refuses the upgrade if the running schematic isn't embedded in
+# the install image, so the baked-in extensions
+# (qemu-guest-agent, amdgpu, iscsi-tools, util-linux-tools) cannot be silently lost.
+# => No per-node factory-url / schematic annotations are required here.
+#
+# To upgrade: bump `spec.talos.version` (keep it in sync with tf/variables.tf
+# talos_version) and open a PR. tuppr cordons/drains and reboots ONE node at a time,
+# gating on etcd health between nodes — safe for our 3 dual-role nodes (= 3 etcd
+# members). At the version below (== current), reconciling this CR is a no-op.
+# See README.md for the full runbook.
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: TalosUpgrade
+metadata:
+  name: cluster
+spec:
+  talos:
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+    version: v1.12.6 # keep in sync with tf/variables.tf -> talos_version
+
+  # One node at a time. With 3 dual-role nodes = 3 etcd members, never take down
+  # more than one member at once; tuppr also gates on etcd health between nodes.
+  parallelism: 1
+
+  policy:
+    force: false # never skip etcd health checks
+    nodrain: false # cordon + drain each node before its reboot
+    rebootMode: default
+    placement: hard
+    timeout: 30m
+
+  # Proceed to the next node only once every node reports Ready.
+  healthChecks:
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.exists(c, c.type == "Ready" && c.status == "True")
+
+  # No nodeSelector: all three nodes are dual-role control-plane and must be
+  # upgraded. (Upstream's worker-only selector does NOT apply to this topology.)

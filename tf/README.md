@@ -158,6 +158,24 @@ talosctl get members
 talosctl logs kubelet -n 10.50.0.11
 ```
 
+### Targeting a Single Node
+
+A node's resources are spread across several keyed addresses
+(the VM submodule, the Talos machine-config apply, etc.),
+so collect every address that mentions the node and pass each back as a `-target`:
+
+```bash
+# Preview changes for just one node (e.g. talos-master-2)
+tofu plan $(tofu state list | grep talos-master-2 | sed 's/^/-target=/')
+
+# Apply once the plan looks right
+tofu apply $(tofu state list | grep talos-master-2 | sed 's/^/-target=/')
+```
+
+Always review the targeted plan before applying:
+`-target` skips normal dependency evaluation,
+so confirm it touches only the intended node.
+
 ### Updating Cilium
 
 ```bash
