@@ -77,7 +77,8 @@ variable "control_plane_nodes" {
     cpu_cores        = number
     memory_mb        = number
     disk_gb          = number
-    gpu_enabled      = optional(bool, false) # Enable AMD iGPU passthrough
+    gpu_enabled      = optional(bool, false)     # Enable AMD iGPU passthrough
+    node_labels      = optional(map(string), {}) # Extra Talos nodeLabels (durable across rebuilds)
     hostpci_devices = optional(list(object({
       device  = string
       mapping = optional(string)

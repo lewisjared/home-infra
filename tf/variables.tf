@@ -219,7 +219,8 @@ variable "control_plane_nodes" {
     cpu_cores        = number
     memory_mb        = number
     disk_gb          = number
-    gpu_enabled      = optional(bool, false) # Enable AMD iGPU passthrough
+    gpu_enabled      = optional(bool, false)        # Enable AMD iGPU passthrough
+    node_labels      = optional(map(string), {})    # Extra Talos nodeLabels (durable across rebuilds)
     hostpci_devices = optional(list(object({
       device  = string
       mapping = optional(string)
@@ -273,6 +274,9 @@ variable "control_plane_nodes" {
       cpu_cores = 14
       memory_mb = 83000
       disk_gb   = 100
+      # esphome is pinned here (hostNetwork) so its source IP is predictable for
+      # the OPNsense VLAN20->VLAN50 rule. See apps/production/apps/esphome.
+      node_labels = { esphome = "true" }
     }
   }
 }
