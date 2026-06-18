@@ -159,6 +159,11 @@ data "talos_machine_configuration" "controlplane" {
     local.controlplane_patches,
     # GPU patch - only for nodes with gpu_enabled
     each.value.gpu_enabled ? [local.gpu_patch] : [],
+    # Per-node extra labels (e.g. esphome=true). Kept in machine config so they
+    # survive a node rebuild, unlike a manual `kubectl label`.
+    length(each.value.node_labels) > 0 ? [yamlencode({
+      machine = { nodeLabels = each.value.node_labels }
+    })] : [],
     [
       # Talos v1.12 requires hostname via the dedicated HostnameConfig
       # document; setting machine.network.hostname alongside it (or on its
