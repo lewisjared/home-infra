@@ -40,6 +40,10 @@ version bump.
 - **Talos** — `talos_version` in `tf/variables.tf` ↔ `spec.talos.version` in `talos-upgrade.yaml`.
 - **Kubernetes** — `kubernetes_version` in `tf/variables.tf` ↔ `spec.kubernetes.version` in `kubernetes-upgrade.yaml`.
 
+A Renovate `customManager` (`renovate.json`) bumps both sides — the CR and
+`tf/variables.tf` — in a **single PR** off the matching `# renovate:` annotations,
+so they don't silently diverge. If you bump by hand, change both files yourself.
+
 Terraform drives `machine.install.image` and the Image Factory ISO — the version a
 node provisions at when it is **rebuilt**. The tuppr CR drives the **rolling upgrade
 of already-running nodes**. Bump both together so a rebuilt node doesn't land on a
@@ -80,6 +84,11 @@ talosctl -n 10.10.20.51 etcd snapshot etcd-pre-upgrade.db
    tofu plan    # regenerates the schematic data, installer URL and ISO download
    tofu apply
    ```
+
+   **Guard:** the plan must show the VMs as **update in-place** (the `cdrom`
+   `file_id` remounts the new ISO) — **never `replace`/`destroy`**. A version bump
+   should only swap the mounted ISO and re-push machine config; if the plan wants to
+   recreate a VM, stop and investigate before applying (recreating a node wipes it).
 
    This keeps `machine.install.image` and the downloaded ISO consistent for any
    future **node rebuild**. It does **not** upgrade a running OS by itself — only

@@ -45,13 +45,17 @@ variable "kubeconfig_context_name" {
 variable "talos_version" {
   type        = string
   description = "Talos Linux version"
-  default     = "v1.12.6"
+  # keep in sync with apps/production/core/tuppr/talos-upgrade.yaml -> spec.talos.version
+  # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+  default = "v1.12.6"
 }
 
 variable "kubernetes_version" {
   type        = string
   description = "Kubernetes version"
-  default     = "v1.35.4"
+  # keep in sync with apps/production/core/tuppr/kubernetes-upgrade.yaml -> spec.kubernetes.version
+  # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+  default = "v1.35.4"
 }
 
 # =============================================================================
