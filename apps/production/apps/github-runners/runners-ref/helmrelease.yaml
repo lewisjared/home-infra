@@ -62,7 +62,17 @@ spec:
               - -c
               - |
                 mkdir -p /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data
-                chown -R 1000:1000 /data/cache
+                # The cache is a persistent RWX NFS share and the runner writes as
+                # uid 1000, so its contents are already owned correctly after the
+                # first provisioning. A `chown -R` over the conda/software tree on
+                # every start takes many minutes, so do the deep pass only once
+                # (guarded by a sentinel) and otherwise just fix the top-level dirs.
+                if [ ! -e /data/cache/.ownership-initialised ]; then
+                  chown -R 1000:1000 /data/cache
+                  touch /data/cache/.ownership-initialised
+                else
+                  chown 1000:1000 /data/cache /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data
+                fi
                 chmod 777 /data/cache/datasets /data/cache/software /data/cache/intake-esgf-data
 
                 mkdir -p /home-config/intake-esgf
