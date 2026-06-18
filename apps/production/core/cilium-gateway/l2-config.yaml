@@ -17,7 +17,10 @@ metadata:
 spec:
   loadBalancerIPs: true
   interfaces:
-    - ^eth[0-9]+
+    # Talos uses predictable interface names (ens18/ens19); the old ^eth[0-9]+
+    # regex matched nothing post-migration, so the LoadBalancer VIP was never
+    # ARP-announced on the LAN. Match both schemes to be safe.
+    - ^(eth|ens)[0-9]+
   nodeSelector:
     matchExpressions:
       - key: node-role.kubernetes.io/control-plane
