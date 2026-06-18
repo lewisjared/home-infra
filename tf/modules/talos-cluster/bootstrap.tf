@@ -14,22 +14,6 @@ resource "talos_machine_configuration_apply" "controlplane" {
   }
 }
 
-# Apply machine configuration to worker nodes
-# Uses static IP (assigned via DHCP reservation based on MAC address)
-resource "talos_machine_configuration_apply" "worker" {
-  for_each   = var.worker_nodes
-  depends_on = [module.worker_vms]
-
-  client_configuration        = talos_machine_secrets.this.client_configuration
-  machine_configuration_input = data.talos_machine_configuration.worker[each.key].machine_configuration
-  node                        = each.value.ip_address
-  endpoint                    = each.value.ip_address
-
-  timeouts = {
-    create = "10m"
-  }
-}
-
 # Bootstrap the cluster on the first control plane node
 resource "talos_machine_bootstrap" "this" {
   depends_on = [talos_machine_configuration_apply.controlplane]
@@ -45,10 +29,7 @@ resource "talos_machine_bootstrap" "this" {
 
 # Retrieve kubeconfig after cluster bootstrap
 resource "talos_cluster_kubeconfig" "this" {
-  depends_on = [
-    talos_machine_bootstrap.this,
-    talos_machine_configuration_apply.worker
-  ]
+  depends_on = [talos_machine_bootstrap.this]
 
   client_configuration = talos_machine_secrets.this.client_configuration
   node                 = values(var.control_plane_nodes)[0].ip_address
@@ -112,14 +93,6 @@ resource "local_sensitive_file" "controlplane_config" {
   for_each = var.control_plane_nodes
 
   content         = data.talos_machine_configuration.controlplane[each.key].machine_configuration
-  filename        = "${path.root}/output/machineconfig-${each.key}.yaml"
-  file_permission = "0600"
-}
-
-resource "local_sensitive_file" "worker_config" {
-  for_each = var.worker_nodes
-
-  content         = data.talos_machine_configuration.worker[each.key].machine_configuration
   filename        = "${path.root}/output/machineconfig-${each.key}.yaml"
   file_permission = "0600"
 }

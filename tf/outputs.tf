@@ -10,24 +10,14 @@ output "talosconfig" {
   sensitive   = true
 }
 
-output "control_plane_ips" {
-  description = "Control plane node IP addresses"
-  value       = module.talos_cluster.control_plane_ips
+output "node_ips" {
+  description = "Talos node IP addresses"
+  value       = module.talos_cluster.node_ips
 }
 
-output "worker_ips" {
-  description = "Worker node IP addresses"
-  value       = module.talos_cluster.worker_ips
-}
-
-output "control_plane_vm_ids" {
-  description = "Control plane VM IDs"
-  value       = module.talos_cluster.control_plane_vm_ids
-}
-
-output "worker_vm_ids" {
-  description = "Worker VM IDs"
-  value       = module.talos_cluster.worker_vm_ids
+output "node_vm_ids" {
+  description = "Talos node VM IDs"
+  value       = module.talos_cluster.node_vm_ids
 }
 
 output "proxmox_vlan_interfaces" {

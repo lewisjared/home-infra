@@ -24,10 +24,7 @@ data "talos_image_factory_urls" "this" {
 
 # Get unique list of Proxmox nodes that need the image
 locals {
-  proxmox_nodes = toset(distinct(concat(
-    [for node in var.control_plane_nodes : node.proxmox_node],
-    [for node in var.worker_nodes : node.proxmox_node]
-  )))
+  proxmox_nodes = toset([for node in var.control_plane_nodes : node.proxmox_node])
 }
 
 # Download Talos ISO to each Proxmox node

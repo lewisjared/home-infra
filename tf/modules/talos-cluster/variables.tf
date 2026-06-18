@@ -63,6 +63,9 @@ variable "ceph_cidr" {
   default     = "/24"
 }
 
+# Dual-role nodes: every node is a control-plane/etcd member that also runs
+# workloads (machine config sets allowSchedulingOnControlPlanes = true).
+# Sizing is mandatory per node — there are no resource defaults.
 variable "control_plane_nodes" {
   type = map(object({
     proxmox_node     = string
@@ -71,24 +74,9 @@ variable "control_plane_nodes" {
     ceph_ip_address  = optional(string) # IP on Ceph VLAN (e.g., "10.10.30.51")
     ceph_mac_address = optional(string) # MAC for Ceph NIC
     vm_id            = optional(number)
-    cpu_cores        = optional(number)
-    memory_mb        = optional(number)
-    disk_gb          = optional(number)
-  }))
-  description = "Control plane node definitions"
-}
-
-variable "worker_nodes" {
-  type = map(object({
-    proxmox_node     = string
-    ip_address       = string
-    mac_address      = string
-    ceph_ip_address  = optional(string) # IP on Ceph VLAN (e.g., "10.10.30.61")
-    ceph_mac_address = optional(string) # MAC for Ceph NIC
-    vm_id            = optional(number)
-    cpu_cores        = optional(number)
-    memory_mb        = optional(number)
-    disk_gb          = optional(number)
+    cpu_cores        = number
+    memory_mb        = number
+    disk_gb          = number
     gpu_enabled      = optional(bool, false) # Enable AMD iGPU passthrough
     hostpci_devices = optional(list(object({
       device  = string
@@ -99,37 +87,7 @@ variable "worker_nodes" {
       xvga    = optional(bool, false)
     })), [])
   }))
-  description = "Worker node definitions"
-}
-
-variable "controlplane_cpu_cores" {
-  type        = number
-  description = "Default CPU cores for control plane"
-}
-
-variable "controlplane_memory_mb" {
-  type        = number
-  description = "Default memory for control plane"
-}
-
-variable "controlplane_disk_gb" {
-  type        = number
-  description = "Default disk size for control plane"
-}
-
-variable "worker_cpu_cores" {
-  type        = number
-  description = "Default CPU cores for workers"
-}
-
-variable "worker_memory_mb" {
-  type        = number
-  description = "Default memory for workers"
-}
-
-variable "worker_disk_gb" {
-  type        = number
-  description = "Default disk size for workers"
+  description = "Dual-role control-plane/worker node definitions"
 }
 
 variable "storage_pool" {

@@ -202,6 +202,8 @@ variable "proxmox_hosts" {
 # Talos Node Definitions
 # =============================================================================
 
+# Dual-role nodes: every node is a control-plane/etcd member that also runs workloads.
+# One Talos VM per physical compute host.
 variable "control_plane_nodes" {
   type = map(object({
     proxmox_node     = string
@@ -210,50 +212,9 @@ variable "control_plane_nodes" {
     ceph_ip_address  = optional(string) # IP on Ceph VLAN 30
     ceph_mac_address = optional(string) # MAC for Ceph NIC
     vm_id            = optional(number)
-    cpu_cores        = optional(number)
-    memory_mb        = optional(number)
-    disk_gb          = optional(number)
-  }))
-  description = "Control plane node definitions"
-  default = {
-    "talos-master-1" = {
-      proxmox_node     = "nacho"
-      ip_address       = "10.10.20.51"
-      mac_address      = "BC:24:11:20:01:51"
-      ceph_ip_address  = "10.10.30.51"
-      ceph_mac_address = "BC:24:11:30:01:51"
-      vm_id            = 201
-    }
-    "talos-master-2" = {
-      proxmox_node     = "tamale"
-      ip_address       = "10.10.20.52"
-      mac_address      = "BC:24:11:20:01:52"
-      ceph_ip_address  = "10.10.30.52"
-      ceph_mac_address = "BC:24:11:30:01:52"
-      vm_id            = 202
-    }
-    "talos-master-3" = {
-      proxmox_node     = "churro"
-      ip_address       = "10.10.20.53"
-      mac_address      = "BC:24:11:20:01:53"
-      ceph_ip_address  = "10.10.30.53"
-      ceph_mac_address = "BC:24:11:30:01:53"
-      vm_id            = 203
-    }
-  }
-}
-
-variable "worker_nodes" {
-  type = map(object({
-    proxmox_node     = string
-    ip_address       = string
-    mac_address      = string
-    ceph_ip_address  = optional(string) # IP on Ceph VLAN 30
-    ceph_mac_address = optional(string) # MAC for Ceph NIC
-    vm_id            = optional(number)
-    cpu_cores        = optional(number)
-    memory_mb        = optional(number)
-    disk_gb          = optional(number)
+    cpu_cores        = number
+    memory_mb        = number
+    disk_gb          = number
     gpu_enabled      = optional(bool, false) # Enable AMD iGPU passthrough
     hostpci_devices = optional(list(object({
       device  = string
@@ -264,79 +225,52 @@ variable "worker_nodes" {
       xvga    = optional(bool, false)
     })), [])
   }))
-  description = "Worker node definitions"
+  description = "Node definitions"
   default = {
-    "talos-worker-1" = {
+    "talos-master-1" = {
       proxmox_node     = "nacho"
-      ip_address       = "10.10.20.61"
-      mac_address      = "BC:24:11:20:02:61"
-      ceph_ip_address  = "10.10.30.61"
-      ceph_mac_address = "BC:24:11:30:02:61"
-      vm_id            = 211
-      gpu_enabled      = true
-      hostpci_devices  = [{ device = "hostpci0", mapping = "igpu" }]
+      ip_address       = "10.10.20.51"
+      mac_address      = "BC:24:11:20:01:51"
+      ceph_ip_address  = "10.10.30.51"
+      ceph_mac_address = "BC:24:11:30:01:51"
+      vm_id            = 201
+      # Host: 32 cores, 61942 MB.
+      # Reserve ~2 cores and ~12 GB for PVE + Ceph MON/MGR/OSD (osd.2).
+      cpu_cores       = 30
+      memory_mb       = 52000
+      disk_gb         = 100
+      gpu_enabled     = true
+      hostpci_devices = [{ device = "hostpci0", mapping = "igpu" }]
     }
-    "talos-worker-2" = {
+    "talos-master-2" = {
       proxmox_node     = "tamale"
-      ip_address       = "10.10.20.62"
-      mac_address      = "BC:24:11:20:02:62"
-      ceph_ip_address  = "10.10.30.62"
-      ceph_mac_address = "BC:24:11:30:02:62"
-      vm_id            = 212
-      gpu_enabled      = true
-      hostpci_devices  = [{ device = "hostpci0", mapping = "igpu" }]
+      ip_address       = "10.10.20.52"
+      mac_address      = "BC:24:11:20:01:52"
+      ceph_ip_address  = "10.10.30.52"
+      ceph_mac_address = "BC:24:11:30:01:52"
+      vm_id            = 202
+      # Host: 32 cores, 61942 MB.
+      # Reserve ~2 cores and ~12 GB for PVE + Ceph MON/MGR/OSD (osd.3).
+      cpu_cores       = 30
+      memory_mb       = 52000
+      disk_gb         = 100
+      gpu_enabled     = true
+      hostpci_devices = [{ device = "hostpci0", mapping = "igpu" }]
     }
-    "talos-worker-3" = {
+    "talos-master-3" = {
       proxmox_node     = "churro"
-      ip_address       = "10.10.20.63"
-      mac_address      = "BC:24:11:20:02:63"
-      ceph_ip_address  = "10.10.30.63"
-      ceph_mac_address = "BC:24:11:30:02:63"
-      vm_id            = 213
-      cpu_cores        = 12
-      memory_mb        = 82000
+      ip_address       = "10.10.20.53"
+      mac_address      = "BC:24:11:20:01:53"
+      ceph_ip_address  = "10.10.30.53"
+      ceph_mac_address = "BC:24:11:30:01:53"
+      vm_id            = 203
+      # Host: 16 cores, 93363 MB. Ceph MON only (no local OSD).
+      # Reserve ~2 cores and ~10 GB for PVE + Ceph MON.
+      cpu_cores = 14
+      memory_mb = 83000
+      disk_gb   = 100
     }
   }
-}
-
-# =============================================================================
-# Default Resource Specifications
-# =============================================================================
-
-variable "controlplane_cpu_cores" {
-  type        = number
-  description = "Default CPU cores for control plane nodes"
-  default     = 4
-}
-
-variable "controlplane_memory_mb" {
-  type        = number
-  description = "Default memory in MB for control plane nodes"
-  default     = 6144
-}
-
-variable "controlplane_disk_gb" {
-  type        = number
-  description = "Default disk size in GB for control plane nodes"
-  default     = 40
-}
-
-variable "worker_cpu_cores" {
-  type        = number
-  description = "Default CPU cores for worker nodes"
-  default     = 28
-}
-
-variable "worker_memory_mb" {
-  type        = number
-  description = "Default memory in MB for worker nodes"
-  default     = 42000
-}
-
-variable "worker_disk_gb" {
-  type        = number
-  description = "Default disk size in GB for worker nodes"
-  default     = 100
 }
 
 variable "storage_pool" {
