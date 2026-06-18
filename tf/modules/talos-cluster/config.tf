@@ -173,18 +173,26 @@ data "talos_machine_configuration" "controlplane" {
         machine = {
           network = {
             interfaces = concat(
-              # eth0 - Primary NIC (Kubernetes network)
+              # Primary NIC (Kubernetes network, VLAN 20).
+              # Match by MAC, not the kernel name: Talos uses predictable interface
+              # names (ens18/ens19), so the legacy "eth0"/"eth1" selectors silently
+              # match nothing and the addresses never bind. MACs are statically
+              # assigned per node in tf/variables.tf.
               [{
-                interface = "eth0"
+                deviceSelector = {
+                  hardwareAddr = lower(each.value.mac_address)
+                }
                 addresses = ["${each.value.ip_address}${var.network_cidr}"]
                 routes = [{
                   network = "0.0.0.0/0"
                   gateway = var.network_gateway
                 }]
               }],
-              # eth1 - Secondary NIC (Ceph storage network) - only if configured
+              # Secondary NIC (Ceph storage network, VLAN 30) - only if configured.
               each.value.ceph_ip_address != null ? [{
-                interface = "eth1"
+                deviceSelector = {
+                  hardwareAddr = lower(each.value.ceph_mac_address)
+                }
                 addresses = ["${each.value.ceph_ip_address}${var.ceph_cidr}"]
                 # No routes - isolated L2 storage network
               }] : []
