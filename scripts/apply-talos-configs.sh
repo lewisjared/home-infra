@@ -82,12 +82,10 @@ apply_config() {
     echo ""
 }
 
-# Apply configs in order: masters first, then workers
+# Apply configs one node at a time (dual-role control-plane/worker nodes)
 apply_config "machineconfig-talos-master-1.yaml" "10.10.20.51" "talos-master-1"
 apply_config "machineconfig-talos-master-2.yaml" "10.10.20.52" "talos-master-2"
 apply_config "machineconfig-talos-master-3.yaml" "10.10.20.53" "talos-master-3"
-apply_config "machineconfig-talos-worker-1.yaml" "10.10.20.61" "talos-worker-1"
-apply_config "machineconfig-talos-worker-2.yaml" "10.10.20.62" "talos-worker-2"
 
 echo "=========================================="
 echo "All nodes processed."

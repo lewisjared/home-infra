@@ -128,11 +128,8 @@ locals {
     })
   ])
 
-  # Worker specific patches
-  worker_patches = local.common_patches
-
-  # GPU worker patches - applied only to workers with gpu_enabled = true
-  gpu_worker_patch = yamlencode({
+  # GPU patch - applied only to nodes with gpu_enabled = true
+  gpu_patch = yamlencode({
     machine = {
       kernel = {
         modules = [
@@ -158,62 +155,14 @@ data "talos_machine_configuration" "controlplane" {
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
 
-  config_patches = concat(local.controlplane_patches, [
-    # Talos v1.12 requires hostname via the dedicated HostnameConfig
-    # document; setting machine.network.hostname alongside it (or on its
-    # own) trips "static hostname is already set in v1alpha1 config".
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "HostnameConfig"
-      hostname   = each.key
-      auto       = "off"
-    }),
-    yamlencode({
-      machine = {
-        network = {
-          interfaces = concat(
-            # eth0 - Primary NIC (Kubernetes network)
-            [{
-              interface = "eth0"
-              addresses = ["${each.value.ip_address}${var.network_cidr}"]
-              routes = [{
-                network = "0.0.0.0/0"
-                gateway = var.network_gateway
-              }]
-            }],
-            # eth1 - Secondary NIC (Ceph storage network) - only if configured
-            each.value.ceph_ip_address != null ? [{
-              interface = "eth1"
-              addresses = ["${each.value.ceph_ip_address}${var.ceph_cidr}"]
-              # No routes - isolated L2 storage network
-            }] : []
-          )
-        }
-        install = {
-          disk  = "/dev/sda"
-          image = data.talos_image_factory_urls.this.urls.installer
-        }
-      }
-    })
-  ])
-}
-
-# Generate worker machine configuration
-data "talos_machine_configuration" "worker" {
-  for_each = var.worker_nodes
-
-  cluster_name       = var.cluster_name
-  cluster_endpoint   = var.cluster_endpoint
-  machine_type       = "worker"
-  machine_secrets    = talos_machine_secrets.this.machine_secrets
-  talos_version      = var.talos_version
-  kubernetes_version = var.kubernetes_version
-
   config_patches = concat(
-    local.worker_patches,
-    # GPU patches - only for workers with gpu_enabled
-    each.value.gpu_enabled ? [local.gpu_worker_patch] : [],
+    local.controlplane_patches,
+    # GPU patch - only for nodes with gpu_enabled
+    each.value.gpu_enabled ? [local.gpu_patch] : [],
     [
+      # Talos v1.12 requires hostname via the dedicated HostnameConfig
+      # document; setting machine.network.hostname alongside it (or on its
+      # own) trips "static hostname is already set in v1alpha1 config".
       yamlencode({
         apiVersion = "v1alpha1"
         kind       = "HostnameConfig"
@@ -256,8 +205,5 @@ data "talos_client_configuration" "this" {
   cluster_name         = var.cluster_name
   client_configuration = talos_machine_secrets.this.client_configuration
   endpoints            = [for node in var.control_plane_nodes : node.ip_address]
-  nodes = concat(
-    [for node in var.control_plane_nodes : node.ip_address],
-    [for node in var.worker_nodes : node.ip_address]
-  )
+  nodes                = [for node in var.control_plane_nodes : node.ip_address]
 }

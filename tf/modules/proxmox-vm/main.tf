@@ -35,6 +35,15 @@ resource "proxmox_virtual_environment_vm" "this" {
     file_id   = var.iso_file_id
     interface = "ide2"
   }
+  dynamic "efi_disk" {
+    for_each = var.bios_type == "ovmf" ? [1] : []
+    content {
+      datastore_id      = var.storage_pool
+      file_format       = "raw"
+      type              = "4m"
+      pre_enrolled_keys = false # Secure Boot off
+    }
+  }
 
   # Empty disk for Talos installation
   disk {

@@ -34,14 +34,5 @@ module "talos_cluster" {
 
   # Node definitions
   control_plane_nodes = var.control_plane_nodes
-  worker_nodes        = var.worker_nodes
-
-  # Resource specifications
-  controlplane_cpu_cores = var.controlplane_cpu_cores
-  controlplane_memory_mb = var.controlplane_memory_mb
-  controlplane_disk_gb   = var.controlplane_disk_gb
-  worker_cpu_cores       = var.worker_cpu_cores
-  worker_memory_mb       = var.worker_memory_mb
-  worker_disk_gb         = var.worker_disk_gb
-  storage_pool           = var.storage_pool
+  storage_pool        = var.storage_pool
 }
