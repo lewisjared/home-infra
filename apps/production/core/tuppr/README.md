@@ -174,6 +174,7 @@ uses for cert-manager and its issuers.
 
 ## Pinned-version note
 
-We run chart `0.1.6`, which still accepts the legacy top-level `spec.drain` block.
-These CRs use the forward-compatible `spec.policy.nodrain` form instead, so a bump
-to `0.2.0` (which removes `spec.drain`) needs no CR change here.
+We run chart `0.1.6`. Its `TalosUpgrade` CRD has **no** `spec.policy.nodrain`
+field — setting it fails the Flux dry-run and blocks the entire `core`
+kustomization. Drain is on by default, so we simply omit it. Revisit the drain
+knob only when bumping the chart to a version whose CRD actually declares it.

@@ -31,7 +31,9 @@ spec:
 
   policy:
     force: false # never skip etcd health checks
-    nodrain: false # cordon + drain each node before its reboot
+    # Drain is on by default (cordon + drain each node before its reboot).
+    # tuppr 0.1.6's CRD has no policy.nodrain field, so do NOT set it here —
+    # it fails the dry-run and blocks the whole `core` kustomization.
     rebootMode: default
     placement: hard
     timeout: 30m
