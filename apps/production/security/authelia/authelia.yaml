@@ -175,6 +175,12 @@ spec:
             subject:
               - "group:admins"
 
+          # Hermes dashboard - admins only (agent admin plane)
+          - domain: hermes.home.lewelly.com
+            policy: one_factor
+            subject:
+              - "group:admins"
+
           # All other apps - bypass (temporary)
           # Note: *.domain matches subdomains but not apex, so both are needed
           - domain: home.lewelly.com
@@ -295,6 +301,27 @@ spec:
                 - code
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
+
+            # Hermes dashboard OIDC Client (public PKCE client; Hermes stores no client secret)
+            - client_id: hermes-dashboard
+              client_name: Hermes Dashboard
+              public: true
+              authorization_policy: one_factor
+              require_pkce: true
+              pkce_challenge_method: S256
+              redirect_uris:
+                - https://hermes.home.lewelly.com/auth/callback
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              grant_types:
+                - authorization_code
+              response_types:
+                - code
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: none
 
     # Secret configuration
     secret:

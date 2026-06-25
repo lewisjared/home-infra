@@ -1,0 +1,35 @@
+---
+# Establish an ingress boundary for the Hermes namespace.
+# Egress is left unrestricted for now because this privileged diagnostics instance currently
+# needs normal internet access plus intentionally-enabled private URL access.
+# When the non-privileged split lands, add per-instance egress policies that  block RFC1918/cluster destinations for the normal chat instance.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: hermes
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow only Traefik to reach the internal dashboard Service.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik-dashboard-ingress
+  namespace: hermes
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: hermes
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - protocol: TCP
+          port: 9119

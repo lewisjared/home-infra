@@ -1,0 +1,124 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hermes
+  namespace: hermes
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      # The agent runs with a diagnostic ServiceAccount so it can inspect the
+      # whole cluster and use kubectl-style debug subresources.
+      # The RBAC is deliberately short of cluster-admin and does not grant Secret reads.
+      automountServiceAccountToken: true
+      # The image runs s6-overlay's /init as PID 1, which starts as root to
+      # remap the internal `hermes` user to HERMES_UID/HERMES_GID and chown /opt/data,
+      # then drops each supervised service to that user.
+      # So we cannot use the usual runAsNonRoot / readOnlyRootFilesystem hardening here.
+      # fsGroup matches HERMES_GID so the PVC is group-owned.
+      securityContext:
+        fsGroup: 10000
+        fsGroupChangePolicy: OnRootMismatch
+
+    controllers:
+      main:
+        # Single RWO config PVC -- recreate to avoid multi-attach on rollout.
+        strategy: Recreate
+        serviceAccount:
+          name: hermes
+        containers:
+          main:
+            image:
+              repository: docker.io/nousresearch/hermes-agent
+              tag: v2026.6.19@sha256:9f367c7756ef087661a361536a89f438d57a122b958dc23d82d456b1433e6e9e
+            args:
+              - gateway
+              - run
+            env:
+              TZ: Australia/Melbourne
+              HERMES_UID: "10000"
+              HERMES_GID: "10000"
+              # Gateway mode blocks private-network URL fetches by default.
+              # Allow them so the agent can inspect in-cluster service URLs
+              # while debugging, in addition to normal internet/GitHub access.
+              HERMES_ALLOW_PRIVATE_URLS: "true"
+              # Internal admin dashboard. Hermes requires an auth provider for non-loopback binds
+              # This uses Authelia as a public OIDC client and is also fronted by Authelia ForwardAuth at the HTTPRoute.
+              HERMES_DASHBOARD: "1"
+              HERMES_DASHBOARD_HOST: "0.0.0.0"
+              HERMES_DASHBOARD_PORT: "9119"
+              HERMES_DASHBOARD_PUBLIC_URL: https://hermes.home.lewelly.com
+              HERMES_DASHBOARD_OIDC_ISSUER: https://auth.home.lewelly.com
+              HERMES_DASHBOARD_OIDC_CLIENT_ID: hermes-dashboard
+              HERMES_DASHBOARD_OIDC_SCOPES: "openid profile email groups"
+            # s6 drops privileges to uid 10000 (not an escalation), so blocking
+            # new privileges is safe and mirrors the docs' `no-new-privileges`.
+            securityContext:
+              allowPrivilegeEscalation: false
+            envFrom:
+              - secretRef:
+                  name: hermes-secret
+            # The dashboard is exposed for admin access, but the gateway itself is supervised by s6
+            # keep probes disabled until the exact image's mode-aware health semantics have been verified.
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            # Docs recommend 2-4Gi; Chromium (bundled Playwright) is the memory
+            # hog. Floor of 1Gi is fine without browser tools.
+            resources:
+              requests:
+                cpu: 100m
+                memory: 1Gi
+              limits:
+                memory: 4Gi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 9119
+
+    persistence:
+      # bjw-s names this PVC `<release>-config` -> hermes-config (see ks.yaml
+      # VOLSYNC_CLAIM). Holds session DBs, skills, memory and credentials.
+      config:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: rook-ceph-block
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        globalMounts:
+          - path: /opt/data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      # Shared memory for bundled Playwright/Chromium (docs: --shm-size=1g).
+      # Without this, local browser tools crash on the default 64Mi /dev/shm.
+      dshm:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 1Gi
+        globalMounts:
+          - path: /dev/shm
