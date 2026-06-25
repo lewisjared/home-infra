@@ -37,7 +37,7 @@ spec:
         serviceAccountName: arc-vela-runner
         initContainers:
           - name: init-dind-externals
-            image: ghcr.io/actions/actions-runner:latest@sha256:08c30b0a7105f64bddfc485d2487a22aa03932a791402393352fdf674bda2c29
+            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:2cae51372fb9457b48d72e5592d7d100faeb38f7231bb27267847adce2931a2b
             command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
             volumeMounts:
               - name: dind-externals
@@ -91,7 +91,7 @@ spec:
                 memory: 16Gi
         containers:
           - name: runner
-            image: ghcr.io/actions/actions-runner:latest@sha256:08c30b0a7105f64bddfc485d2487a22aa03932a791402393352fdf674bda2c29
+            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:2cae51372fb9457b48d72e5592d7d100faeb38f7231bb27267847adce2931a2b
             command: ["/home/runner/run.sh"]
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
@@ -99,9 +99,10 @@ spec:
               - name: DOCKER_HOST
                 value: unix:///var/run/docker.sock
             envFrom:
-              # ACTIONS_CACHE_URL + ACTIONS_RESULTS_URL point at the
-              # in-cluster falcondev cache server so actions/cache + buildx
-              # GHA cache run at LAN speed instead of WAN to Azure Blob.
+              # CUSTOM_ACTIONS_CACHE_URL + CUSTOM_ACTIONS_RESULTS_URL point at
+              # the in-cluster falcondev cache server. The falcondev runner
+              # image honours them instead of the GitHub-provided cache URLs,
+              # so actions/cache + buildx GHA cache stay on the LAN.
               - configMapRef:
                   name: runner-shared-env
             volumeMounts:

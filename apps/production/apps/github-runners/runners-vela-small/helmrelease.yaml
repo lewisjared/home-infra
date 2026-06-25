@@ -37,14 +37,15 @@ spec:
       spec:
         containers:
           - name: runner
-            image: ghcr.io/actions/actions-runner:latest@sha256:08c30b0a7105f64bddfc485d2487a22aa03932a791402393352fdf674bda2c29
+            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:2cae51372fb9457b48d72e5592d7d100faeb38f7231bb27267847adce2931a2b
             command: ["/home/runner/run.sh"]
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
             envFrom:
-              # ACTIONS_CACHE_URL + ACTIONS_RESULTS_URL -> in-cluster
-              # falcondev cache server.
+              # CUSTOM_ACTIONS_CACHE_URL + CUSTOM_ACTIONS_RESULTS_URL ->
+              # in-cluster falcondev cache server via the falcondev runner
+              # image override.
               - configMapRef:
                   name: runner-shared-env
             resources:
