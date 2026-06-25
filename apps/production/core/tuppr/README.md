@@ -71,7 +71,8 @@ kubectl get nodes -o wide
 talosctl -n 10.10.20.51,10.10.20.52,10.10.20.53 service etcd
 
 # Take an etcd snapshot first — three nodes means three etcd members; one bad
-# reboot away from a quorum scare.
+# reboot away from a quorum scare. (`etcd-*.db` is gitignored; delete it once the
+# upgrade has settled.)
 talosctl -n 10.10.20.51 etcd snapshot etcd-pre-upgrade.db
 ```
 
@@ -81,22 +82,42 @@ talosctl -n 10.10.20.51 etcd snapshot etcd-pre-upgrade.db
 2. Bump `talos_version` in `tf/variables.tf`, then from `tf/`:
 
    ```sh
-   tofu plan    # regenerates the schematic data, installer URL and ISO download
+   tofu init -upgrade   # only if `tofu plan` complains about an inconsistent lock
+   tofu plan            # regenerates the schematic data, installer URL and ISO download
    tofu apply
    ```
 
-   **Guard:** the plan must show the VMs as **update in-place** (the `cdrom`
-   `file_id` remounts the new ISO) — **never `replace`/`destroy`**. A version bump
-   should only swap the mounted ISO and re-push machine config; if the plan wants to
-   recreate a VM, stop and investigate before applying (recreating a node wipes it).
+   **`tofu init -upgrade` first if needed:** `.terraform.lock.hcl` is gitignored
+   (per-operator, not committed). When a Renovate PR bumps a provider version
+   constraint in `versions.tf`, your stale local lock makes `tofu plan` fail with
+   *"Inconsistent dependency lock file"* — run `tofu init -upgrade` once to refresh
+   it, then re-plan.
+
+   **Guard — the three VMs must be `update in-place`** (the `cdrom` `file_id`
+   remounts the new ISO); **never `replace`/`destroy` a VM** (recreating a node
+   wipes it — stop and investigate). The plan summary will still report several
+   resources to **add/destroy** — that's expected and *not* a VM replace: the
+   `proxmox_download_file.talos_iso` (×3) and `local_sensitive_file` (machine
+   configs + talosconfig) resources are recreated on every version bump. The guard
+   is about the `proxmox_virtual_environment_vm` resources only.
+
+   **`tofu apply` may need a second run.** The `siderolabs/talos` provider
+   intermittently aborts with *"Provider produced inconsistent final plan"* on the
+   `talos_machine_configuration_apply` resources (a known provider bug; nothing is
+   pushed to nodes when it fires). Just re-run `tofu apply` — it converges on the
+   second pass.
 
    This keeps `machine.install.image` and the downloaded ISO consistent for any
    future **node rebuild**. It does **not** upgrade a running OS by itself — only
    tuppr (or `talosctl upgrade`) re-images a running node.
-   Apply the refreshed machine config so the install image label matches:
+
+   `tofu apply` already re-pushes the machine config to the running nodes via the
+   `talos_machine_configuration_apply` resources, so the install-image label is
+   updated by the apply above. The interactive helper below is an **optional manual
+   fallback** (it prompts per node) if you ever need to push config out-of-band:
 
    ```sh
-   bash scripts/apply-talos-configs.sh
+   bash scripts/apply-talos-configs.sh   # optional; redundant after a clean tofu apply
    ```
 
 3. Bump `spec.talos.version` in `talos-upgrade.yaml` to the **same** version.
@@ -133,7 +154,10 @@ kubectl -n system-upgrade logs deploy/tuppr -f
 flux get kustomizations core
 flux reconcile kustomization core --with-source
 
-# Confirm the running versions afterwards
+# Confirm the running versions afterwards. NOTE: `talosctl version` prints the
+# local CLIENT tag first (often older than the cluster) before each node's SERVER
+# tag — read the `NODE:` blocks, not the leading `Client:` tag. `kubectl get nodes`
+# is the unambiguous cross-check (OS-IMAGE / KERNEL columns).
 talosctl -n 10.10.20.51,10.10.20.52,10.10.20.53 version
 kubectl get nodes -o wide   # KERNEL/VERSION columns
 ```

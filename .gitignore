@@ -16,6 +16,9 @@ validation-results/
 # Temporary files
 .DS_Store
 
+# etcd snapshots taken during upgrades (see apps/production/core/tuppr/README.md)
+etcd-*.db
+
 # Ansible
 .ansible
 
