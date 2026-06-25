@@ -8,7 +8,13 @@ metadata:
   name: runner-shared-env
   namespace: github-runners
 data:
-  # actions/cache v1 protocol (legacy clients, buildx GHA cache driver).
+  # The upstream runner overwrites ACTIONS_CACHE_URL/ACTIONS_RESULTS_URL
+  # with GitHub-hosted endpoints for each job. The falcondev runner image
+  # honours these CUSTOM_* vars first, keeping actions/cache and buildx
+  # type=gha traffic on the in-cluster cache server.
+  CUSTOM_ACTIONS_CACHE_URL: http://actions-cache-server.github-runners.svc.cluster.local:3000/
+  CUSTOM_ACTIONS_RESULTS_URL: http://actions-cache-server.github-runners.svc.cluster.local:3000/
+  # Best-effort compatibility for tools that read the container environment
+  # directly instead of the runner-provided job environment.
   ACTIONS_CACHE_URL: http://actions-cache-server.github-runners.svc.cluster.local:3000/
-  # actions/cache@v4 v2 / Twirp protocol. Falcondev cache-server serves both on the same port.
   ACTIONS_RESULTS_URL: http://actions-cache-server.github-runners.svc.cluster.local:3000/
