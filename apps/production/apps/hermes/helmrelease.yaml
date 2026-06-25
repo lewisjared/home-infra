@@ -54,6 +54,7 @@ spec:
               TZ: Australia/Melbourne
               HERMES_UID: "10000"
               HERMES_GID: "10000"
+              KUBECONFIG: /kubeconfig/config
               # Gateway mode blocks private-network URL fetches by default.
               # Allow them so the agent can inspect in-cluster service URLs
               # while debugging, in addition to normal internet/GitHub access.
@@ -110,6 +111,12 @@ spec:
         size: 10Gi
         globalMounts:
           - path: /opt/data
+      kubeconfig:
+        type: configMap
+        name: hermes-kubeconfig
+        globalMounts:
+          - path: /kubeconfig
+            readOnly: true
       tmp:
         type: emptyDir
         globalMounts:

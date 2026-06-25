@@ -9,4 +9,5 @@ resources:
   - httproute.yaml
   - network-policy.yaml
   - hermes-secret.yaml
+  - kubeconfig.yaml
   - helmrelease.yaml
