@@ -24,14 +24,14 @@ spec:
   values:
     defaultPodOptions:
       # The agent runs with a diagnostic ServiceAccount so it can inspect the
-      # whole cluster and use kubectl-style debug subresources. The RBAC is
-      # deliberately short of cluster-admin and does not grant Secret reads.
+      # whole cluster and use kubectl-style debug subresources.
+      # The RBAC is deliberately short of cluster-admin and does not grant Secret reads.
       automountServiceAccountToken: true
       # The image runs s6-overlay's /init as PID 1, which starts as root to
-      # remap the internal `hermes` user to HERMES_UID/HERMES_GID and chown
-      # /opt/data, then drops each supervised service to that user. So we
-      # cannot use the usual runAsNonRoot / readOnlyRootFilesystem hardening
-      # here; fsGroup matches HERMES_GID so the PVC is group-owned.
+      # remap the internal `hermes` user to HERMES_UID/HERMES_GID and chown /opt/data,
+      # then drops each supervised service to that user.
+      # So we cannot use the usual runAsNonRoot / readOnlyRootFilesystem hardening here.
+      # fsGroup matches HERMES_GID so the PVC is group-owned.
       securityContext:
         fsGroup: 10000
         fsGroupChangePolicy: OnRootMismatch
@@ -46,9 +46,7 @@ spec:
           main:
             image:
               repository: docker.io/nousresearch/hermes-agent
-              tag: v2026.6.5@sha256:9ad3b04ec916ea2c2da22358fd43b024c788d74073210695af88bfc2e63869b4
-            # Preserve the image ENTRYPOINT (/init main-wrapper.sh); these are
-            # the args it forwards -- equivalent to compose `command: [gateway, run]`.
+              tag: v2026.6.19@sha256:9f367c7756ef087661a361536a89f438d57a122b958dc23d82d456b1433e6e9e
             args:
               - gateway
               - run
@@ -60,6 +58,15 @@ spec:
               # Allow them so the agent can inspect in-cluster service URLs
               # while debugging, in addition to normal internet/GitHub access.
               HERMES_ALLOW_PRIVATE_URLS: "true"
+              # Internal admin dashboard. Hermes requires an auth provider for non-loopback binds
+              # This uses Authelia as a public OIDC client and is also fronted by Authelia ForwardAuth at the HTTPRoute.
+              HERMES_DASHBOARD: "1"
+              HERMES_DASHBOARD_HOST: "0.0.0.0"
+              HERMES_DASHBOARD_PORT: "9119"
+              HERMES_DASHBOARD_PUBLIC_URL: https://hermes.home.lewelly.com
+              HERMES_DASHBOARD_OIDC_ISSUER: https://auth.home.lewelly.com
+              HERMES_DASHBOARD_OIDC_CLIENT_ID: hermes-dashboard
+              HERMES_DASHBOARD_OIDC_SCOPES: "openid profile email groups"
             # s6 drops privileges to uid 10000 (not an escalation), so blocking
             # new privileges is safe and mirrors the docs' `no-new-privileges`.
             securityContext:
@@ -67,8 +74,8 @@ spec:
             envFrom:
               - secretRef:
                   name: hermes-secret
-            # No HTTP server is exposed (Discord/Slack gateways are outbound),
-            # so there is no endpoint to probe -- rely on process supervision.
+            # The dashboard is exposed for admin access, but the gateway itself is supervised by s6
+            # keep probes disabled until the exact image's mode-aware health semantics have been verified.
             probes:
               liveness:
                 enabled: false
@@ -84,6 +91,13 @@ spec:
                 memory: 1Gi
               limits:
                 memory: 4Gi
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 9119
 
     persistence:
       # bjw-s names this PVC `<release>-config` -> hermes-config (see ks.yaml

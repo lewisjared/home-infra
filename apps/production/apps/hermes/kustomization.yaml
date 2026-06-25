@@ -5,5 +5,8 @@ namespace: hermes
 resources:
   - namespace.yaml
   - rbac.yaml
+  - middleware.yaml
+  - httproute.yaml
+  - network-policy.yaml
   - hermes-secret.yaml
   - helmrelease.yaml
