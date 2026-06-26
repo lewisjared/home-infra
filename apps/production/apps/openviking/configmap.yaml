@@ -12,7 +12,7 @@ data:
         "port": 1933,
         "workers": 1,
         "root_api_key": null,
-        "cors_origins": ["*"]
+        "cors_origins": ["https://openviking.home.lewelly.com"]
       },
       "storage": {
         "workspace": "/app/.openviking/openviking_workspace",

@@ -17,6 +17,10 @@ spec:
     - name: core
     - name: storage
     - name: security
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
   components:
     - ../../../../components/alerts
     - ../../../../components/volsync

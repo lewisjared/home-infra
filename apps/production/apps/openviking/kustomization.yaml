@@ -6,5 +6,6 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - middleware.yaml
+  - volsync-secret.yaml
   - httproute.yaml
   - helmrelease.yaml
