@@ -30,5 +30,17 @@ data:
       "log": {
         "level": "INFO",
         "output": "stdout"
+      },
+      "embedding": {
+        "max_concurrent": 2,
+        "max_retries": 3,
+        "max_input_tokens": 2048,
+        "dense": {
+          "provider": "ollama",
+          "api_base": "http://ollama.ollama.svc.cluster.local:11434",
+          "model": "nomic-embed-text",
+          "dimension": 768,
+          "input": "text"
+        }
       }
     }
