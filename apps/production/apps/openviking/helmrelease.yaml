@@ -42,6 +42,17 @@ spec:
               repository: ghcr.io/volcengine/openviking
               tag: v0.4.5@sha256:b96c9621888b7162bd00646bf195dcb8bb7f9a5774025f347063321942451cb1
               pullPolicy: IfNotPresent
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                key_file=/app/.openviking/root_api_key
+                if [ ! -s "$key_file" ]; then
+                  umask 077
+                  tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 48 > "$key_file"
+                fi
+                sed "s/__OPENVIKING_ROOT_API_KEY__/$(cat "$key_file")/g" /app/.openviking/ov.conf.template > /app/.openviking/ov.conf
+                exec openviking-entrypoint
             env:
               TZ: Australia/Melbourne
               OPENVIKING_CONFIG_FILE: /app/.openviking/ov.conf
@@ -106,7 +117,7 @@ spec:
         advancedMounts:
           main:
             main:
-              - path: /app/.openviking/ov.conf
+              - path: /app/.openviking/ov.conf.template
                 subPath: ov.conf
                 readOnly: true
       tmp:
