@@ -1,0 +1,54 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openviking-config
+  namespace: openviking
+data:
+  ov.conf: |
+    {
+      "server": {
+        "host": "0.0.0.0",
+        "port": 1933,
+        "workers": 1,
+        "root_api_key": null,
+        "cors_origins": ["https://openviking.home.lewelly.com"]
+      },
+      "storage": {
+        "workspace": "/app/.openviking/openviking_workspace",
+        "vectordb": {
+          "name": "context",
+          "backend": "local",
+          "project": "default"
+        },
+        "agfs": {
+          "backend": "local",
+          "timeout": 10
+        }
+      },
+      "log": {
+        "level": "INFO",
+        "output": "stdout"
+      },
+      "embedding": {
+        "dense": {
+          "api_base": "https://ark.cn-beijing.volces.com/api/v3",
+          "api_key": "",
+          "provider": "volcengine",
+          "dimension": 1024,
+          "model": "doubao-embedding-vision-251215",
+          "input": "multimodal"
+        },
+        "max_concurrent": 10
+      },
+      "vlm": {
+        "api_base": "https://ark.cn-beijing.volces.com/api/v3",
+        "api_key": "",
+        "provider": "volcengine",
+        "model": "doubao-seed-2-0-pro-260215",
+        "temperature": 0.0,
+        "max_retries": 2,
+        "thinking": false,
+        "max_concurrent": 100
+      }
+    }
