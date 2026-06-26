@@ -1,0 +1,115 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: openviking
+  namespace: openviking
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      # OpenViking's image owns its runtime user setup. Keep the usual
+      # filesystem group handling so the RWO PVC stays writable across restarts.
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    controllers:
+      main:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        # OpenViking stores local RocksDB state; use Recreate to avoid two pods
+        # trying to mount/use the same RWO database during rollouts.
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/volcengine/openviking
+              tag: latest
+              pullPolicy: Always
+            env:
+              TZ: Australia/Melbourne
+              OPENVIKING_CONFIG_FILE: /app/.openviking/ov.conf
+              OPENVIKING_CLI_CONFIG_FILE: /app/.openviking/ovcli.conf
+              # Kubernetes only needs the API service; keep the bundled bot off.
+              OPENVIKING_WITH_BOT: "0"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: &port 1933
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: *port
+                  initialDelaySeconds: 15
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+            resources:
+              requests:
+                cpu: 500m
+                memory: 1Gi
+              limits:
+                cpu: "2"
+                memory: 4Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: *port
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: rook-ceph-block
+        accessMode: ReadWriteOnce
+        size: 20Gi
+        globalMounts:
+          - path: /app/.openviking
+      config:
+        type: configMap
+        name: openviking-config
+        advancedMounts:
+          main:
+            main:
+              - path: /app/.openviking/ov.conf
+                subPath: ov.conf
+                readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
