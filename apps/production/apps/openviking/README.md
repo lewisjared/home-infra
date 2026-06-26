@@ -12,12 +12,11 @@ Access:
 The app uses a single RWO PVC for the local OpenViking workspace/RocksDB state.
 Rollouts use `Recreate` to avoid two pods touching the same database.
 
-Current bootstrap config enables local storage and a generated, PVC-persisted
-root API key so the API and Studio can start without committing an API key to
-Git. Add embedding/VLM provider credentials, or switch to a local provider,
-before using semantic indexing in anger. The external route is protected with
-Authelia; if exposing the API beyond trusted internal clients, replace the
-runtime-generated root key with a SOPS-backed managed secret.
+Current config enables local storage, a generated PVC-persisted root API key,
+and Ollama-backed text embeddings via the shared in-cluster Ollama service. The
+external route is protected with Authelia; if exposing the API beyond trusted
+internal clients, replace the runtime-generated root key with a SOPS-backed
+managed secret.
 
 Hermes can be pointed at the service with:
 
