@@ -38,6 +38,8 @@ spec:
 
     controllers:
       main:
+        annotations:
+          reloader.stakater.com/auto: "true"
         # Single RWO config PVC -- recreate to avoid multi-attach on rollout.
         strategy: Recreate
         serviceAccount:
@@ -59,8 +61,8 @@ spec:
               # Allow them so the agent can inspect in-cluster service URLs
               # while debugging, in addition to normal internet/GitHub access.
               HERMES_ALLOW_PRIVATE_URLS: "true"
-              # Internal admin dashboard. Hermes requires an auth provider for non-loopback binds
-              # This uses Authelia as a public OIDC client and is also fronted by Authelia ForwardAuth at the HTTPRoute.
+              # Internal admin dashboard. Hermes requires an auth provider for non-loopback binds.
+              # This uses Authelia as a public OIDC client; the HTTPRoute does not add separate ForwardAuth.
               HERMES_DASHBOARD: "1"
               HERMES_DASHBOARD_HOST: "0.0.0.0"
               HERMES_DASHBOARD_PORT: "9119"
