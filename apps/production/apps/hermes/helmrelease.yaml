@@ -113,7 +113,7 @@ spec:
         type: persistentVolumeClaim
         storageClass: rook-ceph-block
         accessMode: ReadWriteOnce
-        size: 10Gi
+        size: 50Gi
         globalMounts:
           - path: /opt/data
       kubeconfig:
