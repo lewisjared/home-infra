@@ -1,10 +1,20 @@
-# Create schematic with QEMU guest agent and AMD GPU support
+# Create schematic with QEMU guest agent and AMD GPU support.
+# AMD ROCm on Ryzen iGPUs needs the firmware/ucode extension as well as the
+# amdgpu extension. Bake the GPU memory tuning into the boot assets so it works
+# for Talos v1.12 UKI-style boots and future node reinstalls/upgrades.
 resource "talos_image_factory_schematic" "this" {
   schematic = yamlencode({
     customization = {
+      extraKernelArgs = [
+        # Let ROCm map a larger slice of host RAM as GPU-accessible GTT/TTM
+        # memory for iGPU compute workloads. Values are in MiB/pages.
+        "amdgpu.gttsize=49152",     # 48 GiB GTT on the 52 GiB GPU nodes
+        "ttm.pages_limit=12582912", # 48 GiB / 4 KiB pages
+      ]
       systemExtensions = {
         officialExtensions = [
           "siderolabs/qemu-guest-agent",
+          "siderolabs/amd-ucode",
           "siderolabs/amdgpu",
           "siderolabs/iscsi-tools",
           "siderolabs/util-linux-tools",

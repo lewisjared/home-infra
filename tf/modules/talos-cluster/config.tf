@@ -131,14 +131,25 @@ locals {
   # GPU patch - applied only to nodes with gpu_enabled = true
   gpu_patch = yamlencode({
     machine = {
+      install = {
+        # Also write the GPU kernel args into machine config so Talos applies
+        # them on the next upgrade/install path, not only on fresh image boots.
+        extraKernelArgs = [
+          "amdgpu.gttsize=49152",
+          "ttm.pages_limit=12582912",
+        ]
+      }
       kernel = {
         modules = [
+          { name = "drm" },
+          { name = "ttm" },
           { name = "amdgpu" },
-          { name = "drm" }
         ]
       }
       nodeLabels = {
-        "gpu" = "amd-igpu"
+        "gpu"              = "amd-igpu"
+        "gpu.amd.com/gfx"  = "gfx1036"
+        "gpu.amd.com/type" = "granite-ridge-igpu"
       }
     }
   })
