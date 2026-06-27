@@ -32,7 +32,5 @@ resources:
   - hermes/ks.yaml
   # Shared local model service
   - ollama/ks.yaml
-  # Temporary ROCm acceleration experiment for Ollama on AMD iGPU
-  - ollama-rocm-test/ks.yaml
   # OpenViking context database
   - openviking/ks.yaml
