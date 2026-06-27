@@ -1,0 +1,99 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-rocm-test
+  namespace: ollama-rocm-test
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama-rocm-test
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama-rocm-test
+    spec:
+      nodeSelector:
+        gpu: amd-igpu
+      containers:
+        - name: ollama
+          image: ollama/ollama:rocm
+          imagePullPolicy: Always
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              ollama serve &
+              pid="$!"
+              trap 'kill "$pid"' INT TERM
+              until ollama list >/dev/null 2>&1; do
+                sleep 2
+              done
+              ollama pull llama3.2:1b
+              wait "$pid"
+          env:
+            - name: TZ
+              value: Australia/Melbourne
+            - name: OLLAMA_HOST
+              value: 0.0.0.0:11434
+            - name: OLLAMA_MODELS
+              value: /models
+            - name: OLLAMA_DEBUG
+              value: INFO
+            - name: HSA_OVERRIDE_GFX_VERSION
+              value: 11.0.0
+            - name: OLLAMA_MAX_LOADED_MODELS
+              value: "1"
+            - name: OLLAMA_NUM_PARALLEL
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 11434
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - ollama list | grep -q '^llama3.2:1b'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "8"
+              memory: 12Gi
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: models
+              mountPath: /models
+            - name: kfd
+              mountPath: /dev/kfd
+            - name: dri
+              mountPath: /dev/dri
+      volumes:
+        - name: models
+          emptyDir: {}
+        - name: kfd
+          hostPath:
+            path: /dev/kfd
+            type: CharDevice
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory
