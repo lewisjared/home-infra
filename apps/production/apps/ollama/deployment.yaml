@@ -46,6 +46,8 @@ spec:
               value: /models
             - name: OLLAMA_VULKAN
               value: "1"
+            - name: OLLAMA_LLM_LIBRARY
+              value: vulkan
             - name: OLLAMA_DEBUG
               value: INFO
           ports:
