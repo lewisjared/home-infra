@@ -85,6 +85,9 @@ spec:
               HERMES_DASHBOARD_OIDC_ISSUER: https://auth.home.lewelly.com
               HERMES_DASHBOARD_OIDC_CLIENT_ID: hermes-dashboard
               HERMES_DASHBOARD_OIDC_SCOPES: "openid profile email groups"
+              # Full Vela ParquetDataCatalog mounted read-only via NFS CSI for
+              # local research/backtests from Hermes without privileged mounts.
+              VELA_CATALOG_PATH: /mnt/vela-catalog
             # s6 drops privileges to uid 10000 (not an escalation), so blocking
             # new privileges is safe and mirrors the docs' `no-new-privileges`.
             securityContext:
@@ -133,6 +136,11 @@ spec:
         name: hermes-kubeconfig
         globalMounts:
           - path: /kubeconfig
+            readOnly: true
+      vela-catalog:
+        existingClaim: hermes-vela-data-catalog-ro
+        globalMounts:
+          - path: /mnt/vela-catalog
             readOnly: true
       tmp:
         type: emptyDir
