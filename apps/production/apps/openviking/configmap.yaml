@@ -43,7 +43,14 @@ data:
           "input": "text"
         }
       },
-      "vlm": {},
+      "vlm": {
+        "provider": "openai-codex",
+        "model": "gpt-5.5",
+        "temperature": 0.0,
+        "timeout": 90,
+        "max_tokens": 1024,
+        "max_concurrent": 2
+      },
       "query_planner": {
         "provider": "litellm",
         "model": "ollama/guoxuter/ov_intent_analysis_sft:v7_q8",
