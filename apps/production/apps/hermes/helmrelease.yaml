@@ -58,7 +58,11 @@ spec:
               HERMES_GID: "10000"
               KUBECONFIG: /kubeconfig/config
               UV_CACHE_DIR: /opt/data/cache/uv
-              PYTHONPATH: /opt/data/python/site-packages:/opt/data/python-packages
+              # Do not set global PYTHONPATH here. Tool subprocesses inherit the
+              # pod environment, and a persistent /opt/data Python path can shadow
+              # project-local uv/.venv dependencies with wheels built for a
+              # different Python ABI. Keep reusable CLIs on PATH instead.
+              PYTHONNOUSERSITE: "1"
               PATH: /opt/data/bin:/opt/data/home/.local/bin:/opt/hermes/bin:/opt/hermes/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               # Gateway mode blocks private-network URL fetches by default.
               # Allow them so the agent can inspect in-cluster service URLs
