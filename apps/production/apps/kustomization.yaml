@@ -30,7 +30,8 @@ resources:
   - esphome/ks.yaml
   # Hermes Agent
   - hermes/ks.yaml
-  # Shared local model service
+  # Shared local model services
   - ollama/ks.yaml
+  - ollama-rocm/ks.yaml
   # OpenViking context database
   - openviking/ks.yaml
