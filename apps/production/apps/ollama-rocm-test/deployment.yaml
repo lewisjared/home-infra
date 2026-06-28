@@ -35,6 +35,8 @@ spec:
               value: "1"
             - name: OLLAMA_NUM_PARALLEL
               value: "1"
+            - name: OLLAMA_IGPU_ENABLE
+              value: "1"
             - name: HSA_OVERRIDE_GFX_VERSION
               value: "10.3.0"
             - name: HSA_ENABLE_SDMA
