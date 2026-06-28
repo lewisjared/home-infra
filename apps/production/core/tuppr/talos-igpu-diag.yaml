@@ -52,4 +52,4 @@ metadata:
   namespace: system-upgrade
 spec:
   roles:
-    - os:reader
+    - os:admin
