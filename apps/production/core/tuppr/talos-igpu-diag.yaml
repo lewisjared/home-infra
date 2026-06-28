@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: talos-igpu-upgrade-1
+  name: talos-igpu-diag-3
   namespace: system-upgrade
 spec:
   backoffLimit: 0
@@ -23,40 +23,33 @@ spec:
               wget -O /usr/local/bin/talosctl https://github.com/siderolabs/talos/releases/download/v1.12.8/talosctl-linux-amd64
               chmod +x /usr/local/bin/talosctl
               NODE=10.10.20.52
-              IMAGE=factory.talos.dev/nocloud-installer/20cc9fe185525283191f98967fb9e32d051353e3fc0f902f0bdf8a5380659828:v1.12.8
-              echo "===== pre-upgrade version ====="
+              echo "===== version ====="
               talosctl --nodes "$NODE" version --short
-              echo "===== pre-upgrade extensions ====="
+              echo "===== extensions ====="
               talosctl --nodes "$NODE" get extensions
-              echo "===== pre-upgrade cmdline ====="
+              echo "===== cmdline ====="
               talosctl --nodes "$NODE" read /proc/cmdline || true
-              echo "===== upgrading $NODE to $IMAGE ====="
-              talosctl --nodes "$NODE" upgrade --image "$IMAGE" --wait --timeout=30m
-              echo "===== post-upgrade version ====="
-              talosctl --nodes "$NODE" version --short
-              echo "===== post-upgrade extensions ====="
-              talosctl --nodes "$NODE" get extensions
-              echo "===== post-upgrade cmdline ====="
-              talosctl --nodes "$NODE" read /proc/cmdline || true
-              echo "===== post-upgrade /dev ====="
-              talosctl --nodes "$NODE" ls /dev || true
+              echo "===== kernel memory params ====="
+              talosctl --nodes "$NODE" read /sys/module/ttm/parameters/pages_limit || true
+              talosctl --nodes "$NODE" read /sys/module/amdgpu/parameters/gttsize || true
+              echo "===== dev nodes ====="
               talosctl --nodes "$NODE" ls /dev/dri || true
               talosctl --nodes "$NODE" ls /dev/kfd || true
-              echo "===== post-upgrade amdgpu/kfd dmesg ====="
-              talosctl --nodes "$NODE" dmesg | grep -Ei 'amdgpu|kfd|drm|gfx|gtt|ttm' | tail -200 || true
+              echo "===== amdgpu/kfd dmesg ====="
+              talosctl --nodes "$NODE" dmesg | grep -Ei 'amdgpu|kfd|drm|gfx|gtt|ttm|granite|radeon' | tail -240 || true
           volumeMounts:
             - mountPath: /var/run/secrets/talos.dev
               name: talos-secrets
       volumes:
         - name: talos-secrets
           secret:
-            secretName: talos-igpu-upgrade-1-talos-secrets
+            secretName: talos-igpu-diag-3-talos-secrets
 ---
 apiVersion: talos.dev/v1alpha1
 kind: ServiceAccount
 metadata:
-  name: talos-igpu-upgrade-1-talos-secrets
+  name: talos-igpu-diag-3-talos-secrets
   namespace: system-upgrade
 spec:
   roles:
-    - os:admin
+    - os:reader
