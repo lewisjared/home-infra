@@ -63,6 +63,14 @@ spec:
               # project-local uv/.venv dependencies with wheels built for a
               # different Python ABI. Keep reusable CLIs on PATH instead.
               PYTHONNOUSERSITE: "1"
+              # gh checks GH_TOKEN first. envFrom exposes GITHUB_TOKEN, but plain
+              # `gh auth status` in tool subprocesses is much less confusing when
+              # the GitHub CLI sees its preferred variable directly.
+              GH_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: hermes-secret
+                    key: GITHUB_TOKEN
               PATH: /opt/data/bin:/opt/data/home/.local/bin:/opt/hermes/bin:/opt/hermes/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               # Gateway mode blocks private-network URL fetches by default.
               # Allow them so the agent can inspect in-cluster service URLs
