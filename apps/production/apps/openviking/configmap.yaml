@@ -43,12 +43,22 @@ data:
           "input": "text"
         }
       },
-      "query_planner": {
+      "vlm": {
         "provider": "litellm",
-        "model": "ollama/guoxuter/ov_intent_analysis_sft:v7_q8",
+        "model": "ollama/qwen3:1.7b",
         "api_base": "http://ollama-rocm.ollama-rocm.svc.cluster.local:11434",
         "temperature": 0.0,
-        "timeout": 60,
+        "timeout": 120,
+        "extra_request_body": {
+          "think": false
+        }
+      },
+      "query_planner": {
+        "provider": "litellm",
+        "model": "ollama/qwen3:1.7b",
+        "api_base": "http://ollama-rocm.ollama-rocm.svc.cluster.local:11434",
+        "temperature": 0.0,
+        "timeout": 120,
         "extra_request_body": {
           "think": false
         }
