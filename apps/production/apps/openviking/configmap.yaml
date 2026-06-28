@@ -42,5 +42,15 @@ data:
           "dimension": 768,
           "input": "text"
         }
+      },
+      "query_planner": {
+        "provider": "litellm",
+        "model": "ollama/guoxuter/ov_intent_analysis_sft:v7_q8",
+        "api_base": "http://ollama-rocm.ollama-rocm.svc.cluster.local:11434",
+        "temperature": 0.0,
+        "timeout": 60,
+        "extra_request_body": {
+          "think": false
+        }
       }
     }
