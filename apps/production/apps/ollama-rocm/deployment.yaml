@@ -34,7 +34,7 @@ spec:
             - name: OLLAMA_DEBUG
               value: INFO
             - name: OLLAMA_MAX_LOADED_MODELS
-              value: "1"
+              value: "2"
             - name: OLLAMA_NUM_PARALLEL
               value: "1"
             - name: OLLAMA_IGPU_ENABLE
