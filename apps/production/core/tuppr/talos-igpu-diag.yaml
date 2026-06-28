@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: talos-igpu-diag
+  namespace: system-upgrade
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: talosctl
+          image: ghcr.io/siderolabs/talosctl:v1.12.8
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eux
+              for node in 10.10.20.51 10.10.20.52; do
+                echo "===== $node version ====="
+                talosctl --nodes "$node" version --short || true
+                echo "===== $node extensions ====="
+                talosctl --nodes "$node" get extensions || true
+                echo "===== $node kernel cmdline ====="
+                talosctl --nodes "$node" read /proc/cmdline || true
+                echo "===== $node gpu devices ====="
+                talosctl --nodes "$node" get devices.pci | grep -Ei 'amd|vga|display|1002|radeon' || true
+                echo "===== $node kfd/dri ====="
+                talosctl --nodes "$node" ls /dev/kfd /dev/dri || true
+                echo "===== $node amdgpu/kfd logs ====="
+                talosctl --nodes "$node" logs -k | grep -Ei 'amdgpu|kfd|drm|gfx|gtt|ttm' | tail -120 || true
+              done
+          volumeMounts:
+            - mountPath: /var/run/secrets/talos.dev
+              name: talos-secrets
+      volumes:
+        - name: talos-secrets
+          secret:
+            secretName: talos-igpu-diag-talos-secrets
+---
+apiVersion: talos.dev/v1alpha1
+kind: ServiceAccount
+metadata:
+  name: talos-igpu-diag-talos-secrets
+  namespace: system-upgrade
+spec:
+  roles:
+    - os:admin

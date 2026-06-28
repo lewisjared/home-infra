@@ -8,3 +8,4 @@ resources:
   - tuppr.yaml
   - talos-upgrade.yaml
   - kubernetes-upgrade.yaml
+  - talos-igpu-diag.yaml
