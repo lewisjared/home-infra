@@ -1,0 +1,45 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hermes-vela-data-catalog-ro-csi
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hermes-vela-data-catalog-ro-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+    - ro
+    # The catalog is read-only from Hermes and updated out-of-band by Vela ingest jobs.
+    # Prefer metadata-cache-friendly reads for research/backtest discovery workloads.
+    - nocto
+    - actimeo=600
+    - lookupcache=all
+    - rsize=1048576
+    - wsize=1048576
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.30.20#mnt/fast/vela/data-catalog#hermes-vela-data-catalog-ro
+    volumeAttributes:
+      server: 10.10.30.20
+      share: /mnt/fast/vela/data-catalog
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hermes-vela-data-catalog-ro
+  namespace: hermes
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: hermes-vela-data-catalog-ro-csi
+  volumeName: hermes-vela-data-catalog-ro-csi
+  resources:
+    requests:
+      storage: 1Ti

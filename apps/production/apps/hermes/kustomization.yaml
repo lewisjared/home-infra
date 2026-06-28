@@ -7,6 +7,7 @@ resources:
   - rbac.yaml
   - httproute.yaml
   - network-policy.yaml
+  - catalog-pvc.yaml
   - hermes-secret.yaml
   - kubeconfig.yaml
   - helmrelease.yaml
