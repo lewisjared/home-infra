@@ -45,20 +45,24 @@ data:
       },
       "vlm": {
         "provider": "litellm",
-        "model": "ollama/qwen3:1.7b",
+        "model": "ollama/llama3.2:1b",
+        "api_key": "no-key",
         "api_base": "http://ollama-rocm.ollama-rocm.svc.cluster.local:11434",
         "temperature": 0.0,
-        "timeout": 120,
+        "timeout": 90,
+        "max_tokens": 512,
         "extra_request_body": {
           "think": false
         }
       },
       "query_planner": {
         "provider": "litellm",
-        "model": "ollama/qwen3:1.7b",
+        "model": "ollama/llama3.2:1b",
+        "api_key": "no-key",
         "api_base": "http://ollama-rocm.ollama-rocm.svc.cluster.local:11434",
         "temperature": 0.0,
-        "timeout": 120,
+        "timeout": 90,
+        "max_tokens": 512,
         "extra_request_body": {
           "think": false
         }
