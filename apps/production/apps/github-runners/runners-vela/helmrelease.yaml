@@ -88,7 +88,7 @@ spec:
                 cpu: 200m
                 memory: 256Mi
               limits:
-                memory: 16Gi
+                memory: 24Gi
         containers:
           - name: runner
             image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:2cae51372fb9457b48d72e5592d7d100faeb38f7231bb27267847adce2931a2b
@@ -115,7 +115,7 @@ spec:
                 cpu: 100m
                 memory: 512Mi
               limits:
-                memory: 8Gi
+                memory: 16Gi
         volumes:
           - name: work
             emptyDir: {}
