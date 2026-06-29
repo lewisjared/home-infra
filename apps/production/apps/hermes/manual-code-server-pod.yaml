@@ -1,0 +1,94 @@
+---
+# Manual helper pod for editing the Hermes data PVC with code-server.
+#
+# This file is intentionally NOT listed in kustomization.yaml. Start it on demand with:
+#   kubectl -n hermes apply -f apps/production/apps/hermes/manual-code-server-pod.yaml
+#
+# The pod mounts the same RWO PVC as Hermes at /opt/data and uses podAffinity to schedule
+# onto the same node as the running Hermes pod, avoiding Ceph RBD multi-attach failures.
+# Create the required password secret out-of-band before applying the pod; do not commit it.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hermes-data-code-server
+  namespace: hermes
+  labels:
+    app.kubernetes.io/name: hermes-data-code-server
+    app.kubernetes.io/instance: hermes-data-code-server
+    app.kubernetes.io/component: editor
+    app.kubernetes.io/part-of: home-infra
+spec:
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: hermes
+              app.kubernetes.io/instance: hermes
+          topologyKey: kubernetes.io/hostname
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
+    fsGroup: 10000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: code-server
+      image: ghcr.io/coder/code-server:latest
+      imagePullPolicy: IfNotPresent
+      args:
+        - --bind-addr
+        - 0.0.0.0:8080
+        - --auth
+        - password
+        - --user-data-dir
+        - /tmp/code-server/user-data
+        - --extensions-dir
+        - /tmp/code-server/extensions
+        - /opt/data
+      env:
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hermes-data-code-server
+              key: password
+        - name: HOME
+          value: /tmp/code-server/home
+        - name: XDG_CONFIG_HOME
+          value: /tmp/code-server/config
+        - name: XDG_DATA_HOME
+          value: /tmp/code-server/data
+        - name: XDG_CACHE_HOME
+          value: /tmp/code-server/cache
+        - name: TZ
+          value: Australia/Melbourne
+      ports:
+        - name: http
+          containerPort: 8080
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      volumeMounts:
+        - name: hermes-data
+          mountPath: /opt/data
+        - name: tmp
+          mountPath: /tmp
+  volumes:
+    - name: hermes-data
+      persistentVolumeClaim:
+        claimName: hermes
+    - name: tmp
+      emptyDir: {}
