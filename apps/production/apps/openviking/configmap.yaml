@@ -37,7 +37,7 @@ data:
         "max_input_tokens": 2048,
         "dense": {
           "provider": "ollama",
-          "api_base": "http://ollama-rocm.ollama-rocm.svc.cluster.local:11434/v1",
+          "api_base": "http://ollama-mole.openviking.svc.cluster.local:11434/v1",
           "model": "nomic-embed-text",
           "dimension": 768,
           "input": "text"
