@@ -35,6 +35,24 @@ spec:
   rollback:
     recreate: true
     cleanupOnFail: true
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: climate-ref-esmvaltool
+            patch: |-
+              - op: replace
+                path: /spec/template/spec/containers/0/args
+                value:
+                  - celery
+                  - start-worker
+                  - --loglevel
+                  - DEBUG
+                  - --provider
+                  - esmvaltool
+                  - --
+                  - --concurrency=1
   values:
     # Preserve resource naming from the original "ref" chart
     nameOverride: "ref"
