@@ -1,0 +1,43 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ollama-mole-alerts
+  namespace: ollama-mole
+spec:
+  groups:
+    - name: ollama-mole
+      rules:
+        - alert: OllamaMoleExporterDown
+          expr: up{namespace="ollama-mole", service="ollama-mole"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "ollama-mole exporter is down"
+            description: >-
+              Prometheus cannot scrape the ollama-mole exporter for more than
+              5 minutes.
+
+        - alert: OllamaMoleBackendDown
+          expr: ollama_up{namespace="ollama-mole"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "ollama-mole backend is unreachable"
+            description: >-
+              The exporter cannot reach the Ollama API on mole
+              (10.10.20.20:11434).
+
+        - alert: OllamaMoleNoLoadedModels
+          expr: sum(ollama_model_loaded{namespace="ollama-mole"}) == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "ollama-mole has no resident models"
+            description: >-
+              No models are reported as loaded by /api/ps for more than
+              15 minutes. This may indicate keep-alive or model residency
+              tuning is not working as expected.
