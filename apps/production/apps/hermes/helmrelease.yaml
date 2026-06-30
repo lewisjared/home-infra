@@ -58,10 +58,11 @@ spec:
               HERMES_GID: "10000"
               KUBECONFIG: /kubeconfig/config
               UV_CACHE_DIR: /opt/data/cache/uv
-              # Do not set global PYTHONPATH here. Tool subprocesses inherit the
-              # pod environment, and a persistent /opt/data Python path can shadow
-              # project-local uv/.venv dependencies with wheels built for a
-              # different Python ABI. Keep reusable CLIs on PATH instead.
+              # The upstream image exports PYTHONPATH=/opt/hermes for the gateway.
+              # Clear it at the pod boundary so tool subprocesses and project-local
+              # uv/.venv commands do not import Hermes internals ahead of their own
+              # dependencies. Keep reusable CLIs on PATH instead.
+              PYTHONPATH: ""
               PYTHONNOUSERSITE: "1"
               # gh checks GH_TOKEN first. envFrom exposes GITHUB_TOKEN, but plain
               # `gh auth status` in tool subprocesses is much less confusing when
