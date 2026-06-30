@@ -31,7 +31,6 @@ resources:
   # Hermes Agent
   - hermes/ks.yaml
   # Shared local model services
-  - ollama/ks.yaml
-  - ollama-rocm/ks.yaml
+  - ollama-mole/ks.yaml
   # OpenViking context database
   - openviking/ks.yaml

@@ -37,7 +37,7 @@ data:
         "max_input_tokens": 4096,
         "dense": {
           "provider": "ollama",
-          "api_base": "http://ollama-mole.openviking.svc.cluster.local:11434/v1",
+          "api_base": "http://ollama-mole.ollama-mole.svc.cluster.local:11434/v1",
           "model": "qwen3-embedding:4b",
           "dimension": 2560,
           "input": "text"
@@ -55,7 +55,7 @@ data:
         "provider": "litellm",
         "model": "ollama/guoxuter/ov_intent_analysis_sft:v7_q8",
         "api_key": "no-key",
-        "api_base": "http://ollama-rocm.ollama-rocm.svc.cluster.local:11434",
+        "api_base": "http://ollama-mole.ollama-mole.svc.cluster.local:11434",
         "temperature": 0.0,
         "timeout": 45,
         "max_tokens": 256,

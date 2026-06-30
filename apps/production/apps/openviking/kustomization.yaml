@@ -5,7 +5,6 @@ namespace: openviking
 resources:
   - namespace.yaml
   - configmap.yaml
-  - ollama-mole-service.yaml
   - openviking-secret.yaml
   - volsync-secret.yaml
   - httproute.yaml
