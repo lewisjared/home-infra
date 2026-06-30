@@ -89,6 +89,9 @@ spec:
               # Full Vela ParquetDataCatalog mounted read-only via NFS CSI for
               # local research/backtests from Hermes without privileged mounts.
               VELA_CATALOG_PATH: /mnt/vela-catalog
+              # Docker daemon is provided by the dind sidecar below. The socket
+              # is shared via an emptyDir mounted at /var/run.
+              DOCKER_HOST: unix:///var/run/docker.sock
             # s6 drops privileges to uid 10000 (not an escalation), so blocking
             # new privileges is safe and mirrors the docs' `no-new-privileges`.
             securityContext:
@@ -114,6 +117,35 @@ spec:
               limits:
                 memory: 4Gi
 
+          # Docker-in-Docker sidecar for local Docker builds/tests from Hermes.
+          # This mirrors the ARC runner DinD pattern, but exposes only /var/run
+          # and /var/lib/docker to the sidecar rather than Hermes' data PVC.
+          dind:
+            image:
+              repository: docker
+              tag: 29-dind@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515
+            args:
+              - dockerd
+              - --host=unix:///var/run/docker.sock
+              - --group=10000
+            securityContext:
+              privileged: true
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: ["docker", "info"]
+                  periodSeconds: 5
+                  failureThreshold: 24
+            resources:
+              requests:
+                cpu: 200m
+                memory: 256Mi
+              limits:
+                memory: 4Gi
+
     service:
       main:
         controller: main
@@ -130,28 +162,52 @@ spec:
         storageClass: rook-ceph-block
         accessMode: ReadWriteOnce
         size: 50Gi
-        globalMounts:
-          - path: /opt/data
+        advancedMounts:
+          main:
+            main:
+              - path: /opt/data
       kubeconfig:
         type: configMap
         name: hermes-kubeconfig
-        globalMounts:
-          - path: /kubeconfig
-            readOnly: true
+        advancedMounts:
+          main:
+            main:
+              - path: /kubeconfig
+                readOnly: true
       vela-catalog:
         existingClaim: hermes-vela-data-catalog-ro
-        globalMounts:
-          - path: /mnt/vela-catalog
-            readOnly: true
+        advancedMounts:
+          main:
+            main:
+              - path: /mnt/vela-catalog
+                readOnly: true
       tmp:
         type: emptyDir
-        globalMounts:
-          - path: /tmp
+        advancedMounts:
+          main:
+            main:
+              - path: /tmp
       # Shared memory for bundled Playwright/Chromium (docs: --shm-size=1g).
       # Without this, local browser tools crash on the default 64Mi /dev/shm.
       dshm:
         type: emptyDir
         medium: Memory
         sizeLimit: 1Gi
-        globalMounts:
-          - path: /dev/shm
+        advancedMounts:
+          main:
+            main:
+              - path: /dev/shm
+      docker-sock:
+        type: emptyDir
+        advancedMounts:
+          main:
+            main:
+              - path: /var/run
+            dind:
+              - path: /var/run
+      docker-graph:
+        type: emptyDir
+        advancedMounts:
+          main:
+            dind:
+              - path: /var/lib/docker
