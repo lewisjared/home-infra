@@ -10,8 +10,12 @@ set -eu
 
 OBS4REF_CACHE=/data/obs/obs4REF
 
- echo "=== obs4REF cache missing at ${OBS4REF_CACHE} -- bootstrapping ==="
-ref datasets fetch-data --registry obs4ref --output-directory "${OBS4REF_CACHE}"
+if [ ! -d "${OBS4REF_CACHE}" ] || [ -z "$(ls -A "${OBS4REF_CACHE}" 2>/dev/null)" ]; then
+    echo "=== obs4REF cache missing at ${OBS4REF_CACHE} -- fetching ==="
+    ref datasets fetch-data --registry obs4ref --output-directory "${OBS4REF_CACHE}"
+else
+    echo "=== obs4REF cache present at ${OBS4REF_CACHE} -- skipping fetch ==="
+fi
 
 echo "=== Ingesting obs4mips from ${OBS4REF_CACHE} ==="
 ref -v datasets ingest --source-type obs4mips "${OBS4REF_CACHE}"
