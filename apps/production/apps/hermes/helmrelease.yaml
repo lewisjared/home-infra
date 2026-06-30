@@ -90,8 +90,11 @@ spec:
               # local research/backtests from Hermes without privileged mounts.
               VELA_CATALOG_PATH: /mnt/vela-catalog
               # Docker daemon is provided by the dind sidecar below. The socket
-              # is shared via an emptyDir mounted at /var/run.
+              # is shared via an emptyDir mounted at /var/run. Keep Docker CLI
+              # config on the persistent data PVC so Compose plugins survive
+              # image rollouts.
               DOCKER_HOST: unix:///var/run/docker.sock
+              DOCKER_CONFIG: /opt/data/home/.docker
             # s6 drops privileges to uid 10000 (not an escalation), so blocking
             # new privileges is safe and mirrors the docs' `no-new-privileges`.
             securityContext:
