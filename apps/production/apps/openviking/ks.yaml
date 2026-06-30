@@ -28,4 +28,7 @@ spec:
   postBuild:
     substitute:
       APP: openviking
-      VOLSYNC_CLAIM: openviking-data
+      # Must match the app-template PVC name (release name), not a guessed
+      # suffix; the RWO PVC is `openviking`. A mismatch leaves volsync erroring
+      # with "PersistentVolumeClaim not found" and never backing up.
+      VOLSYNC_CLAIM: openviking

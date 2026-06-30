@@ -26,7 +26,10 @@ spec:
   postBuild:
     substitute:
       APP: hermes
-      VOLSYNC_CLAIM: hermes-config
+      # Must match the app-template PVC name (release name), not a guessed
+      # suffix; the RWO PVC is `hermes`. A mismatch leaves volsync erroring
+      # with "PersistentVolumeClaim not found" and never backing up.
+      VOLSYNC_CLAIM: hermes
       # Match HERMES_UID/HERMES_GID so the kopia mover can read the PVC files.
       VOLSYNC_PUID: "10000"
       VOLSYNC_PGID: "10000"

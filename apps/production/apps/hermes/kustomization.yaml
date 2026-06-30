@@ -9,5 +9,6 @@ resources:
   - network-policy.yaml
   - catalog-pvc.yaml
   - hermes-secret.yaml
+  - volsync-secret.yaml
   - kubeconfig.yaml
   - helmrelease.yaml
