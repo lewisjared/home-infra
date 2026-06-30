@@ -166,16 +166,32 @@ spec:
           CELERY_WORKER_CONCURRENCY: "1"
       esmvaltool:
         replicaCount: 4
+        # Keep one ESMValTool run per Celery pod. Each run can still start
+        # ESMValCore subprocesses and a local Dask cluster, so Celery
+        # concurrency multiplies memory use outside Dask's worker limit.
+        config:
+          max_parallel_tasks: 1
+          dask:
+            use: local_distributed
+            profiles:
+              local_distributed:
+                cluster:
+                  type: distributed.LocalCluster
+                  n_workers: 2
+                  threads_per_worker: 2
+                  memory_limit: 4GiB
         resources:
           requests:
             memory: 16Gi
             cpu: "4"
+          limits:
+            memory: 20Gi
         env:
-          CELERY_WORKER_CONCURRENCY: "2"
+          CELERY_WORKER_CONCURRENCY: "1"
           CELERY_TASK_TIME_LIMIT: "21600" # 6 hours
           CELERY_TASK_SOFT_TIME_LIMIT: "19800" # 5.5 hours
           CELERY_VISIBILITY_TIMEOUT: "21600"
-          CELERY_WORKER_MAX_MEMORY_PER_CHILD: "16000000" # 16 GB (KB) - recycle before OOM
+          CELERY_WORKER_MAX_MEMORY_PER_CHILD: "16000000" # 16 GB (KB) - recycle after task completion
           CELERY_WORKER_MAX_TASKS_PER_CHILD: "20" # Recycle after 20 tasks (long-running)
       pmp:
         replicaCount: 4
