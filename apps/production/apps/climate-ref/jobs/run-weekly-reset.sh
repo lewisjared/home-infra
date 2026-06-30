@@ -26,6 +26,15 @@ echo "=== ref providers setup ==="
 # fetches each provider's reference registry into the obs PVC pooch cache at $XDG_CACHE_HOME/climate_ref/<provider> and validates.
 ref providers setup
 
+PMP_CLIMATOLOGY_CACHE=${XDG_CACHE_HOME:-/data/obs/cache}/climate_ref/pmp-climatology/PMP_obs4MIPsClims
+if [ -d "${PMP_CLIMATOLOGY_CACHE}" ] && [ -n "$(ls -A "${PMP_CLIMATOLOGY_CACHE}" 2>/dev/null)" ]; then
+    echo "=== Ingesting PMP climatology from ${PMP_CLIMATOLOGY_CACHE} ==="
+    ref -v datasets ingest --source-type pmp-climatology "${PMP_CLIMATOLOGY_CACHE}"
+else
+    echo "=== PMP climatology cache missing at ${PMP_CLIMATOLOGY_CACHE}; provider setup should have fetched it ==="
+    exit 1
+fi
+
 if [ ! -d "${OBS4REF_CACHE}" ] || [ -z "$(ls -A "${OBS4REF_CACHE}" 2>/dev/null)" ]; then
     echo "=== obs4REF cache missing at ${OBS4REF_CACHE} -- fetching ==="
     ref datasets fetch-data --registry obs4ref --output-directory "${OBS4REF_CACHE}"

@@ -29,4 +29,4 @@ spec:
       # Single source-of-truth for the climate-ref container image
       # tag+digest. Referenced from helmrelease.yaml defaults.image.tag
       # and both jobs/cronjob-*.yaml manifests so bumps are one-line.
-      CLIMATE_REF_IMAGE_TAG: v0.14.3@sha256:770f9f1e3b05a5a4b70fabb0a50bdf2b686ad7994afb5f1a93fb7e419922bea2
+      CLIMATE_REF_IMAGE_TAG: v0.14.7@sha256:5f34287876e9efc9d176cb8d7da9210cc1c1388bfe0f3762eb434525efc966b6
