@@ -40,7 +40,7 @@ spec:
           main:
             image:
               repository: ghcr.io/esphome/esphome
-              tag: "2026.5.3@sha256:c1a2a042e351ed07d7e8e703f3b51dec9f836921cdfc867a5fd5472bad36b9fb"
+              tag: "2026.6.3@sha256:6cba3ffe30cf858f0609b5028d9143dd821242c1ebbf2429a79e9c90cf52c130"
             env:
               TZ: Australia/Melbourne
               # Use ICMP ping for device status; mDNS doesn't cross VLANs
