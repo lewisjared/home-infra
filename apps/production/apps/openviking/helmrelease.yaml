@@ -47,12 +47,14 @@ spec:
               - /bin/sh
               - -ec
               - |
-                key_file=/app/.openviking/root_api_key
-                if [ ! -s "$key_file" ]; then
-                  umask 077
-                  tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 48 > "$key_file"
+                # Root API key is supplied by the SOPS-managed openviking-secret
+                # (env OPENVIKING_ROOT_API_KEY); render it into the runtime config.
+                # Key is constrained to [A-Za-z0-9] so it is sed-safe.
+                if [ -z "${OPENVIKING_ROOT_API_KEY:-}" ]; then
+                  echo "OPENVIKING_ROOT_API_KEY is empty; check openviking-secret" >&2
+                  exit 1
                 fi
-                sed "s/__OPENVIKING_ROOT_API_KEY__/$(cat "$key_file")/g" /app/.openviking/ov.conf.template > /app/.openviking/ov.conf
+                sed "s/__OPENVIKING_ROOT_API_KEY__/${OPENVIKING_ROOT_API_KEY}/g" /app/.openviking/ov.conf.template > /app/.openviking/ov.conf
                 exec openviking-entrypoint
             env:
               TZ: Australia/Melbourne
@@ -60,6 +62,11 @@ spec:
               OPENVIKING_CLI_CONFIG_FILE: /app/.openviking/ovcli.conf
               # Kubernetes only needs the API service; keep the bundled bot off.
               OPENVIKING_WITH_BOT: "0"
+              OPENVIKING_ROOT_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: openviking-secret
+                    key: OPENVIKING_ROOT_API_KEY
             probes:
               liveness:
                 enabled: true

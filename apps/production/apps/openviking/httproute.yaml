@@ -20,12 +20,6 @@ spec:
         - path:
             type: PathPrefix
             value: /
-      filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: traefik.io
-            kind: Middleware
-            name: authelia-forwardauth
       backendRefs:
         - name: openviking
           port: 1933

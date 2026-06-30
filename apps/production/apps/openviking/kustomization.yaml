@@ -6,7 +6,7 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - ollama-mole-service.yaml
-  - middleware.yaml
+  - openviking-secret.yaml
   - volsync-secret.yaml
   - httproute.yaml
   - helmrelease.yaml
