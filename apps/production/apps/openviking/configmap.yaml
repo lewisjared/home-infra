@@ -18,9 +18,9 @@ data:
       "storage": {
         "workspace": "/app/.openviking/openviking_workspace",
         "vectordb": {
-          "name": "context",
+          "name": "context-qwen3",
           "backend": "local",
-          "project": "default"
+          "project": "qwen3"
         },
         "agfs": {
           "backend": "local",
@@ -32,14 +32,14 @@ data:
         "output": "stdout"
       },
       "embedding": {
-        "max_concurrent": 2,
+        "max_concurrent": 4,
         "max_retries": 3,
-        "max_input_tokens": 2048,
+        "max_input_tokens": 4096,
         "dense": {
           "provider": "ollama",
           "api_base": "http://ollama-mole.openviking.svc.cluster.local:11434/v1",
-          "model": "nomic-embed-text",
-          "dimension": 768,
+          "model": "qwen3-embedding:4b",
+          "dimension": 2560,
           "input": "text"
         }
       },
