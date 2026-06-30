@@ -18,7 +18,7 @@ data:
       "storage": {
         "workspace": "/app/.openviking/openviking_workspace",
         "vectordb": {
-          "name": "context-qwen3",
+          "name": "context_qwen3",
           "backend": "local",
           "project": "qwen3"
         },
