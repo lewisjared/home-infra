@@ -26,7 +26,7 @@ spec:
   postBuild:
     substitute:
       APP: hermes
-      VOLSYNC_CLAIM: hermes-config
+      VOLSYNC_CLAIM: hermes
       # Match HERMES_UID/HERMES_GID so the kopia mover can read the PVC files.
       VOLSYNC_PUID: "10000"
       VOLSYNC_PGID: "10000"

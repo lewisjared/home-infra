@@ -28,4 +28,4 @@ spec:
   postBuild:
     substitute:
       APP: openviking
-      VOLSYNC_CLAIM: openviking-data
+      VOLSYNC_CLAIM: openviking
