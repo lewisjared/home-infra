@@ -50,11 +50,11 @@ spec:
                 # Root API key is supplied by the SOPS-managed openviking-secret
                 # (env OPENVIKING_ROOT_API_KEY); render it into the runtime config.
                 # Key is constrained to [A-Za-z0-9] so it is sed-safe.
-                if [ -z "${OPENVIKING_ROOT_API_KEY:-}" ]; then
+                if [ -z "$${OPENVIKING_ROOT_API_KEY:-}" ]; then
                   echo "OPENVIKING_ROOT_API_KEY is empty; check openviking-secret" >&2
                   exit 1
                 fi
-                sed "s/__OPENVIKING_ROOT_API_KEY__/${OPENVIKING_ROOT_API_KEY}/g" /app/.openviking/ov.conf.template > /app/.openviking/ov.conf
+                sed "s/__OPENVIKING_ROOT_API_KEY__/$${OPENVIKING_ROOT_API_KEY}/g" /app/.openviking/ov.conf.template > /app/.openviking/ov.conf
                 exec openviking-entrypoint
             env:
               TZ: Australia/Melbourne
