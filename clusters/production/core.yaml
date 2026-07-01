@@ -19,6 +19,10 @@ spec:
   healthChecks:
     - apiVersion: apps/v1
       kind: Deployment
+      name: flux-operator
+      namespace: flux-system
+    - apiVersion: apps/v1
+      kind: Deployment
       name: keda-operator
       namespace: keda
     - apiVersion: apps/v1

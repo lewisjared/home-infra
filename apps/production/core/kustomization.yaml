@@ -6,6 +6,7 @@ resources:
   - flux-notifications/
   - traefik/
   - external-dns/
+  - flux-operator/
   - keda/
   - metrics-server/
   - pull-secrets/
