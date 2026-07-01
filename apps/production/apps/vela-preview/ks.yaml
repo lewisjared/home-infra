@@ -1,0 +1,65 @@
+---
+# PR preview environments for the vela repo.
+#
+# vela-preview-rbac applies the local ServiceAccount/ClusterRole/
+# ClusterRoleBinding the ResourceSet impersonates when applying per-PR
+# resources. It depends on `core` so the flux-operator CRDs
+# (ResourceSet, ResourceSetInputProvider) exist first.
+#
+# vela-preview applies the remote `./deploy/flux-preview` manifests from the
+# vela repo (ResourceSetInputProvider + ResourceSet), patched with the two
+# cluster-specific bits the vela repo can't know about: the GitHub token
+# secretRef and the ServiceAccount to impersonate.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vela-preview-rbac
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./apps/production/apps/vela-preview
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: core
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vela-preview
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: vela
+  path: ./deploy/flux-preview
+  prune: true
+  wait: true
+  timeout: 5m
+  dependsOn:
+    - name: vela-preview-rbac
+    - name: vela-infra
+  patches:
+    - target:
+        group: fluxcd.controlplane.io
+        version: v1
+        kind: ResourceSetInputProvider
+        name: vela-preview-prs
+      patch: |
+        - op: add
+          path: /spec/secretRef
+          value:
+            name: flux-system
+    - target:
+        group: fluxcd.controlplane.io
+        version: v1
+        kind: ResourceSet
+        name: vela-preview
+      patch: |
+        - op: add
+          path: /spec/serviceAccountName
+          value: vela-preview

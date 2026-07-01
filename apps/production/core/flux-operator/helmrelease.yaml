@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: flux-operator
+  namespace: flux-system
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: flux-operator
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+    cleanupOnFail: true
+  values:
+    # Install the operator (+ its CRDs: ResourceSet, ResourceSetInputProvider,
+    # FluxInstance, FluxReport) only.
+    # The chart has no values that create a FluxInstance resource — that's a
+    # separate CR we deliberately never create here, since this cluster's Flux
+    # is already bootstrapped via `flux bootstrap` and a FluxInstance would
+    # take over managing it.
+    installCRDs: true
