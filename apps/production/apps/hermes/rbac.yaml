@@ -85,6 +85,15 @@ rules:
       - ocirepositories
     verbs:
       - patch
+  # Allow cleanup of stale generated HelmChart artifacts when their source
+  # HelmRepositories have been removed. This does not grant source deletion
+  # for GitRepository/HelmRepository/OCIRepository objects.
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts
+    verbs:
+      - delete
   - apiGroups:
       - admissionregistration.k8s.io
       - apiextensions.k8s.io
