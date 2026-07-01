@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: YAML Lint
         uses: ibiqlik/action-yamllint@v3
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Markdown Lint
         uses: DavidAnson/markdownlint-cli2-action@v23
@@ -33,7 +33,7 @@ jobs:
     name: Ansible Lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run ansible-lint
         uses: ansible/ansible-lint@v26.4.0
         with:
