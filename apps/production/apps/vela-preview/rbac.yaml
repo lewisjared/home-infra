@@ -49,11 +49,15 @@ rules:
       - jobs/status
       - cronjobs
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # bind + escalate let the applier create the vela-api Role/RoleBinding in one
+  # reconcile: Flux dry-runs the whole set before persisting anything, so the
+  # RoleBinding is authorized before its Role exists — which the perms-holding
+  # path can't satisfy.
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources:
       - roles
       - rolebindings
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "bind", "escalate"]
   - apiGroups: ["gateway.networking.k8s.io"]
     resources:
       - httproutes
