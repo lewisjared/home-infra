@@ -75,7 +75,7 @@ spec:
 
         # Retention settings
         retention: 30d
-        retentionSize: "45GB"
+        retentionSize: "75GB"
 
         # Storage configuration
         storageSpec:
@@ -85,7 +85,7 @@ spec:
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
-                  storage: 50Gi
+                  storage: 100Gi
 
         # Service monitor selector (monitor all ServiceMonitors)
         serviceMonitorSelectorNilUsesHelmValues: false
