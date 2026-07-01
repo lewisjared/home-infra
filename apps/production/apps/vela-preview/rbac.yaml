@@ -46,6 +46,7 @@ rules:
   - apiGroups: ["batch"]
     resources:
       - jobs
+      - jobs/status
       - cronjobs
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["rbac.authorization.k8s.io"]
