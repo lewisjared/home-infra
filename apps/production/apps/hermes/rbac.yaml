@@ -10,7 +10,8 @@ metadata:
 # This is intentionally broad enough for kubectl/Flux-style troubleshooting
 # across the cluster, but it is not cluster-admin:
 # - no Kubernetes Secret read/list/watch access
-# - no workload/resource mutation permissions
+# - no workload/resource mutation permissions except deleting pods and batch Jobs
+# - Flux mutations are limited to patching reconcile request annotations
 # - only debug subresources (exec/attach/portforward) require create
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -47,6 +48,43 @@ rules:
       - pods/portforward
     verbs:
       - create
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - delete
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - delete
+  # Allow `flux reconcile ...` to force a controller pass without granting
+  # suspend/resume, delete, or arbitrary workload mutation permissions.
+  # Flux reconcile uses patch to set reconcile request annotations.
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations
+    verbs:
+      - patch
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases
+    verbs:
+      - patch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets
+      - gitrepositories
+      - helmcharts
+      - helmrepositories
+      - ocirepositories
+    verbs:
+      - patch
   - apiGroups:
       - admissionregistration.k8s.io
       - apiextensions.k8s.io
