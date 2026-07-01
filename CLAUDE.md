@@ -57,38 +57,40 @@ The repository is organized into two main directories:
 
 **1. `/clusters/production/`** - Flux CD Kustomization definitions
 
-- 6 Flux Kustomizations organized by category
+- Flux Kustomizations organized by category (bootstrap, core, storage, database, security, monitoring, apps, plus grafana-operator/grafana-instance)
 - Defines deployment order via `dependsOn` relationships
 - Flux uses these to continuously reconcile cluster state with the repository
 
 **2. `/apps/production/`** - All deployable components organized by category
 
-| Category         | Purpose                    | Components                                                                                          |
-| ---------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
-| `cert-manager/`  | TLS certificate management | cert-manager HelmRelease                                                                            |
-| `core/`          | Foundation services        | cert-issuers, cilium-gateway, external-dns, metrics-server, pull-secrets, technitium-rbac, reloader |
-| `storage/`       | Distributed storage        | rook-ceph operator, ceph-cluster (external)                                                         |
-| `security/`      | Authentication             | authelia                                                                                            |
-| `monitoring/`    | Observability stack        | Prometheus, Grafana, Loki, Tempo, Alloy, network-policies, hubble-ui                                |
-| `apps/`          | User applications          | homepage, podinfo, media stack                                                                      |
-| `apps/disabled/` | Inactive apps              | home-assistant, kubernetes-dashboard, headlamp                                                      |
+| Category      | Purpose             | Components                                                                                                                                                                         |
+| ------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bootstrap/`  | TLS bootstrap       | cert-manager, cert-issuers                                                                                                                                                         |
+| `core/`       | Foundation services | traefik, cilium-gateway, cloudflared, external-dns, metrics-server, keda, reloader, pull-secrets, technitium-rbac, snapshot-controller, spegel, tuppr, volsync, flux-notifications |
+| `storage/`    | Distributed storage | rook-ceph operator, ceph-cluster (external), democratic-csi, csi-driver-nfs, seaweedfs                                                                                             |
+| `database/`   | Databases           | cloudnative-pg operator + clusters                                                                                                                                                 |
+| `security/`   | Authentication      | authelia                                                                                                                                                                           |
+| `monitoring/` | Observability stack | Prometheus, Grafana, Loki, Tempo, Alloy, network-policies                                                                                                                          |
+| `apps/`       | User applications   | homepage, podinfo, media stack, climate-ref, github-runners, hermes, openviking, esphome, etc.                                                                                     |
 
 ### Flux Kustomization Dependencies
 
 ```raw
-cert-manager (no deps)
-    └── core (depends: cert-manager)
-        ├── storage (depends: core)
-        ├── security (depends: core, storage)
-        ├── monitoring (depends: core, storage)
-        └── apps (depends: core, storage, security)
+bootstrap (cert-manager)
+    └── core
+        ├── storage ── security, monitoring, database, apps
+        ├── database ── database-clusters ── apps
+        ├── security ── apps
+        └── grafana-operator ── grafana-instance
+
+See the mermaid diagram in README.md for the authoritative graph.
 ```
 
 ### Key Technical Patterns
 
 **Templating**: Uses Kustomize for composition within each category
 
-**Package Management**: External packages (cert-manager, ingress-nginx) are managed via Helm charts, integrated with Flux via HelmRelease resources
+**Package Management**: External packages (cert-manager, traefik, rook-ceph, etc.) are managed via Helm charts, integrated with Flux via HelmRelease resources
 
 **Secrets Management**: Uses SOPS (Secrets Operations) with PGP encryption:
 
@@ -124,8 +126,6 @@ Always run `make validate` before committing changes. Invalid manifests will fai
 3. Reference in `apps/production/apps/kustomization.yaml`
 4. If using a new Helm repository, add it to `helmfile.yaml`
 5. Run validation before committing
-
-To enable a disabled app, move it from `apps/production/apps/disabled/` to `apps/production/apps/` and add to the kustomization.
 
 ### App-Template Pattern for Simple Containers
 

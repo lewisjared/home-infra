@@ -268,7 +268,6 @@ ansible-playbook playbooks/technitium.yml
 │   ├── security/               #   authelia
 │   ├── monitoring/             #   prometheus, grafana, loki, tempo, alloy
 │   └── apps/                   #   homepage, media stack, climate-ref, runners
-│       └── disabled/           #   inactive apps
 ├── bootstrap/                  # Helmfile for initial chart repos
 ├── clusters/production/        # Flux Kustomization definitions (deploy order)
 ├── docs/                       # Extended documentation
