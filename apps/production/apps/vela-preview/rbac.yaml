@@ -43,6 +43,12 @@ rules:
     resources:
       - deployments
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Flux's Kustomization health check lists replicasets to assess Deployment
+  # rollout; without it the reconcile never reports Ready.
+  - apiGroups: ["apps"]
+    resources:
+      - replicasets
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["batch"]
     resources:
       - jobs
