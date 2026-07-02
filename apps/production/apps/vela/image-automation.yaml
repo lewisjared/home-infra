@@ -1,7 +1,13 @@
 ---
 # Flux image automation: watches ghcr.io for new main-branch builds and
-# commits tag bumps to deploy/production/trading-engine.yaml so the
-# cluster rolls to the newest image without human intervention.
+# commits tag bumps into deploy/production/*.yaml so the cluster rolls to
+# the newest image without human intervention.
+#
+# The API and the trading engine ship as a single ghcr.io/lewisjared/vela
+# image, so this is one ImageRepository/ImagePolicy pair. Every image marker
+# in the vela repo (api, cronjobs, seed job, and the VELA_API_IMAGE_TAG env)
+# references the same `flux-system:vela` policy, so one reconcile bumps them
+# all atomically — the tag streams can no longer skew.
 #
 # Requires the image-reflector-controller and image-automation-controller
 # to be installed in flux-system (home-infra repo owns that).
@@ -14,10 +20,10 @@
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImageRepository
 metadata:
-  name: vela-engine
+  name: vela
   namespace: flux-system
 spec:
-  image: ghcr.io/lewisjared/vela-engine
+  image: ghcr.io/lewisjared/vela
   interval: 5m
   secretRef:
     name: ghcr-pull-secret
@@ -25,42 +31,14 @@ spec:
 apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImagePolicy
 metadata:
-  name: vela-engine
+  name: vela
   namespace: flux-system
 spec:
   imageRepositoryRef:
-    name: vela-engine
+    name: vela
   filterTags:
     # Matches the main-build tag scheme produced by docker-build.yml:
     # <unix_timestamp>-<sha7>, e.g. 1712974507-aa6ea7f.
-    pattern: "^(?P<ts>[0-9]+)-[0-9a-f]{7}$"
-    extract: "$ts"
-  policy:
-    numerical:
-      order: asc
----
-apiVersion: image.toolkit.fluxcd.io/v1
-kind: ImageRepository
-metadata:
-  name: vela-api
-  namespace: flux-system
-spec:
-  image: ghcr.io/lewisjared/vela-api
-  interval: 5m
-  secretRef:
-    name: ghcr-pull-secret
----
-apiVersion: image.toolkit.fluxcd.io/v1
-kind: ImagePolicy
-metadata:
-  name: vela-api
-  namespace: flux-system
-spec:
-  imageRepositoryRef:
-    name: vela-api
-  filterTags:
-    # Matches the main-build tag scheme produced by
-    # docker-build-api.yml: <unix_timestamp>-<sha7>.
     pattern: "^(?P<ts>[0-9]+)-[0-9a-f]{7}$"
     extract: "$ts"
   policy:
@@ -73,8 +51,7 @@ metadata:
   name: vela
   namespace: flux-system
 spec:
-  # 5m interval batches vela-engine + vela-api bumps into a single
-  # commit when both images build from the same merge.
+  # 5m interval batches every vela marker bump into a single commit.
   interval: 5m
   sourceRef:
     kind: GitRepository
