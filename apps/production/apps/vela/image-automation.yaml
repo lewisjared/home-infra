@@ -87,8 +87,14 @@ spec:
       author:
         name: fluxcdbot
         email: fluxcdbot@users.noreply.github.com
+      # [skip ci] makes GitHub Actions skip push-triggered workflows
+      # on this commit.
+      # That avoids a wasted CI run on every bump,
+      # and stops the bump push from cancelling the merge commit's
+      # in-progress CI
+      # (ci.yml uses cancel-in-progress keyed on the branch ref).
       messageTemplate: |
-        chore(deploy): bump vela images
+        chore(deploy): bump vela images [skip ci]
 
         {{range .Changed.Changes}}- {{.NewValue}}
         {{end}}
