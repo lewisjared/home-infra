@@ -3,8 +3,10 @@
 #
 # vela-preview-rbac applies the local ServiceAccount/ClusterRole/
 # ClusterRoleBinding the ResourceSet impersonates when applying per-PR
-# resources. It depends on `core` so the flux-operator CRDs
-# (ResourceSet, ResourceSetInputProvider) exist first.
+# resources, plus the GitHub feedback wiring (commit-status Provider/Alert
+# and the reconcile-nudge Receiver — see README.md in this directory). It
+# depends on `core` so the flux-operator CRDs (ResourceSet,
+# ResourceSetInputProvider) exist first.
 #
 # vela-preview applies the remote `./deploy/flux-preview` manifests from the
 # vela repo (ResourceSetInputProvider + ResourceSet), patched with the two
@@ -25,6 +27,10 @@ spec:
     name: flux-system
   dependsOn:
     - name: core
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
