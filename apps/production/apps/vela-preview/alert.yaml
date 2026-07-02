@@ -1,0 +1,17 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: vela-preview-github
+  namespace: flux-system
+spec:
+  providerRef:
+    name: vela-preview-github
+  # info (not error) so a healthy reconcile also posts a success status —
+  # a PR author needs to see green, not just red.
+  eventSeverity: info
+  eventSources:
+    - kind: Kustomization
+      name: "*"
+      namespace: flux-system
+      matchLabels:
+        vela.dev/preview: "true"
