@@ -3,8 +3,8 @@
 #
 # vela-preview-rbac applies the local ServiceAccount/ClusterRole/
 # ClusterRoleBinding the ResourceSet impersonates when applying per-PR
-# resources, plus the GitHub feedback wiring (commit-status Provider/Alert
-# and the reconcile-nudge Receiver — see README.md in this directory). It
+# resources, plus the GitHub feedback wiring (commit-status Provider/Alert;
+# see README.md in this directory). It
 # depends on `core` so the flux-operator CRDs (ResourceSet,
 # ResourceSetInputProvider) exist first.
 #

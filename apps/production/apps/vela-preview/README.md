@@ -22,47 +22,31 @@ know about.
   `eventSeverity: info` so a healthy reconcile posts a success status too,
   not just failures — this makes deploy success/failure visible as a commit
   status (`kustomization/vela-pr-<n>`) on the PR's head SHA.
-- `receiver.yaml` — a `Receiver` that lets an in-cluster caller nudge
-  `vela-preview-prs` (the `ResourceSetInputProvider` in the vela repo) to
-  reconcile immediately instead of waiting for its poll interval. See the
-  comments in `receiver.yaml` for how to read the generated webhook path and
-  why GitHub itself can never call it directly (no public ingress here).
-- `github-token-secret.yaml` / `webhook-token-secret.yaml` — SOPS-encrypted
-  secrets consumed by the Provider and Receiver above.
+- `github-token-secret.yaml` — SOPS-encrypted secret consumed by the
+  Provider above.
 
-## Operator steps
+## Operator step
 
-1. **Mint a fine-grained GitHub PAT** scoped to `lewisjared/vela` with
-   commit-status write access (Repository permissions → Commit statuses:
-   Read and write), and re-encrypt `github-token-secret.yaml`'s `token` key
-   with `sops -e -i`.
-2. **Create a webhook token** (any sufficiently random string, e.g.
-   `openssl rand -hex 20`) and re-encrypt `webhook-token-secret.yaml`'s
-   `token` key with `sops -e -i`. This does not need to match anything on
-   GitHub's side — it only authenticates in-cluster callers of the Receiver.
+**Mint a fine-grained GitHub PAT** scoped to `lewisjared/vela` with
+commit-status write access (Repository permissions → Commit statuses:
+Read and write), and re-encrypt `github-token-secret.yaml`'s `token` key
+with `sops -e -i`.
 
-## vela-side follow-up
+## Deferred: immediate reconcile nudge
 
-Add a step to vela's `docker-build.yml` (after the image push, on the
-in-cluster arc runner) that nudges the Receiver so the preview picks up the
-new tag without waiting for the next poll:
+The original design added a `notification.toolkit.fluxcd.io` `Receiver` so an
+in-cluster caller could force the `vela-preview-prs`
+`ResourceSetInputProvider` to reconcile right after a preview image is pushed,
+rather than waiting for its poll interval.
+That is not possible with a GOTK `Receiver`:
+its `spec.resources[].kind` schema only accepts core Flux source/GOTK kinds
+(`GitRepository`, `Kustomization`, `ImagePolicy`, …),
+not the flux-operator `ResourceSetInputProvider` CRD.
+The `Receiver` was dropped rather than shipped invalid.
 
-```yaml
-- name: Nudge preview reconcile
-  if: github.event_name == 'pull_request'
-  run: |
-    curl -fsS -X POST \
-      -H "X-Hub-Signature-256: sha256=$(printf '%s' "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_TOKEN" | sed 's/^.* //')" \
-      -d "$PAYLOAD" \
-      "http://webhook-receiver.flux-system.svc.cluster.local<path>"
-```
-
-Read `<path>` from the Receiver's status once it's applied:
-
-```shell
-kubectl get receiver vela-preview-github -n flux-system \
-  -o jsonpath='{.status.webhookPath}'
-```
-
-This only works from a runner that can reach the cluster's internal service
-network (the in-cluster arc runner), not GitHub-hosted runners.
+The RSIP already polls every 1 minute (vela `deploy/flux-preview`,
+tightened in vela #396), so discovery latency is bounded without a nudge.
+If a true push-triggered reconcile is wanted later, the flux-operator-native
+path is to annotate the RSIP with `reconcile.fluxcd.io/requestedAt` from an
+in-cluster actor with RBAC on the object — a different mechanism from a GOTK
+`Receiver`, tracked as a follow-up.

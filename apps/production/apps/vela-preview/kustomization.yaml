@@ -3,7 +3,5 @@ kind: Kustomization
 resources:
   - rbac.yaml
   - github-token-secret.yaml
-  - webhook-token-secret.yaml
   - provider.yaml
   - alert.yaml
-  - receiver.yaml
