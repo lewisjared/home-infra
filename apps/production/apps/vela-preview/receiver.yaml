@@ -18,7 +18,7 @@
 # with GitHub's webhook payload shape, but the payload contents are not
 # inspected — any POST to the path triggers a reconcile of the resources
 # below.
-apiVersion: notification.toolkit.fluxcd.io/v1beta3
+apiVersion: notification.toolkit.fluxcd.io/v1
 kind: Receiver
 metadata:
   name: vela-preview-github
