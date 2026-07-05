@@ -26,6 +26,8 @@ spec:
   postBuild:
     substitute:
       APP: climate-ref
+      # Grafana dashboard JSON refers to the Prometheus datasource by UID.
+      datasource: prometheus
       # Single source-of-truth for the climate-ref container image
       # tag+digest. Referenced from helmrelease.yaml defaults.image.tag
       # and both jobs/cronjob-*.yaml manifests so bumps are one-line.
