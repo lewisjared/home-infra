@@ -122,15 +122,19 @@ spec:
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
-            # ILAMB integration tests load whole reference netCDFs into memory under the synchronous Dask scheduler.
-            # GPCPv2.3 pr alone is ~1 GiB and several diagnostics OOM under the chart default.
-            # Give the runner enough headroom for the heaviest single test plus normal pytest overhead.
+            # ILAMB integration tests load whole reference netCDFs into memory under the synchronous Dask scheduler,
+            # which has no per-worker cap. A single large ocean field (e.g. so_Omon_CanESM5_historical) materialises
+            # to many GiB when opened whole (ilamb3 opens without dask chunks, so a lazy surface slice still reads
+            # the full field), and the whole --slow suite runs in one pytest process that does not release between
+            # tests, so peak RSS climbed past the 16Gi ceiling (INTERNALERROR MemoryError). 40Gi leaves headroom on
+            # the two ~49Gi allocatable nodes; going much higher needs pinning the job to talos-master-3 (~79Gi)
+            # since the memory request is only 4Gi.
             resources:
               requests:
                 cpu: "2"
                 memory: 4Gi
               limits:
-                memory: 16Gi
+                memory: 40Gi
             volumeMounts:
               # RO CMIP6 archive
               - name: cmip6-data
