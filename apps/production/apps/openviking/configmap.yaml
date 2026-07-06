@@ -45,7 +45,7 @@ data:
       },
       "vlm": {
         "provider": "openai-codex",
-        "model": "gpt-5.5",
+        "model": "gpt-5.4-mini",
         "temperature": 0.0,
         "timeout": 90,
         "max_tokens": 1024,
