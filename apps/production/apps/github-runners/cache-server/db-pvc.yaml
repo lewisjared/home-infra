@@ -1,0 +1,17 @@
+---
+# Metadata/index database (SQLite) for the cache server.
+# Must be persistent: it maps cache keys to blobs on the main cache PVC.
+# If it lives on ephemeral storage the whole cache appears evicted whenever
+# the pod is replaced (node eviction, image bump, reschedule).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: github-actions-cache-db
+  namespace: github-runners
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: truenas-iscsi-fast
+  resources:
+    requests:
+      storage: 5Gi
