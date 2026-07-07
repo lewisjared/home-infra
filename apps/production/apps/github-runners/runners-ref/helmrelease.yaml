@@ -156,17 +156,20 @@ spec:
                 value: /data/cache/datasets
               - name: REF_SOFTWARE_ROOT
                 value: /data/cache/software
-              # Cap numeric-library thread pools to the CPU request.
+              # Cap numeric-library thread pools to the CPU limit (8). Without a cap OpenBLAS/MKL
+              # size their pools to the host core count (~16) rather than the cgroup quota, which
+              # oversubscribes threads and wastes per-thread buffer memory; capping to 1-2 avoided
+              # the OOM but crippled the heavy diagnostics. 8 matches the CPU limit for throughput.
               - name: OMP_NUM_THREADS
-                value: "2"
+                value: "8"
               - name: OPENBLAS_NUM_THREADS
-                value: "2"
+                value: "8"
               - name: MKL_NUM_THREADS
-                value: "2"
+                value: "8"
               - name: NUMEXPR_NUM_THREADS
-                value: "2"
+                value: "8"
               - name: VECLIB_MAXIMUM_THREADS
-                value: "2"
+                value: "8"
               # Set a reasonable width for the rich tracebacks
               - name: "COLUMNS"
                 value: "200"
