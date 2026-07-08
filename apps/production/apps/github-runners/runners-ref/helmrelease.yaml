@@ -82,7 +82,10 @@ spec:
                 local_cache:
                   - ~/.esgf
                 confirm_download: false
-                num_threads: 20
+                # ESGF has a long tail of slow hosts, so keep enough threads to hide the
+                # stragglers, but not so many that concurrent multi-GB downloads exhaust
+                # the pod's memory limit.
+                num_threads: 8
                 EOF
 
                 mkdir -p /home-config/dask
