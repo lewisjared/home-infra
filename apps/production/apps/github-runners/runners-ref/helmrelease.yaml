@@ -140,13 +140,18 @@ spec:
               # RW cache for runner-specific data (e.g. test outputs, downloaded software, etc.)
               - name: runner-cache
                 mountPath: /data/cache
-              # Local intake-esgf cache
+              # Local intake-esgf cache.
+              # We run as uid 1000, which in this Ubuntu-based image is the `ubuntu`
+              # user whose home is /home/ubuntu (not /home/runner). intake-esgf and
+              # platformdirs resolve `~` from that home, so these caches must mount
+              # under /home/ubuntu or downloads land on the ephemeral container fs and
+              # every run re-fetches from ESGF. See the HOME env below.
               - name: runner-cache
-                mountPath: /home/runner/.esgf
+                mountPath: /home/ubuntu/.esgf
                 subPath: intake-esgf-data
               # Runner .config dir (intake-esgf config, matplotlib, etc.)
               - name: home-config
-                mountPath: /home/runner/.config
+                mountPath: /home/ubuntu/.config
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
@@ -175,6 +180,13 @@ spec:
                 value: "200"
               - name: "USER"
                 value: "runner"
+              # Pin HOME to the uid-1000 (`ubuntu`) home this image gives us. Without
+              # this the value depends on the image's passwd layout, and the persistent
+              # .esgf/.config mounts above (and the ~/.esgf prune in ci-integration.yaml)
+              # must agree with it. Every other uid-1000 climate-ref workload sets HOME
+              # explicitly for the same reason.
+              - name: HOME
+                value: /home/ubuntu
             envFrom:
               # CUSTOM_ACTIONS_CACHE_URL + CUSTOM_ACTIONS_RESULTS_URL -> in-cluster falcondev cache server via the falcondev runner image override.
               - configMapRef:
