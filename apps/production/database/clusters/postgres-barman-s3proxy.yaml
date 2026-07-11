@@ -64,12 +64,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: postgres-barman-s3-credentials
-                  key: S3PROXY_IDENTITY
+                  key: ACCESS_KEY_ID
             - name: S3PROXY_CREDENTIAL
               valueFrom:
                 secretKeyRef:
                   name: postgres-barman-s3-credentials
-                  key: S3PROXY_CREDENTIAL
+                  key: SECRET_ACCESS_KEY
             - name: JCLOUDS_PROVIDER
               value: filesystem-nio2
             - name: JCLOUDS_FILESYSTEM_BASEDIR

@@ -20,6 +20,7 @@ spec:
   nfs:
     server: 10.10.20.20
     # Create and chown this isolated directory on the TrueNAS export first.
+    # Ownership: 1000:1000, Mode: 0700.
     path: /mnt/tank/backups/k8s/postgres-barman
 ---
 apiVersion: v1

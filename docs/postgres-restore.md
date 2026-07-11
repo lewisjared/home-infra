@@ -31,10 +31,47 @@ not add client-side backup encryption.
 2. Stop Date Jar and create a separate, isolated CNPG cluster (for example,
    `postgres-restore`) in the `database-restore` namespace. Never point the
    restore at the production `postgres` Service or production PVCs.
-3. Configure the isolated cluster's `bootstrap.recovery` with the same internal
-   S3Proxy endpoint, the shared-cluster Barman destination
-   (`s3://postgres-barman/postgres`), and the S3 credentials stored in the
-   cluster's secret manager. Select the required backup or recovery target.
+3. Copy only the Barman credentials into a temporary Secret in the restore
+   namespace. The source Secret is in `database`; preserve its base64-encoded
+   values while creating the namespace-local Secret rather than printing the
+   credentials:
+
+   ```sh
+   kubectl get secret postgres-barman-s3-credentials -n database -o json \
+     | jq '{apiVersion: "v1", kind: "Secret", type: "Opaque",
+       metadata: {name: "postgres-restore-barman-s3-credentials",
+       namespace: "database-restore"},
+       data: {ACCESS_KEY_ID: .data.ACCESS_KEY_ID,
+       SECRET_ACCESS_KEY: .data.SECRET_ACCESS_KEY}}' \
+     | kubectl apply -f -
+   ```
+
+   Configure the isolated cluster's `bootstrap.recovery` to reference that
+   namespace-local Secret and the same internal S3Proxy endpoint. Use the
+   `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY` values from the source Secret:
+
+   ```yaml
+   bootstrap:
+     recovery:
+       source: postgres-barman
+       recoveryTarget:
+         targetTime: "<target-time>"
+   externalClusters:
+     - name: postgres-barman
+       barmanObjectStore:
+         destinationPath: s3://postgres-barman/postgres
+         endpointURL: http://s3proxy.database.svc.cluster.local
+         s3Credentials:
+           accessKeyId:
+             name: postgres-restore-barman-s3-credentials
+             key: ACCESS_KEY_ID
+           secretAccessKey:
+             name: postgres-restore-barman-s3-credentials
+             key: SECRET_ACCESS_KEY
+   ```
+
+   Select the required backup or recovery target. Remove the temporary Secret
+   after the isolated restore and validation are complete.
 4. Wait for CNPG recovery to report healthy, then validate the restored
    `date_jar` database and application migrations using read-only checks.
 5. Export any required data from the isolated cluster. Promote it to production

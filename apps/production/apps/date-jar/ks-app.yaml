@@ -16,7 +16,3 @@ spec:
     - name: date-jar-migration
     - name: core
     - name: security
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-gpg
