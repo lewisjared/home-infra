@@ -38,6 +38,9 @@ spec:
 
     controllers:
       main:
+        # Disabled 2026-07-11: the agent burns through API tokens.
+        # Remove this to re-enable.
+        replicas: 0
         annotations:
           reloader.stakater.com/auto: "true"
         # Single RWO config PVC -- recreate to avoid multi-attach on rollout.
