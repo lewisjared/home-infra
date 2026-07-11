@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: date-jar-runtime-grants
+  namespace: date-jar
+data:
+  grant.mjs: |
+    import pg from "pg";
+
+    const pool = new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: false,
+      max: 1,
+    });
+    const statements = [
+      "REVOKE ALL ON DATABASE date_jar FROM PUBLIC",
+      "REVOKE CREATE ON SCHEMA public FROM PUBLIC",
+      "GRANT CONNECT ON DATABASE date_jar TO date_jar_app",
+      "GRANT USAGE ON SCHEMA public TO date_jar_app",
+      "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO date_jar_app",
+      "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO date_jar_app",
+      "ALTER DEFAULT PRIVILEGES FOR ROLE date_jar_migrator IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO date_jar_app",
+      "ALTER DEFAULT PRIVILEGES FOR ROLE date_jar_migrator IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO date_jar_app",
+    ];
+    try {
+      for (const statement of statements) await pool.query(statement);
+    } finally {
+      await pool.end();
+    }

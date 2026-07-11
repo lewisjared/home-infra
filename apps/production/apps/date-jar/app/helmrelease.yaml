@@ -1,0 +1,125 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: date-jar
+  namespace: date-jar
+spec:
+  interval: 1h
+  timeout: 10m0s
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        fsGroup: 101
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+
+    controllers:
+      main:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/lewisjared/date-jar
+              tag: v0.1.0@sha256:0ad5d47e5413b43163300d82354faccbde975d661560e0be302cc3a157a02b96
+              pullPolicy: IfNotPresent
+            env:
+              NODE_ENV: production
+              AUTH_URL: https://date-jar.home.lewelly.com
+              AUTH_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: date-jar-secrets
+                    key: AUTH_SECRET
+              AGENT_API_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: date-jar-secrets
+                    key: AGENT_API_TOKEN
+              OIDC_ISSUER: https://auth.home.lewelly.com
+              OIDC_CLIENT_ID: date-jar
+              OIDC_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: date-jar-secrets
+                    key: OIDC_CLIENT_SECRET
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: date-jar-secrets
+                    key: DATABASE_URL
+              # Intentional internal-cluster choice: CNPG traffic stays plaintext;
+              # the namespace egress policy restricts this to postgres pods only.
+              DATABASE_SSL: "false"
+              DB_POOL_SIZE: "5"
+              DEV_AUTH_BYPASS: "false"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/live
+                    port: &port 3000
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/ready
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+            resources:
+              requests:
+                cpu: 25m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: *port
+
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
