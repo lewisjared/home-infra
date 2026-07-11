@@ -1,0 +1,193 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3proxy
+  namespace: database
+  labels:
+    app.kubernetes.io/name: s3proxy
+    app.kubernetes.io/component: postgres-barman
+    app.kubernetes.io/part-of: home-infra
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: s3proxy
+      app.kubernetes.io/component: postgres-barman
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: s3proxy
+        app.kubernetes.io/component: postgres-barman
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: prepare-bucket
+          image: busybox:1.38@sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d
+          command: ["sh", "-ec", "mkdir -p /data/postgres-barman"]
+          volumeMounts:
+            - name: barman-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 5m
+              memory: 8Mi
+            limits:
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      containers:
+        - name: s3proxy
+          image: andrewgaul/s3proxy:sha-a890ccb@sha256:c094e40be4e8699bc7377e8f36934c8603e211fed12b66494346301f3109b982
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: s3
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: S3PROXY_ENDPOINT
+              value: http://0.0.0.0:80
+            - name: S3PROXY_AUTHORIZATION
+              value: aws-v4
+            - name: S3PROXY_IDENTITY
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-barman-s3-credentials
+                  key: ACCESS_KEY_ID
+            - name: S3PROXY_CREDENTIAL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-barman-s3-credentials
+                  key: SECRET_ACCESS_KEY
+            - name: JCLOUDS_PROVIDER
+              value: filesystem-nio2
+            - name: JCLOUDS_FILESYSTEM_BASEDIR
+              value: /data
+            - name: LOG_LEVEL
+              value: info
+          volumeMounts:
+            - name: barman-data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: barman-data
+          persistentVolumeClaim:
+            claimName: postgres-barman
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s3proxy
+  namespace: database
+  labels:
+    app.kubernetes.io/name: s3proxy
+    app.kubernetes.io/component: postgres-barman
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: s3proxy
+    app.kubernetes.io/component: postgres-barman
+  ports:
+    - name: s3
+      port: 80
+      targetPort: 80
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-barman-s3proxy-default-deny
+  namespace: database
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: s3proxy
+      app.kubernetes.io/component: postgres-barman
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-barman-s3proxy
+  namespace: database
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: s3proxy
+      app.kubernetes.io/component: postgres-barman
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: postgres
+      ports:
+        - protocol: TCP
+          port: 80
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: database-restore
+          podSelector:
+            matchLabels:
+              cnpg.io/cluster: postgres-restore
+      ports:
+        - protocol: TCP
+          port: 80

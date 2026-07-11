@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: date-jar
+  namespace: date-jar
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: date-jar.home.lewelly.com
+  labels:
+    app.kubernetes.io/name: date-jar
+    app.kubernetes.io/part-of: home-infra
+spec:
+  parentRefs:
+    - name: home-gateway
+      namespace: traefik
+      sectionName: websecure
+  hostnames:
+    - date-jar.home.lewelly.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: date-jar
+          port: 3000

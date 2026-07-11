@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-barman
+  labels:
+    app.kubernetes.io/name: postgres-barman
+    app.kubernetes.io/part-of: home-infra
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: postgres-barman-static
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  nfs:
+    server: 10.10.20.20
+    # Create and chown this isolated directory on the TrueNAS export first.
+    # Ownership: 1000:1000, Mode: 0700.
+    path: /mnt/tank/backups/k8s/postgres-barman
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-barman
+  namespace: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: postgres-barman-static
+  volumeName: postgres-barman
+  resources:
+    requests:
+      storage: 100Gi

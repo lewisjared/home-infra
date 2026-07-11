@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: date-jar
+  namespace: database
+spec:
+  cluster:
+    name: postgres
+  name: date_jar
+  owner: date_jar_migrator
+  databaseReclaimPolicy: retain
+  extensions:
+    - name: pgcrypto
+      ensure: present

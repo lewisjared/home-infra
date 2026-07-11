@@ -31,6 +31,34 @@ spec:
   monitoring:
     enablePodMonitor: true
 
+  managed:
+    roles:
+      - name: date_jar_migrator
+        login: true
+        passwordSecret:
+          name: date-jar-migrator-password
+      - name: date_jar_app
+        login: true
+        passwordSecret:
+          name: date-jar-app-password
+
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      destinationPath: s3://postgres-barman/postgres
+      endpointURL: http://s3proxy.database.svc.cluster.local
+      s3Credentials:
+        accessKeyId:
+          name: postgres-barman-s3-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: postgres-barman-s3-credentials
+          key: SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+
   bootstrap:
     initdb:
       database: app

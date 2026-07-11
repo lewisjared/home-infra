@@ -35,3 +35,7 @@ resources:
   - ollama-mole/ks.yaml
   # OpenViking context database
   - openviking/ks.yaml
+  # Date Jar
+  - date-jar/ks-secrets.yaml
+  - date-jar/ks-migration.yaml
+  - date-jar/ks-app.yaml

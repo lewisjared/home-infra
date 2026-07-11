@@ -3,4 +3,11 @@ kind: Kustomization
 namespace: database
 resources:
   - namespace.yaml
+  - date-jar-app-password.sops.yaml
+  - date-jar-migrator-password.sops.yaml
+  - postgres-barman-s3-credentials.sops.yaml
+  - postgres-barman-storage.yaml
+  - postgres-barman-s3proxy.yaml
   - postgres.yaml
+  - date-jar-database.yaml
+  - date-jar-scheduled-backup.yaml
