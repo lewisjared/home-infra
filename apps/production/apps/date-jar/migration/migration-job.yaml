@@ -1,7 +1,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: date-jar-migration-v0-1-0
+  # Jobs are immutable, so the first v0.1.0 run (which failed on the grant.mjs
+  # module-resolution bug) cannot be re-run in place. Bumping the name lets Flux
+  # prune the failed Job and create a fresh one with the fixed grant script.
+  name: date-jar-migration-v0-1-0-r2
   namespace: date-jar
   labels:
     app.kubernetes.io/name: date-jar
