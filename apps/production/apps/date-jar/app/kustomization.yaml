@@ -3,5 +3,7 @@ kind: Kustomization
 namespace: date-jar
 resources:
   - helmrelease.yaml
+  - middleware.yaml
   - httproute.yaml
+  - httproute-api.yaml
   - networkpolicy.yaml

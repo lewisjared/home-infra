@@ -181,6 +181,14 @@ spec:
             subject:
               - "group:admins"
 
+          # Date Jar - any authenticated user (forward-auth on the app route)
+          - domain: date-jar.home.lewelly.com
+            policy: one_factor
+
+          # Date Jar API - bypass; the app enforces its own AGENT_API_TOKEN
+          - domain: date-jar-api.home.lewelly.com
+            policy: bypass
+
           # All other apps - bypass (temporary)
           # Note: *.domain matches subdomains but not apex, so both are needed
           - domain: home.lewelly.com
@@ -214,30 +222,7 @@ spec:
           claims_policies:
             grafana:
               id_token: ["email", "name", "groups", "preferred_username"]
-            date_jar:
-              id_token: ["email", "name", "groups", "preferred_username"]
           clients:
-            # Date Jar OIDC Client
-            - client_id: date-jar
-              client_name: Date Jar
-              client_secret: "$pbkdf2-sha512$310000$r95V0Hw3mHQyo8mlwVvj0w$A91a28OJgj5f3eRL0s9yaXIGRR35WW5Si1LSBmr8opu.3IQdyhSS8jJWI5GE7BR4RpuTBLP5CJz0jUKarpru/A"
-              public: false
-              authorization_policy: one_factor
-              claims_policy: date_jar
-              redirect_uris:
-                - https://date-jar.home.lewelly.com/api/auth/callback/keycloak
-              scopes:
-                - openid
-                - profile
-                - email
-                - groups
-              grant_types:
-                - authorization_code
-              response_types:
-                - code
-              userinfo_signed_response_alg: none
-              token_endpoint_auth_method: client_secret_basic
-
             # Headlamp OIDC Client
             - client_id: headlamp
               client_name: Headlamp Kubernetes Dashboard
