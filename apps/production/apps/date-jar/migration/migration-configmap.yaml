@@ -5,7 +5,13 @@ metadata:
   namespace: date-jar
 data:
   grant.mjs: |
-    import pg from "pg";
+    // This script is mounted from the ConfigMap at /opt/date-jar and run by
+    // absolute path, so Node's ESM resolver would look for `pg` under
+    // /opt/date-jar/node_modules and never reach the app's dependencies in
+    // /app/node_modules. Anchor resolution at /app so the bundled `pg` loads.
+    import { createRequire } from "node:module";
+    const require = createRequire("/app/");
+    const pg = require("pg");
 
     const pool = new pg.Pool({
       connectionString: process.env.DATABASE_URL,
