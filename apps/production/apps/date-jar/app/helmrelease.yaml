@@ -43,11 +43,7 @@ spec:
           main:
             image:
               repository: ghcr.io/lewisjared/date-jar
-              # TODO: pin the v0.2.0 digest once the forward-auth app image is
-              # published (see date-jar PR feat/authelia-forward-auth). Must land
-              # together with the Authelia forward-auth changes in this PR — the
-              # v0.1.0 image still runs its own next-auth OIDC flow.
-              tag: v0.2.0@sha256:REPLACE_WITH_PUBLISHED_DIGEST
+              tag: v0.2.0@sha256:50a81126c10456ff1c71446c5fd448de8176de83c282455014fb011a9b5b8ca5
               pullPolicy: IfNotPresent
             env:
               NODE_ENV: production
