@@ -3,16 +3,16 @@
   "extends": ["config:recommended", "docker:pinDigests", ":semanticCommits"],
   "kubernetes": {
     "managerFilePatterns": [
-      "/infrastructure/.+\.yaml$/",
-      "/apps/.+\.yaml$/",
-      "/clusters/.+\.yaml$/"
+      "/infrastructure/.+\\.yaml$/",
+      "/apps/.+\\.yaml$/",
+      "/clusters/.+\\.yaml$/"
     ]
   },
   "helm-values": {
-    "managerFilePatterns": ["/infrastructure/.+\.yaml$/", "/apps/.+\.yaml$/"]
+    "managerFilePatterns": ["/infrastructure/.+\\.yaml$/", "/apps/.+\\.yaml$/"]
   },
   "flux": {
-    "managerFilePatterns": ["/clusters/.+\.yaml$/"]
+    "managerFilePatterns": ["/clusters/.+\\.yaml$/"]
   },
   "customManagers": [
     {
@@ -38,6 +38,13 @@
       "description": "Group Flux updates",
       "groupName": "Flux",
       "matchPackageNames": ["/flux/"]
+    },
+    {
+      "description": "Automerge patch updates for home-operations containers once the release is 24h old",
+      "matchPackageNames": ["ghcr.io/home-operations/**"],
+      "matchUpdateTypes": ["patch"],
+      "minimumReleaseAge": "1 day",
+      "automerge": true
     },
     {
       "description": "Group monitoring stack updates",
