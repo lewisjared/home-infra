@@ -1,0 +1,29 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  # Separate hostname for programmatic API access. Authelia forward-auth is NOT
+  # applied here (agents present a static Authorization: Bearer AGENT_API_TOKEN,
+  # which has no Authelia session); the app enforces that token itself. Only the
+  # /api/v1 prefix is routed, so the human UI is never served unauthenticated.
+  name: date-jar-api
+  namespace: date-jar
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: date-jar-api.home.lewelly.com
+  labels:
+    app.kubernetes.io/name: date-jar
+    app.kubernetes.io/part-of: home-infra
+spec:
+  parentRefs:
+    - name: home-gateway
+      namespace: traefik
+      sectionName: websecure
+  hostnames:
+    - date-jar-api.home.lewelly.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/v1
+      backendRefs:
+        - name: date-jar
+          port: 3000

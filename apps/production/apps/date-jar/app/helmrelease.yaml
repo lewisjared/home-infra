@@ -43,28 +43,19 @@ spec:
           main:
             image:
               repository: ghcr.io/lewisjared/date-jar
-              tag: v0.1.0@sha256:0ad5d47e5413b43163300d82354faccbde975d661560e0be302cc3a157a02b96
+              tag: v0.2.0@sha256:50a81126c10456ff1c71446c5fd448de8176de83c282455014fb011a9b5b8ca5
               pullPolicy: IfNotPresent
             env:
               NODE_ENV: production
+              # Auth is enforced upstream by Traefik -> Authelia forward-auth,
+              # which injects Remote-User/Remote-Groups. AUTH_URL is retained for
+              # the app's same-origin (CSRF) check on cookie-authenticated writes.
               AUTH_URL: https://date-jar.home.lewelly.com
-              AUTH_SECRET:
-                valueFrom:
-                  secretKeyRef:
-                    name: date-jar-secrets
-                    key: AUTH_SECRET
               AGENT_API_TOKEN:
                 valueFrom:
                   secretKeyRef:
                     name: date-jar-secrets
                     key: AGENT_API_TOKEN
-              OIDC_ISSUER: https://auth.home.lewelly.com
-              OIDC_CLIENT_ID: date-jar
-              OIDC_CLIENT_SECRET:
-                valueFrom:
-                  secretKeyRef:
-                    name: date-jar-secrets
-                    key: OIDC_CLIENT_SECRET
               DATABASE_URL:
                 valueFrom:
                   secretKeyRef:
