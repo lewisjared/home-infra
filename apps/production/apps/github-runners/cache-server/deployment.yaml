@@ -36,7 +36,10 @@ spec:
               value: http://actions-cache-server.github-runners.svc.cluster.local:3000
             - name: STORAGE_DRIVER
               value: filesystem
-            - name: STORAGE_PATH
+            # Must be STORAGE_FILESYSTEM_PATH. The server ignores any other
+            # name and falls back to .data/storage/filesystem, which lands the
+            # blobs on the small index PVC instead of this 100Gi volume.
+            - name: STORAGE_FILESYSTEM_PATH
               value: /data
             - name: CLEANUP_OLDER_THAN
               value: "7d"
