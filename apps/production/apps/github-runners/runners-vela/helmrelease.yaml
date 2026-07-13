@@ -37,7 +37,7 @@ spec:
         serviceAccountName: arc-vela-runner
         initContainers:
           - name: init-dind-externals
-            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:2cae51372fb9457b48d72e5592d7d100faeb38f7231bb27267847adce2931a2b
+            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:396bad82ba63cbf574293dccc3f936aae60ef55450721d58a11978abaebb7a89
             command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
             volumeMounts:
               - name: dind-externals
@@ -91,7 +91,7 @@ spec:
                 memory: 24Gi
         containers:
           - name: runner
-            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:2cae51372fb9457b48d72e5592d7d100faeb38f7231bb27267847adce2931a2b
+            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:396bad82ba63cbf574293dccc3f936aae60ef55450721d58a11978abaebb7a89
             command: ["/home/runner/run.sh"]
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
