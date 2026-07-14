@@ -5,7 +5,10 @@ locals {
   # Gateway API CRDs fetched from GitHub at bootstrap
   # Using experimental channel because Cilium 1.18 requires TLSRoute CRD
   # See: https://github.com/cilium/cilium/issues/38420
-  gateway_api_version  = "v1.2.0"
+  # Keep in step with the live CRDs. v1.2.0 shipped BackendTLSPolicy as
+  # v1alpha3, but the cluster now stores it as v1, so talosctl upgrade-k8s
+  # could not re-apply the stale v1.2.0 CRD. v1.4.1 carries v1.
+  gateway_api_version  = "v1.4.1"
   gateway_api_crds_url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/${local.gateway_api_version}/experimental-install.yaml"
 
   # Registries proxied by the in-cluster Spegel P2P image cache
