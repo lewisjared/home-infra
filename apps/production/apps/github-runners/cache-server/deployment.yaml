@@ -26,7 +26,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: cache-server
-          image: ghcr.io/falcondev-oss/github-actions-cache-server:latest@sha256:d96b430c33bf3e2e81c0e4a813ab5c9c2c057e33f63be53c8039e8ec4be53df2
+          image: ghcr.io/falcondev-oss/github-actions-cache-server:latest@sha256:a473eded701722b816fd17899570f3055a4393a181507021961e61cf4e739a60
           ports:
             - name: http
               containerPort: 3000
