@@ -47,7 +47,7 @@ variable "talos_version" {
   description = "Talos Linux version"
   # keep in sync with apps/production/core/tuppr/talos-upgrade.yaml -> spec.talos.version
   # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-  default = "v1.13.6"
+  default = "v1.13.8"
 }
 
 variable "kubernetes_version" {
