@@ -6,6 +6,7 @@ resources:
   - controller/
   - cache-server/
   - runner-env/
+  - network-policies/
   - runners-ref/
   - runners-vela/
   - runners-vela-small/
