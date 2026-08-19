@@ -1,0 +1,61 @@
+---
+# Runner pods execute pull request code from public repositories, so they are treated as
+# untrusted. Nothing in the cluster should be able to open a connection into them.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: runners-deny-ingress
+  namespace: github-runners
+spec:
+  podSelector:
+    matchLabels:
+      network-policy: untrusted-runner
+  policyTypes:
+    - Ingress
+---
+# The only in-cluster destinations a runner needs are DNS and the Actions cache server.
+# Everything else is the public internet with RFC1918, CGNAT and link-local carved out,
+# which keeps a job off the home LAN, the Ceph and NFS networks, the Talos node APIs and
+# every other namespace. The NFS-backed volumes are mounted by the kubelet, so they are
+# unaffected by this.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: runners-egress
+  namespace: github-runners
+spec:
+  podSelector:
+    matchLabels:
+      network-policy: untrusted-runner
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: actions-cache-server
+      ports:
+        - protocol: TCP
+          port: 3000
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 100.64.0.0/10
+              - 169.254.0.0/16
+              - 224.0.0.0/4

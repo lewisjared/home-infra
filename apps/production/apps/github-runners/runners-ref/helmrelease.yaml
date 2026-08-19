@@ -43,7 +43,13 @@ spec:
       name: arc-controller-gha-rs-controller
       namespace: arc-system
     template:
+      metadata:
+        labels:
+          # Selected by the policies in ../network-policies.
+          network-policy: untrusted-runner
       spec:
+        # Runner jobs are pull request code from a public org, so give them no API credential.
+        automountServiceAccountToken: false
         # The CMIP6 NFS share is written by climate-ref pods running as 1000:1000.
         securityContext:
           fsGroup: 1000
@@ -125,6 +131,12 @@ spec:
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              seccompProfile:
+                type: RuntimeDefault
             # ILAMB integration tests load whole reference netCDFs into memory under the synchronous Dask scheduler,
             # which has no per-worker cap. A single large ocean field (e.g. so_Omon_CanESM5_historical) materialises
             # to many GiB when opened.
