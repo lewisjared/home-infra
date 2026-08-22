@@ -78,16 +78,16 @@ from the snapshot, not the live PVC.
 
 ### Media namespace (8 apps)
 
-| App        | PVC               | UID/GID | Manifest                                  |
-| ---------- | ----------------- | ------- | ----------------------------------------- |
-| Jellyfin   | `jellyfin-config` | 3000    | `media/jellyfin/replicationsource.yaml`   |
-| Deluge     | `deluge-config`   | 3000    | `media/deluge/replicationsource.yaml`     |
-| Radarr     | `radarr`          | 3000    | `media/radarr/replicationsource.yaml`     |
-| Sonarr     | `sonarr`          | 3000    | `media/sonarr/replicationsource.yaml`     |
-| Bazarr     | `bazarr`          | 3000    | `media/bazarr/replicationsource.yaml`     |
-| Prowlarr   | `prowlarr`        | 3000    | `media/prowlarr/replicationsource.yaml`   |
-| SABnzbd    | `sabnzbd`         | 3000    | `media/sabnzbd/replicationsource.yaml`    |
-| Jellyseerr | `jellyseerr`      | 3000    | `media/jellyseerr/replicationsource.yaml` |
+| App         | PVC                  | UID/GID | Manifest                                   |
+| ----------- | -------------------- | ------- | ------------------------------------------ |
+| Jellyfin    | `jellyfin-config`    | 3000    | `media/jellyfin/replicationsource.yaml`    |
+| qBittorrent | `qbittorrent-config` | 3000    | `media/qbittorrent/replicationsource.yaml` |
+| Radarr      | `radarr`             | 3000    | `media/radarr/replicationsource.yaml`      |
+| Sonarr      | `sonarr`             | 3000    | `media/sonarr/replicationsource.yaml`      |
+| Bazarr      | `bazarr`             | 3000    | `media/bazarr/replicationsource.yaml`      |
+| Prowlarr    | `prowlarr`           | 3000    | `media/prowlarr/replicationsource.yaml`    |
+| SABnzbd     | `sabnzbd`            | 3000    | `media/sabnzbd/replicationsource.yaml`     |
+| Jellyseerr  | `jellyseerr`         | 3000    | `media/jellyseerr/replicationsource.yaml`  |
 
 All manifest paths are relative to `apps/production/apps/`.
 

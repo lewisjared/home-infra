@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: deluge
+  name: qbittorrent
   namespace: media
 spec:
   interval: 1h
@@ -40,12 +40,12 @@ spec:
               VPN_SERVICE_PROVIDER: nordvpn
               VPN_TYPE: wireguard
               SERVER_COUNTRIES: Australia
-              FIREWALL_INPUT_PORTS: "8112"
+              FIREWALL_INPUT_PORTS: "8080"
               FIREWALL_OUTBOUND_SUBNETS: 10.0.0.0/8
               UPDATER_PERIOD: 24h
             envFrom:
               - secretRef:
-                  name: deluge-secret
+                  name: qbittorrent-secret
             probes:
               liveness:
                 enabled: true
@@ -53,7 +53,7 @@ spec:
                 spec:
                   httpGet:
                     path: /
-                    port: 8112
+                    port: &port 8080
                   initialDelaySeconds: 30
                   periodSeconds: 30
                   timeoutSeconds: 10
@@ -72,13 +72,15 @@ spec:
           main:
             dependsOn: gluetun
             image:
-              repository: ghcr.io/linuxserver/deluge
-              tag: 18.04.1@sha256:0ac8716243944d28890565f759c7cedfc9e36a3fd5a827c9d0927abc0c8f97c9
+              repository: ghcr.io/home-operations/qbittorrent
+              tag: 5.2.3@sha256:4fcf15b7f265c2c8d7bc2a7e13240a07e0593c326f3cf3b5b9bb69eec5b79299
             env:
               TZ: Australia/Melbourne
-              PUID: "3000"
-              PGID: "3000"
-              DELUGE_LOGLEVEL: error
+              QBT_WEBUI_PORT: *port
+              # Sonarr and Radarr call the API in-cluster, so trust the pod network instead
+              # of holding a password that would also need to live in their configs.
+              QBT_Preferences__WebUI__AuthSubnetWhitelistEnabled: "true"
+              QBT_Preferences__WebUI__AuthSubnetWhitelist: 10.0.0.0/8
             probes:
               liveness:
                 enabled: false
@@ -89,14 +91,14 @@ spec:
                 cpu: 10m
                 memory: 256Mi
               limits:
-                memory: 2Gi
+                memory: 4Gi
 
     service:
       main:
         controller: main
         ports:
           http:
-            port: 8112
+            port: *port
 
     persistence:
       config:

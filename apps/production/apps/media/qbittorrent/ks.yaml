@@ -2,11 +2,11 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: deluge
+  name: qbittorrent
   namespace: flux-system
 spec:
   interval: 30m
-  path: ./apps/production/apps/media/deluge
+  path: ./apps/production/apps/media/qbittorrent
   prune: true
   wait: true
   timeout: 5m0s
@@ -24,5 +24,5 @@ spec:
     - ../../../../../components/alerts
   postBuild:
     substitute:
-      APP: deluge
-      VOLSYNC_CLAIM: deluge-config
+      APP: qbittorrent
+      VOLSYNC_CLAIM: qbittorrent-config
