@@ -13,5 +13,6 @@ resources:
   - bazarr/
   - prowlarr/
   - qbittorrent/
+  - shelfmark/
   - jellyfin/
   - jellyseerr/
