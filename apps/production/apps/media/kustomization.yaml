@@ -12,6 +12,6 @@ resources:
   - sonarr/
   - bazarr/
   - prowlarr/
-  - deluge/
+  - qbittorrent/
   - jellyfin/
   - jellyseerr/
