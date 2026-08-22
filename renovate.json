@@ -47,6 +47,11 @@
       "automerge": true
     },
     {
+      "description": "LinuxServer.io images use a <version>-ls<build> scheme that default docker versioning cannot order",
+      "matchPackageNames": ["ghcr.io/linuxserver/**"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<build>\\d+)$"
+    },
+    {
       "description": "Group monitoring stack updates",
       "groupName": "Monitoring Stack",
       "matchPackageNames": [

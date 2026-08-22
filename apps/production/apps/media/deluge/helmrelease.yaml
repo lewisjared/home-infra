@@ -73,7 +73,7 @@ spec:
             dependsOn: gluetun
             image:
               repository: ghcr.io/linuxserver/deluge
-              tag: 18.04.1@sha256:0ac8716243944d28890565f759c7cedfc9e36a3fd5a827c9d0927abc0c8f97c9
+              tag: 2.2.0-ls381@sha256:33a939576f7ecfc1227db1a0cb2afce030ce983e620ec9d93c956e3700e21fe9
             env:
               TZ: Australia/Melbourne
               PUID: "3000"
