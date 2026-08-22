@@ -23,6 +23,7 @@ resources:
   - media/qbittorrent/ks.yaml
   - media/jellyfin/ks.yaml
   - media/jellyseerr/ks.yaml
+  - media/tdarr/ks.yaml
   # Headlamp
   - headlamp/ks.yaml
   # Home Assistant + code-server
