@@ -21,6 +21,7 @@ resources:
   - media/prowlarr/ks.yaml
   - media/sabnzbd/ks.yaml
   - media/qbittorrent/ks.yaml
+  - media/flaresolverr/ks.yaml
   - media/jellyfin/ks.yaml
   - media/jellyseerr/ks.yaml
   - media/tdarr/ks.yaml
