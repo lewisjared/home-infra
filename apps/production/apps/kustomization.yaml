@@ -24,6 +24,7 @@ resources:
   - media/jellyfin/ks.yaml
   - media/jellyseerr/ks.yaml
   - media/tdarr/ks.yaml
+  - media/calibre-web-automated/ks.yaml
   # Headlamp
   - headlamp/ks.yaml
   # Home Assistant + code-server
