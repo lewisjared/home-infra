@@ -23,7 +23,7 @@ metadata:
 spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-    version: v1.13.8 # keep in sync with tf/variables.tf -> talos_version
+    version: v1.13.10 # keep in sync with tf/variables.tf -> talos_version
 
   # One node at a time. With 3 dual-role nodes = 3 etcd members, never take down
   # more than one member at once; tuppr also gates on etcd health between nodes.
