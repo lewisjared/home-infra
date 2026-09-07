@@ -55,7 +55,7 @@ variable "kubernetes_version" {
   description = "Kubernetes version"
   # keep in sync with apps/production/core/tuppr/kubernetes-upgrade.yaml -> spec.kubernetes.version
   # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-  default = "v1.36.2"
+  default = "v1.37.0"
 }
 
 # =============================================================================
