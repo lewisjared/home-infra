@@ -9,7 +9,7 @@ spec:
   path: ./apps/production/apps/media/tdarr
   prune: true
   wait: true
-  timeout: 5m0s
+  timeout: 20m0s
   sourceRef:
     kind: GitRepository
     name: flux-system
