@@ -209,6 +209,8 @@ cmd_down() {
 
   log "Uninstalling the release"
   kubectl -n "$NS" delete helmrelease climate-ref --ignore-not-found --wait=false
+  # Helm leaves hook resources behind, and an unfinished migrate Job would recreate its pod mid-wipe.
+  kubectl -n "$NS" delete job,secret climate-ref-migrate --ignore-not-found --wait=false
   # Workers get hours of grace to finish a task, so cut it short.
   # Not --force: a pod only disappears once the kubelet has stopped it, which the wipe relies on.
   local pods i
