@@ -30,7 +30,6 @@ spec:
   upgrade:
     remediation:
       retries: 3
-      remediateLastFailure: true
     cleanupOnFail: true
   values:
     # Resources are named climate-ref-<component>, which testbed.sh and the dashboard rely on.
@@ -82,29 +81,28 @@ spec:
         REF_CMIP6_PARSER: drs
       volumes: *volumes
       volumeMounts:
-        - name: ref
+        - &refMount
+          name: ref
           mountPath: /ref
-        - name: cmip6
+        - &cmip6Mount
+          name: cmip6
           mountPath: /data/cmip6
           readOnly: true
         - name: obs
           mountPath: /data/obs
           readOnly: true
-        - name: tmp
+        - &tmpMount
+          name: tmp
           mountPath: /tmp
 
     # Writes obs4REF to the obs volume during bootstrap, which the workers only read.
     orchestrator:
       volumeMounts:
-        - name: ref
-          mountPath: /ref
-        - name: cmip6
-          mountPath: /data/cmip6
-          readOnly: true
+        - *refMount
+        - *cmip6Mount
         - name: obs
           mountPath: /data/obs
-        - name: tmp
-          mountPath: /tmp
+        - *tmpMount
 
     providers:
       esmvaltool:

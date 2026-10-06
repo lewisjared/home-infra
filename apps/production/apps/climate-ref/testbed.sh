@@ -33,7 +33,8 @@ Usage: $(basename "$0") <command> [args]
 EOF
 }
 
-# Prints {"queues": {name: length}, "executions": {provider: {running, failed, successful, not_started}}}.
+# Prints {"totals": {queued, running, failed}, "queues": {name: length},
+# "executions": {provider: {running, failed, successful, not_started}}}.
 state() {
   orch python - <<'EOF'
 import json
@@ -55,20 +56,27 @@ for row in Reader(database).executions.statistics():
     for key in totals:
         totals[key] += getattr(row, key)
 
-print(json.dumps({"queues": queues, "executions": executions}))
+totals = {
+    "queued": sum(queues.values()),
+    "running": sum(e["running"] for e in executions.values()),
+    "failed": sum(e["failed"] for e in executions.values()),
+}
+print(json.dumps({"totals": totals, "queues": queues, "executions": executions}))
 EOF
 }
 
+# Prints "<worker> <replicas>" per worker, in one API call.
 replicas() {
-  local r
-  r=$(kubectl -n "$NS" get deploy "climate-ref-$1" -o jsonpath='{.status.replicas}')
-  echo "${r:-0}"
+  local deploys="" w
+  for w in $WORKERS; do deploys+=" climate-ref-$w"; done
+  # shellcheck disable=SC2086
+  kubectl -n "$NS" get deploy $deploys \
+    -o jsonpath='{range .items[*]}{.metadata.name} {.status.replicas}{"\n"}{end}' | sed 's/^climate-ref-//'
 }
 
 cmd_up() {
   log "Resuming Flux"
   flux resume kustomization climate-ref -n flux-system --timeout=20m
-  kubectl -n "$NS" rollout status deploy/climate-ref-orchestrator --timeout=10m
 }
 
 cmd_bootstrap() {
@@ -78,7 +86,6 @@ cmd_bootstrap() {
 
   log "Restarting the API so it loads the provider environments"
   kubectl -n "$NS" rollout restart deploy/climate-ref-api
-  kubectl -n "$NS" rollout status deploy/climate-ref-api --timeout=10m
 
   if orch sh -c "[ -n \"\$(ls -A $OBS4REF_PATH 2>/dev/null)\" ]"; then
     log "obs4REF already fetched to $OBS4REF_PATH"
@@ -96,6 +103,8 @@ cmd_bootstrap() {
 
   log "Doctor"
   orch ref doctor || echo "Doctor reported findings. Diagnostics it names will not run."
+
+  kubectl -n "$NS" rollout status deploy/climate-ref-api --timeout=10m
 }
 
 cmd_solve() {
@@ -116,25 +125,26 @@ cmd_solve() {
 }
 
 cmd_watch() {
-  local start=$SECONDS saw_work=0 snapshot queued running line idle w r peak
+  local start=$SECONDS saw_work=0 totals counts queued running line idle w r peak
   for w in $WORKERS; do printf -v "peak_$w" 0; done
   log "Watching every ${WATCH_INTERVAL}s, until the workers are back at zero"
   while :; do
-    snapshot=$(state)
-    queued=$(jq '[.queues[]] | add // 0' <<<"$snapshot")
-    running=$(jq '[.executions[].running] | add // 0' <<<"$snapshot")
+    totals=$(state | jq -r '.totals | "\(.queued) \(.running)"')
+    counts=$(replicas)
+    read -r queued running <<<"$totals"
     line="$(date +%H:%M:%S) queued=$queued running=$running |"
     idle=1
-    for w in $WORKERS; do
-      r=$(replicas "$w")
+    while read -r w r; do
+      r=${r:-0}
       peak="peak_$w"
       if [ "$r" -gt "${!peak}" ]; then printf -v "peak_$w" '%s' "$r"; fi
       if [ "$r" -gt 0 ]; then idle=0; fi
       line+=" $w=$r"
-    done
+    done <<<"$counts"
     echo "$line"
-    if [ "$queued" -gt 0 ] || [ "$running" -gt 0 ] || [ "$idle" -eq 0 ]; then saw_work=1; fi
-    if [ "$saw_work" -eq 1 ] && [ "$queued" -eq 0 ] && [ "$running" -eq 0 ] && [ "$idle" -eq 1 ]; then
+    if [ "$queued" -gt 0 ] || [ "$running" -gt 0 ] || [ "$idle" -eq 0 ]; then
+      saw_work=1
+    elif [ "$saw_work" -eq 1 ]; then
       log "Drained and scaled to zero after $(( (SECONDS - start) / 60 )) min"
       for w in $WORKERS; do peak="peak_$w"; echo "$w peaked at ${!peak} replica(s)"; done
       return 0
@@ -150,9 +160,9 @@ cmd_verify() {
   orch ref executions stats
   snapshot=$(state)
 
-  n=$(jq '[.executions[].running] | add // 0' <<<"$snapshot")
+  n=$(jq .totals.running <<<"$snapshot")
   [ "$n" -eq 0 ] || { echo "FAIL: $n execution(s) still running"; failed=1; }
-  n=$(jq '[.executions[].failed] | add // 0' <<<"$snapshot")
+  n=$(jq .totals.failed <<<"$snapshot")
   if [ "$n" -gt 0 ]; then
     echo "FAIL: $n execution group(s) failed"
     orch ref executions list-groups --not-successful
@@ -170,11 +180,7 @@ import urllib.request
 
 base = "http://climate-ref-api/api/v1"
 urllib.request.urlopen(f"{base}/utils/health-check/", timeout=30)
-body = json.load(urllib.request.urlopen(f"{base}/executions/", timeout=30))
-if isinstance(body, dict):
-    count = body.get("count", len(body.get("results") or body.get("data") or []))
-else:
-    count = len(body)
+count = json.load(urllib.request.urlopen(f"{base}/executions/", timeout=30))["count"]
 print(f"API is healthy and lists {count} execution(s)")
 if not count:
     raise SystemExit("FAIL: the API lists no executions")

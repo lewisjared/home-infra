@@ -9,8 +9,8 @@ spec:
   path: ./apps/production/apps/climate-ref
   prune: true
   wait: true
-  # Covers the db-migrate hook plus the first pull of the multi-GB worker image.
-  timeout: 15m0s
+  # Matches the HelmRelease timeout, which covers the first pull of the multi-GB worker image.
+  timeout: 20m0s
   sourceRef:
     kind: GitRepository
     name: flux-system
