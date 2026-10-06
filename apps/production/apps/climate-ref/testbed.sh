@@ -226,7 +226,10 @@ cmd_down() {
     if [ -z "$pods" ] && ! kubectl -n "$NS" get helmrelease climate-ref >/dev/null 2>&1; then
       break
     fi
-    [ "$i" -lt 60 ] || die "still using $STATE_CLAIM after 10 min, not wiping state: ${pods//$'\n'/ }"
+    if [ "$i" -eq 60 ]; then
+      [ -z "$pods" ] || die "pods still use $STATE_CLAIM after 10 min, not wiping state: ${pods//$'\n'/ }"
+      die "HelmRelease still uninstalling after 10 min, not wiping state. Wait for it and rerun down."
+    fi
     sleep 10
   done
 

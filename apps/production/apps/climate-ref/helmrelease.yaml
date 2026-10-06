@@ -84,8 +84,10 @@ spec:
     defaults:
       podSecurityContext: *podSecurityContext
       env:
-        # The DRS parser reads metadata from the path, so a 60k file archive ingests in minutes.
-        REF_CMIP6_PARSER: drs
+        # drs defers file parsing to the solve, which crashes on a string branch_time in 0.18.1.
+        REF_CMIP6_PARSER: complete
+        # Parsing waits on NFS rather than CPU, so this runs well past the orchestrator's 2 CPU limit.
+        REF_N_JOBS: "8"
       volumes: *volumes
       volumeMounts:
         - &refMount
