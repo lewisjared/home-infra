@@ -209,11 +209,12 @@ cmd_down() {
 
   log "Uninstalling the release"
   kubectl -n "$NS" delete helmrelease climate-ref --ignore-not-found --wait=false
-  # Workers get hours of grace to finish a task, so force them out rather than wait.
+  # Workers get hours of grace to finish a task, so cut it short.
+  # Not --force: a pod only disappears once the kubelet has stopped it, which the wipe relies on.
   local pods i
   for i in $(seq 60); do
     kubectl -n "$NS" delete pod -l app.kubernetes.io/instance=climate-ref \
-      --ignore-not-found --grace-period=0 --force >/dev/null 2>&1 || true
+      --ignore-not-found --grace-period=1 --wait=false >/dev/null 2>&1 || true
     pods=$(kubectl -n "$NS" get pod -l app.kubernetes.io/instance=climate-ref -o name)
     if [ -z "$pods" ] && ! kubectl -n "$NS" get helmrelease climate-ref >/dev/null 2>&1; then
       break
