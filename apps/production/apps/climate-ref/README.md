@@ -12,7 +12,7 @@ This directory adds the NFS volumes, the Authelia middleware, the ESGF fetch cro
 | --------------------------- | -------------------------------------------------------------- |
 | `helmrelease.yaml`          | The chart and its values                                       |
 | `middleware.yaml`           | Authelia forward-auth, attached to the chart's HTTPRoutes      |
-| `pvc/`                      | Static NFS volumes for state (`/ref`), CMIP6 and observations  |
+| `pvc/`                      | Static NFS volumes for state (`/ref`) and CMIP6                |
 | `esgpull/`                  | Daily `esgf-fetch` cronjob that downloads CMIP6 data from ESGF |
 | `monitoring/dashboard.yaml` | Grafana dashboard over the Flower and Dragonfly metrics        |
 | `testbed.sh`                | Bring up, bootstrap, solve, watch, verify and tear down        |
@@ -33,10 +33,9 @@ This directory adds the NFS volumes, the Authelia middleware, the ESGF fetch cro
 | ------------- | ----------------------- | ----------------------------------------- | ------------------------------------------------- |
 | `/ref`        | `climate-ref-state-csi` | `10.10.30.20:/mnt/fast/climate-ref`       | Read-write, read-only on the API except `/ref/db` |
 | `/data/cmip6` | `climate-ref-cmip6-csi` | `10.10.30.20:/mnt/tank/climate-ref/cmip6` | Read-only                                         |
-| `/data/obs`   | `climate-ref-obs-csi`   | `10.10.30.20:/mnt/tank/climate-ref/obs`   | Read-only, read-write on the orchestrator         |
 
 `/ref` holds the database, results, scratch, logs, the conda environments (`/ref/software`) and the reference data cache (`/ref/cache`).
-obs4REF lives at `/data/obs/obs4REF`, so it survives a teardown.
+obs4REF lives in that cache, which a plain `down` keeps.
 
 ## Test-bed
 
@@ -51,7 +50,7 @@ apps/production/apps/climate-ref/testbed.sh e2e
 | Step                  | What it does                                                                                              |
 | --------------------- | --------------------------------------------------------------------------------------------------------- |
 | `up`                  | Resumes the Flux Kustomization and waits for the release                                                  |
-| `bootstrap`           | `ref providers setup`, restarts the API, fetches obs4REF if missing, ingests obs4REF and CMIP6            |
+| `bootstrap`           | `ref providers setup`, restarts the API, fetches obs4REF into the cache, ingests obs4REF and CMIP6        |
 | `solve [smoke\|wide]` | Queues executions and returns                                                                             |
 | `watch`               | Prints queue length, running executions and worker replicas until everything is back at zero              |
 | `verify`              | Fails unless each provider has a success, nothing failed, queued or running, and the API lists executions |
@@ -77,7 +76,7 @@ apps/production/apps/climate-ref/testbed.sh down
 This suspends the Flux Kustomization, uninstalls the release and wipes the database, results, scratch and logs.
 It keeps the conda environments and the reference data cache, so the next `bootstrap` takes minutes rather than hours.
 `down --purge` wipes those too, which makes the next `bootstrap` a true first install.
-The CMIP6 archive and obs4REF are never touched.
+The CMIP6 archive is never touched.
 It refuses to wipe while any pod still mounts the state volume, including jobs outside the release.
 
 The Kustomization stays suspended until `up`.

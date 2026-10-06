@@ -66,9 +66,6 @@ spec:
         - name: cmip6
           persistentVolumeClaim:
             claimName: climate-ref-cmip6-csi
-        - name: obs
-          persistentVolumeClaim:
-            claimName: climate-ref-obs-csi
         - name: tmp
           emptyDir: {}
       volumeMounts:
@@ -90,28 +87,13 @@ spec:
         REF_N_JOBS: "8"
       volumes: *volumes
       volumeMounts:
-        - &refMount
-          name: ref
+        - name: ref
           mountPath: /ref
-        - &cmip6Mount
-          name: cmip6
+        - name: cmip6
           mountPath: /data/cmip6
           readOnly: true
-        - name: obs
-          mountPath: /data/obs
-          readOnly: true
-        - &tmpMount
-          name: tmp
+        - name: tmp
           mountPath: /tmp
-
-    # Writes obs4REF to the obs volume during bootstrap, which the workers only read.
-    orchestrator:
-      volumeMounts:
-        - *refMount
-        - *cmip6Mount
-        - name: obs
-          mountPath: /data/obs
-        - *tmpMount
 
     providers:
       esmvaltool:
