@@ -7,6 +7,7 @@ NS=climate-ref
 WORKERS="esmvaltool pmp ilamb"
 CMIP6_PATH=${CMIP6_PATH:-/data/cmip6}
 OBS4REF_PATH=/data/obs/obs4REF
+STATE_CLAIM=climate-ref-state-csi
 WATCH_INTERVAL=${WATCH_INTERVAL:-30}
 WATCH_TIMEOUT=${WATCH_TIMEOUT:-28800}
 WIPE_IMAGE=busybox:1.37.0@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e
@@ -25,7 +26,7 @@ Usage: $(basename "$0") <command> [args]
                        smoke  one execution per provider from three quick diagnostics (default)
                        wide   one execution per diagnostic, enough to push KEDA to its maximum
   watch              Follow queues, executions and worker replicas until the workers scale back to zero
-  verify             Fail unless every worker provider has a success and nothing failed or is running
+  verify             Fail unless every worker provider has a success and nothing failed, queued or running
   status             One snapshot of pods, autoscalers, queues and executions
   e2e [mode]         up, bootstrap, solve, watch and verify in one go
   down [--purge]     Uninstall and wipe the database, results, scratch and logs.
@@ -163,6 +164,8 @@ cmd_verify() {
   orch ref executions stats
   snapshot=$(state)
 
+  n=$(jq .totals.queued <<<"$snapshot")
+  [ "$n" -eq 0 ] || { echo "FAIL: $n task(s) still queued"; failed=1; }
   n=$(jq .totals.running <<<"$snapshot")
   [ "$n" -eq 0 ] || { echo "FAIL: $n execution(s) still running"; failed=1; }
   n=$(jq .totals.failed <<<"$snapshot")
@@ -217,11 +220,13 @@ cmd_down() {
   for i in $(seq 60); do
     kubectl -n "$NS" delete pod -l app.kubernetes.io/instance=climate-ref \
       --ignore-not-found --grace-period=1 --wait=false >/dev/null 2>&1 || true
-    pods=$(kubectl -n "$NS" get pod -l app.kubernetes.io/instance=climate-ref -o name)
+    # Any pod on the state volume blocks the wipe, including jobs outside the release.
+    pods=$(kubectl -n "$NS" get pod -o json | jq -r --arg claim "$STATE_CLAIM" \
+      '.items[] | select(any(.spec.volumes[]?; .persistentVolumeClaim.claimName == $claim)) | .metadata.name')
     if [ -z "$pods" ] && ! kubectl -n "$NS" get helmrelease climate-ref >/dev/null 2>&1; then
       break
     fi
-    [ "$i" -lt 60 ] || die "release still uninstalling after 10 min, not wiping state"
+    [ "$i" -lt 60 ] || die "still using $STATE_CLAIM after 10 min, not wiping state: ${pods//$'\n'/ }"
     sleep 10
   done
 
@@ -237,7 +242,7 @@ cmd_down() {
       "securityContext": {"allowPrivilegeEscalation": false, "capabilities": {"drop": ["ALL"]}},
       "volumeMounts": [{"name": "ref", "mountPath": "/ref"}]
     }],
-    "volumes": [{"name": "ref", "persistentVolumeClaim": {"claimName": "climate-ref-state-csi"}}]
+    "volumes": [{"name": "ref", "persistentVolumeClaim": {"claimName": "$STATE_CLAIM"}}]
   }
 }
 EOF

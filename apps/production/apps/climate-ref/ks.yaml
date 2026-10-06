@@ -9,8 +9,8 @@ spec:
   path: ./apps/production/apps/climate-ref
   prune: true
   wait: true
-  # Matches the HelmRelease timeout, which covers the first pull of the multi-GB worker image.
-  timeout: 20m0s
+  # Above the HelmRelease timeout, so its health check outlasts the first multi-GB image pull.
+  timeout: 25m0s
   sourceRef:
     kind: GitRepository
     name: flux-system

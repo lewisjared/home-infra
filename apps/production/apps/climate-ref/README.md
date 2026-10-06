@@ -48,13 +48,13 @@ apps/production/apps/climate-ref/testbed.sh e2e
 
 `e2e` runs these steps in order. Each one also runs on its own.
 
-| Step                  | What it does                                                                                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------- |
-| `up`                  | Resumes the Flux Kustomization and waits for the release                                             |
-| `bootstrap`           | `ref providers setup`, restarts the API, fetches obs4REF if missing, ingests obs4REF and CMIP6       |
-| `solve [smoke\|wide]` | Queues executions and returns                                                                        |
-| `watch`               | Prints queue length, running executions and worker replicas until everything is back at zero         |
-| `verify`              | Fails unless each provider has a success, nothing failed or is running, and the API lists executions |
+| Step                  | What it does                                                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| `up`                  | Resumes the Flux Kustomization and waits for the release                                                  |
+| `bootstrap`           | `ref providers setup`, restarts the API, fetches obs4REF if missing, ingests obs4REF and CMIP6            |
+| `solve [smoke\|wide]` | Queues executions and returns                                                                             |
+| `watch`               | Prints queue length, running executions and worker replicas until everything is back at zero              |
+| `verify`              | Fails unless each provider has a success, nothing failed, queued or running, and the API lists executions |
 
 `solve smoke` queues one quick diagnostic per provider and takes a few minutes.
 `solve wide` queues one execution per diagnostic.
@@ -64,6 +64,9 @@ Extra arguments go straight to `ref solve`, for example `solve smoke --dataset-f
 Set `CMIP6_PATH` to ingest part of the archive, for example `CMIP6_PATH=/data/cmip6/CMIP/CSIRO`.
 
 `status` prints one snapshot of the pods, autoscalers, queues and executions.
+
+`verify` checks every execution in the database, not only the latest solve.
+Run `down` first for a result that covers one solve alone.
 
 ### Tear down
 
@@ -75,6 +78,7 @@ This suspends the Flux Kustomization, uninstalls the release and wipes the datab
 It keeps the conda environments and the reference data cache, so the next `bootstrap` takes minutes rather than hours.
 `down --purge` wipes those too, which makes the next `bootstrap` a true first install.
 The CMIP6 archive and obs4REF are never touched.
+It refuses to wipe while any pod still mounts the state volume, including jobs outside the release.
 
 The Kustomization stays suspended until `up`.
 
