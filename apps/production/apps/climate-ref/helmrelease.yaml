@@ -36,6 +36,9 @@ spec:
     nameOverride: ref
 
     api:
+      podSecurityContext: &podSecurityContext
+        # Skips the recursive chown of millions of NFS files on every pod start.
+        fsGroupChangePolicy: OnRootMismatch
       env:
         # ILAMB and intake-esgf write config under HOME on import, and the root filesystem is read-only.
         HOME: /tmp
@@ -79,6 +82,7 @@ spec:
           mountPath: /tmp
 
     defaults:
+      podSecurityContext: *podSecurityContext
       env:
         # The DRS parser reads metadata from the path, so a 60k file archive ingests in minutes.
         REF_CMIP6_PARSER: drs
