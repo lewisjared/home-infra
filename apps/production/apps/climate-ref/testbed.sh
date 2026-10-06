@@ -6,7 +6,8 @@ set -euo pipefail
 NS=climate-ref
 WORKERS="esmvaltool pmp ilamb"
 CMIP6_PATH=${CMIP6_PATH:-/data/cmip6}
-OBS4REF_PATH=/data/obs/obs4REF
+# Diagnostics resolve obs4REF files in the reference cache, so it is ingested from there.
+OBS4REF_PATH=/ref/cache/climate_ref/obs4ref/obs4REF
 STATE_CLAIM=climate-ref-state-csi
 WATCH_INTERVAL=${WATCH_INTERVAL:-30}
 WATCH_TIMEOUT=${WATCH_TIMEOUT:-28800}
@@ -88,12 +89,8 @@ cmd_bootstrap() {
   log "Restarting the API so it loads the provider environments"
   kubectl -n "$NS" rollout restart deploy/climate-ref-api
 
-  if orch sh -c "[ -n \"\$(ls -A $OBS4REF_PATH 2>/dev/null)\" ]"; then
-    log "obs4REF already fetched to $OBS4REF_PATH"
-  else
-    log "Fetching obs4REF to $OBS4REF_PATH"
-    orch ref datasets fetch-data --registry obs4ref --output-directory "$OBS4REF_PATH"
-  fi
+  log "Fetching obs4REF, which only downloads files missing from the cache"
+  orch ref datasets fetch-data --registry obs4ref
 
   log "Ingesting obs4REF"
   orch ref datasets ingest --source-type obs4ref "$OBS4REF_PATH"
@@ -115,7 +112,7 @@ cmd_solve() {
     smoke)
       log "Solving: one execution per provider"
       orch ref solve --no-wait --one-per-provider \
-        --diagnostic global-mean-timeseries --diagnostic annual-cycle --diagnostic gpp-wecann "$@"
+        --diagnostic global-mean-timeseries --diagnostic annual-cycle --diagnostic gpp-fluxnet2015 "$@"
       ;;
     wide)
       log "Solving: one execution per diagnostic"
