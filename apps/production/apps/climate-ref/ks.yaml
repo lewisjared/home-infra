@@ -9,14 +9,14 @@ spec:
   path: ./apps/production/apps/climate-ref
   prune: true
   wait: true
-  timeout: 5m0s
+  # Above the HelmRelease timeout, so its health check outlasts the first multi-GB image pull.
+  timeout: 25m0s
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
     - name: core
     - name: storage
-    - name: database-clusters
   decryption:
     provider: sops
     secretRef:
@@ -28,7 +28,3 @@ spec:
       APP: climate-ref
       # Grafana dashboard JSON refers to the Prometheus datasource by UID.
       datasource: prometheus
-      # Single source-of-truth for the climate-ref container image
-      # tag+digest. Referenced from helmrelease.yaml defaults.image.tag
-      # and both jobs/cronjob-*.yaml manifests so bumps are one-line.
-      CLIMATE_REF_IMAGE_TAG: v0.14.7@sha256:5f34287876e9efc9d176cb8d7da9210cc1c1388bfe0f3762eb434525efc966b6

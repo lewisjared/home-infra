@@ -5,4 +5,3 @@ resources:
   - cmip6-pv-csi.yaml
   - obs-pv-csi.yaml
   - state-pv-csi.yaml
-  - esgpull-pv-csi.yaml
