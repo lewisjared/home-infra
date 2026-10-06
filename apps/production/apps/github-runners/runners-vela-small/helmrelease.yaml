@@ -37,7 +37,7 @@ spec:
       spec:
         containers:
           - name: runner
-            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:b0cbd599b4124962a91930f85b0061adc5a5aaf874221d29741411fc661a259b
+            image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:32a63e960641cde7df61ee56e18576d9781d3980f3e6461d379308b88ec5c036
             command: ["/home/runner/run.sh"]
             env:
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
