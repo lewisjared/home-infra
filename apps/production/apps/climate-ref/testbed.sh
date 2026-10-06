@@ -127,7 +127,7 @@ cmd_solve() {
 cmd_watch() {
   local start=$SECONDS saw_work=0 totals counts queued running line idle w r peak
   for w in $WORKERS; do printf -v "peak_$w" 0; done
-  log "Watching every ${WATCH_INTERVAL}s, until the workers are back at zero"
+  log "Watching every ${WATCH_INTERVAL}s, until nothing is queued or running and the workers are at zero"
   while :; do
     totals=$(state | jq -r '.totals | "\(.queued) \(.running)"')
     counts=$(replicas)
@@ -144,7 +144,10 @@ cmd_watch() {
     echo "$line"
     if [ "$queued" -gt 0 ] || [ "$running" -gt 0 ] || [ "$idle" -eq 0 ]; then
       saw_work=1
-    elif [ "$saw_work" -eq 1 ]; then
+    elif [ "$saw_work" -eq 0 ]; then
+      log "Nothing queued or running, and the workers are already at zero"
+      return 0
+    else
       log "Drained and scaled to zero after $(( (SECONDS - start) / 60 )) min"
       for w in $WORKERS; do peak="peak_$w"; echo "$w peaked at ${!peak} replica(s)"; done
       return 0
@@ -205,10 +208,19 @@ cmd_down() {
   flux suspend kustomization climate-ref -n flux-system
 
   log "Uninstalling the release"
-  kubectl -n "$NS" delete helmrelease climate-ref --ignore-not-found --wait --timeout=10m
-  # Workers get hours of grace to finish a task, which a teardown does not want to wait for.
-  kubectl -n "$NS" delete pod -l app.kubernetes.io/instance=climate-ref --ignore-not-found --grace-period=0 --force
-  kubectl -n "$NS" wait pod -l app.kubernetes.io/instance=climate-ref --for=delete --timeout=5m 2>/dev/null || true
+  kubectl -n "$NS" delete helmrelease climate-ref --ignore-not-found --wait=false
+  # Workers get hours of grace to finish a task, so force them out rather than wait.
+  local pods i
+  for i in $(seq 60); do
+    kubectl -n "$NS" delete pod -l app.kubernetes.io/instance=climate-ref \
+      --ignore-not-found --grace-period=0 --force >/dev/null 2>&1 || true
+    pods=$(kubectl -n "$NS" get pod -l app.kubernetes.io/instance=climate-ref -o name)
+    if [ -z "$pods" ] && ! kubectl -n "$NS" get helmrelease climate-ref >/dev/null 2>&1; then
+      break
+    fi
+    [ "$i" -lt 60 ] || die "release still uninstalling after 10 min, not wiping state"
+    sleep 10
+  done
 
   log "Wiping state: $wipe"
   kubectl -n "$NS" run climate-ref-wipe --rm -i --restart=Never --image="$WIPE_IMAGE" --overrides="$(cat <<EOF

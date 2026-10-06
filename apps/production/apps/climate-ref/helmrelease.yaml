@@ -36,6 +36,9 @@ spec:
     nameOverride: ref
 
     api:
+      env:
+        # ILAMB and intake-esgf write config under HOME on import, and the root filesystem is read-only.
+        HOME: /tmp
       httpRoute:
         enabled: true
         annotations:
