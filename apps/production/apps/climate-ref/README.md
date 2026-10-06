@@ -1,322 +1,100 @@
-# Climate REF - Kubernetes Deployment
+# Climate REF
 
-Full CMIP6 ensemble evaluation using Climate REF on local Kubernetes with NFS-backed persistent storage.
+A test-bed for the [climate-ref-aft](https://github.com/Climate-REF/climate-ref-aft) Helm chart.
+It runs the CMIP7 Assessment Fast Track providers (ESMValTool, PMP and ILAMB) against the local CMIP6 archive.
 
-## Architecture
+The chart does almost everything.
+This directory adds the NFS volumes, the Authelia middleware, the ESGF fetch cronjob and a Grafana dashboard.
 
-```mermaid
-flowchart TB
-    subgraph ext[External]
-        user[User Browser]
-        esgfsrv[ESGF<br/>federated nodes]
-    end
+## Layout
 
-    subgraph gw[traefik namespace]
-        gateway[home-gateway<br/>Gateway: websecure]
-        authelia[authelia-forwardauth<br/>Middleware]
-    end
+| Path                        | What it is                                                     |
+| --------------------------- | -------------------------------------------------------------- |
+| `helmrelease.yaml`          | The chart and its values                                       |
+| `middleware.yaml`           | Authelia forward-auth, attached to the chart's HTTPRoutes      |
+| `pvc/`                      | Static NFS volumes for state (`/ref`), CMIP6 and observations  |
+| `esgpull/`                  | Daily `esgf-fetch` cronjob that downloads CMIP6 data from ESGF |
+| `monitoring/dashboard.yaml` | Grafana dashboard over the Flower and Dragonfly metrics        |
+| `testbed.sh`                | Bring up, bootstrap, solve, watch, verify and tear down        |
 
-    subgraph cr[climate-ref namespace]
-        subgraph httproutes[HTTPRoutes]
-            r1[climate-ref.home.lewelly.com<br/>api.climate-ref.home.lewelly.com]
-            r2[flower.climate-ref.home.lewelly.com]
-        end
+## How it fits together
 
-        api[ref-api<br/>Deployment<br/>UID 1000]
-        flower[ref-flower<br/>Deployment]
+- The API serves the frontend at `climate-ref.home.lewelly.com`.
+  Flower is at `flower.climate-ref.home.lewelly.com`. Both sit behind Authelia.
+- Dragonfly is the Celery broker. It has no volume, so a restart drops the queues.
+- The orchestrator consumes the default queue and copies results into `/ref/results`.
+- Each provider has its own worker Deployment.
+  KEDA scales it from zero on the length of its queue, and holds a busy worker up through Flower's running task count.
+  Workers scale back to zero five minutes after the last task finishes.
+- A pre-install hook runs `ref db migrate`.
+  The database is SQLite under `/ref/db`.
 
-        subgraph workers[Celery Workers]
-            orch[orchestrator<br/>concurrency=1]
-            esm[esmvaltool x4<br/>16Gi/4cpu]
-            pmp[pmp x4<br/>8Gi/4cpu]
-            ilamb[ilamb x2<br/>8Gi/4cpu]
-        end
+| Mount         | Volume                  | NFS path                                  | Access                                            |
+| ------------- | ----------------------- | ----------------------------------------- | ------------------------------------------------- |
+| `/ref`        | `climate-ref-state-csi` | `10.10.30.20:/mnt/fast/climate-ref`       | Read-write, read-only on the API except `/ref/db` |
+| `/data/cmip6` | `climate-ref-cmip6-csi` | `10.10.30.20:/mnt/tank/climate-ref/cmip6` | Read-only                                         |
+| `/data/obs`   | `climate-ref-obs-csi`   | `10.10.30.20:/mnt/tank/climate-ref/obs`   | Read-only, read-write on the orchestrator         |
 
-        dragon[(dragonfly<br/>Celery broker<br/>+ result backend<br/>1Gi)]
+`/ref` holds the database, results, scratch, logs, the conda environments (`/ref/software`) and the reference data cache (`/ref/cache`).
+obs4REF lives at `/data/obs/obs4REF`, so it survives a teardown.
 
-        subgraph cron[CronJobs]
-            reset[ref-weekly-reset<br/>0 3 * * 0<br/>wipe DB + re-init]
-            solve[ref-ingest-solve<br/>0 */6 * * *<br/>ingest + capped solve]
-            esgf[esgf-fetch<br/>0 2 * * *]
-        end
+## Test-bed
 
-        subgraph cfg[ConfigMaps]
-            esgcfg[esgf-fetch-scripts<br/>run-fetch.sh<br/>fetch-esgf.py]
-            esmcfg[climate-ref-esmvaltool-config]
-        end
-
-        subgraph pvcs[PVCs RWX NFS]
-            state[(climate-ref-state-csi<br/>/ref state DB)]
-            cmip6[(climate-ref-cmip6-csi<br/>/data/cmip6 5Ti)]
-            obs[(climate-ref-obs-csi<br/>/data/obs)]
-        end
-    end
-
-    subgraph storage[Storage]
-        nfs[(TrueNAS<br/>10.10.30.20<br/>/mnt/tank/climate-ref/*)]
-    end
-
-    subgraph gh[github-runners namespace]
-        runners[arc-climate-ref<br/>Runner Pods<br/>UID 1000 RO]
-        ghcmip6[(github-runners-cmip6-csi)]
-    end
-
-    user --> gateway
-    gateway --> authelia
-    authelia --> r1 --> api
-    authelia --> r2 --> flower
-
-    api -->|enqueue tasks| dragon
-    api --> state
-    flower -->|monitor| dragon
-
-    orch <-->|broker| dragon
-    esm <-->|broker| dragon
-    pmp <-->|broker| dragon
-    ilamb <-->|broker| dragon
-
-    orch --> state
-    esm --> state & cmip6 & obs & esmcfg
-    pmp --> state & cmip6 & obs
-    ilamb --> state & cmip6 & obs
-
-    reset --> state & cmip6 & obs
-    solve --> state & cmip6
-    esgf --> cmip6
-    esgf -.mounts.-> esgcfg
-    esgf -->|HTTPS pull| esgfsrv
-
-    state -.NFS.-> nfs
-    cmip6 -.NFS.-> nfs
-    obs -.NFS.-> nfs
-
-    runners --> ghcmip6
-    ghcmip6 -.NFS same share.-> nfs
-```
-
-## Prerequisites
-
-1. NFS server at `10.10.20.20` with exports under `/mnt/tank/climate-ref/`
-2. Flux CD managing the cluster
-3. Traefik ingress with Gateway API support
-4. Authelia for authentication
-
-## NFS Setup
-
-Create the required directories on the NFS server:
+Run everything from the repository root with the home cluster as the current context.
 
 ```bash
-ssh 10.10.20.20
-mkdir -p /mnt/tank/climate-ref/{cmip6,obs,state}
-chown -R 1000:1000 /mnt/tank/climate-ref/
+apps/production/apps/climate-ref/testbed.sh e2e
 ```
 
-## Initial Setup (One-Time)
+`e2e` runs these steps in order. Each one also runs on its own.
 
-### 1. Verify PVCs are bound
+| Step                  | What it does                                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| `up`                  | Resumes the Flux Kustomization and waits for the release                                             |
+| `bootstrap`           | `ref providers setup`, restarts the API, fetches obs4REF if missing, ingests obs4REF and CMIP6       |
+| `solve [smoke\|wide]` | Queues executions and returns                                                                        |
+| `watch`               | Prints queue length, running executions and worker replicas until everything is back at zero         |
+| `verify`              | Fails unless each provider has a success, nothing failed or is running, and the API lists executions |
+
+`solve smoke` queues one quick diagnostic per provider and takes a few minutes.
+`solve wide` queues one execution per diagnostic.
+It pushes every worker pool to its maximum, but ESMValTool executions can run for hours.
+Extra arguments go straight to `ref solve`, for example `solve smoke --dataset-filter source_id=ACCESS-ESM1-5`.
+
+Set `CMIP6_PATH` to ingest part of the archive, for example `CMIP6_PATH=/data/cmip6/CMIP/CSIRO`.
+
+`status` prints one snapshot of the pods, autoscalers, queues and executions.
+
+### Tear down
 
 ```bash
-kubectl -n climate-ref get pvc
-# All PVCs should show STATUS=Bound
+apps/production/apps/climate-ref/testbed.sh down
 ```
 
-### 2. Verify configuration
+This suspends the Flux Kustomization, uninstalls the release and wipes the database, results, scratch and logs.
+It keeps the conda environments and the reference data cache, so the next `bootstrap` takes minutes rather than hours.
+`down --purge` wipes those too, which makes the next `bootstrap` a true first install.
+The CMIP6 archive and obs4REF are never touched.
+
+The Kustomization stays suspended until `up`.
+
+## Manual operations
 
 ```bash
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref config list
-```
-
-### 3. Set up providers
-
-```bash
-# Set up all providers (creates conda environments, fetches reference data)
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup
-
-# Set up individual providers if needed
-# This should be done after an update to retrigger downloading data
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --provider pmp
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers setup --provider ilamb
-
-# Verify providers are registered
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref providers list
-```
-
-### 4. Trigger first ESGF data fetch
-
-This is only needed to update the local cache of CMIP6/obs4MIPs data
-
-```bash
+alias ref-orch="kubectl -n climate-ref exec deploy/climate-ref-orchestrator -c orchestrator --"
+ref-orch ref executions list-groups --not-successful
+ref-orch ref executions inspect <execution id>
+ref-orch ref doctor
 kubectl -n climate-ref create job --from=cronjob/esgf-fetch manual-fetch-$(date +%s)
 ```
 
-This uses `intake-esgf` to search the ESGF Globus catalog and download CMIP6/Obs4MIPs data to the NFS volume.
+The upstream runbooks cover the rest:
+[bootstrap a deployment](https://github.com/Climate-REF/climate-ref-aft/blob/main/docs/runbooks/bootstrap-a-deployment.md)
+and [run and triage a solve](https://github.com/Climate-REF/climate-ref-aft/blob/main/docs/runbooks/run-and-triage-a-solve.md).
 
-### 5. Fetch and ingest obs4REF observation data
+## Upgrades
 
-Downloads curated observation datasets from `obs4ref.climate-ref.org` and ingests them into the database:
-
-```bash
-# Fetch obs4REF datasets (downloads to /ref/cache/climate_ref/obs4REF/)
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
-  ref datasets fetch-data --registry obs4ref
-
-# Ingest into the database
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
-  ref datasets ingest --source-type obs4mips /ref/cache/climate_ref/obs4REF
-```
-
-These are reference/observation datasets (ERA-INT, CERES-EBAF, GPCP, HadISST, WOA2023, etc.)
-that are in the process of being added to Obs4MIPs.
-This only needs to be re-run after a version upgrade that adds new obs4REF datasets.
-
-### 6. (Optional) Force a reset and a first solve
-
-After the initial CMIP6 download, the two cron jobs take over:
-
-- `ref-weekly-reset` (Sun 03:00 UTC) wipes `$REF_CONFIGURATION`, keeps
-  `/ref/software` (conda envs) intact, re-migrates the DB, re-registers
-  providers, re-fetches obs4REF and re-ingests NFS CMIP6/obs.
-- `ref-ingest-solve` (every 6h) re-ingests CMIP6 and enqueues at most one new
-  execution per provider per tick, so the post-reset backlog drains gradually.
-
-Force a reset right now:
-
-```bash
-kubectl -n climate-ref create job --from=cronjob/ref-weekly-reset manual-reset-$(date +%s)
-```
-
-And kick the solver:
-
-```bash
-kubectl -n climate-ref create job --from=cronjob/ref-ingest-solve manual-solve-$(date +%s)
-```
-
-## Monitoring
-
-### Flower UI
-
-Available at `https://climate-ref.home.lewelly.com` (protected by Authelia).
-
-Shows Celery task queues, worker status, and task results.
-
-### Check execution status
-
-```bash
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- ref executions list-groups
-```
-
-### View logs
-
-```bash
-# Orchestrator
-kubectl -n climate-ref logs deploy/climate-ref-orchestrator
-
-# Workers
-kubectl -n climate-ref logs deploy/climate-ref-esmvaltool
-kubectl -n climate-ref logs deploy/climate-ref-pmp
-kubectl -n climate-ref logs deploy/climate-ref-ilamb
-
-# ESGF fetch job
-kubectl -n climate-ref logs job/<esgf-fetch-job-name> --all-containers
-
-# Weekly reset / periodic ingest+solve jobs
-kubectl -n climate-ref logs job/<ref-weekly-reset-job-name>
-kubectl -n climate-ref logs job/<ref-ingest-solve-job-name>
-```
-
-## Manual Operations
-
-### Trigger ESGF data fetch
-
-```bash
-kubectl -n climate-ref create job --from=cronjob/esgf-fetch manual-fetch-$(date +%s)
-```
-
-### Fetch and ingest obs4REF data
-
-```bash
-# Fetch obs4REF datasets
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
-  ref datasets fetch-data --registry obs4ref
-
-# Ingest into the database
-kubectl -n climate-ref exec deploy/climate-ref-orchestrator -- \
-  ref datasets ingest --source-type obs4mips /ref/cache/climate_ref/obs4REF
-```
-
-### Force a weekly reset
-
-```bash
-kubectl -n climate-ref create job --from=cronjob/ref-weekly-reset manual-reset-$(date +%s)
-```
-
-### Force an ingest + solve tick
-
-```bash
-kubectl -n climate-ref create job --from=cronjob/ref-ingest-solve manual-solve-$(date +%s)
-```
-
-### Check disk usage
-
-```bash
-ssh 10.10.20.20 du -sh /mnt/tank/climate-ref/*
-```
-
-## Data Volume Estimates
-
-| Volume | Estimated Size | Contents                                             |
-| ------ | -------------- | ---------------------------------------------------- |
-| cmip6  | 1-5 TB         | Full CMIP6 ensemble (all models, single realisation) |
-| obs    | 10-50 GB       | Observation and reference datasets                   |
-| state  | 5-20 GB        | SQLite DB, conda environments, diagnostic results    |
-
-## CronJob Schedule
-
-| Job                | Schedule        | Purpose                                                                                                                                            |
-|--------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `esgf-fetch`       | Daily 02:00 UTC | Fetch CMIP6/Obs4MIPs data from ESGF                                                                                                                |
-| `ref-weekly-reset` | Sun 03:00 UTC   | Wipe `$REF_CONFIGURATION`, migrate DB, re-register providers, re-fetch obs4REF, re-ingest NFS data. No solve                                       |
-| `ref-ingest-solve` | Every 6 h       | Re-ingest CMIP6 and `ref solve --timeout 0 --one-per-diagnostic` (≤ 1 new execution per diagnostic per run — every diagnostic exercised each tick) |
-
-Both scripts live under `jobs/` (`run-weekly-reset.sh` and
-`run-ingest-solve.sh`) and are rendered into the `ref-job-scripts` ConfigMap.
-Tune the diagnostic strategy by editing those scripts.
-
-## Troubleshooting
-
-### NFS permission errors
-
-Ensure the NFS directories are owned by UID/GID 1000:
-
-```bash
-ssh 10.10.20.20 chown -R 1000:1000 /mnt/tank/climate-ref/
-```
-
-### PVCs stuck in Pending
-
-Check if the PV exists and the storageClassName matches:
-
-```bash
-kubectl get pv | grep climate-ref
-kubectl -n climate-ref describe pvc <name>
-```
-
-### Conda environment creation fails
-
-ESMValTool and PMP require conda environments. If setup fails:
-
-```bash
-kubectl -n climate-ref exec -it deploy/climate-ref-orchestrator -- \
-  ref providers setup --provider esmvaltool
-```
-
-Check that the state volume has enough space and that conda can write to it.
-
-### SQLite locking errors
-
-SQLite on NFS can have locking issues under concurrent access. If you see
-`database is locked` errors, consider:
-
-1. Ensuring only one writer at a time (the CronJobs use `concurrencyPolicy: Forbid`)
-2. Setting `PRAGMA journal_mode=WAL` in the REF configuration
-3. Migrating to PostgreSQL for production workloads
+Bump the tag on the `OCIRepository` in `helmrelease.yaml`.
+The chart pins the API and worker images, so they move with it.
+Upgrade between solves, because every worker restarts and in-flight executions run again.
+Run `testbed.sh bootstrap` afterwards, because `ref providers setup` must rerun after an update.

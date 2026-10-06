@@ -271,7 +271,7 @@ spec:
           "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
           "targets": [
             {
-              "expr": "sum by (provider) (flower_worker_number_of_currently_executing_tasks{namespace=\"climate-ref\"} and flower_worker_online{namespace=\"climate-ref\"} == 1)",
+              "expr": "sum by (provider) (label_replace(flower_worker_number_of_currently_executing_tasks{namespace=\"climate-ref\"} and flower_worker_online{namespace=\"climate-ref\"} == 1, \"provider\", \"$1\", \"worker\", \"celery@climate-ref-([a-z]+)-.*\"))",
               "legendFormat": "{{ provider }}"
             }
           ],
