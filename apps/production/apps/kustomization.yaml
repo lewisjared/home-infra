@@ -42,3 +42,5 @@ resources:
   - date-jar/ks-secrets.yaml
   - date-jar/ks-migration.yaml
   - date-jar/ks-app.yaml
+  # Careers Vic policy job dashboard
+  - careers-vic/ks.yaml

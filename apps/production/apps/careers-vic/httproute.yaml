@@ -1,0 +1,31 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: careers-vic
+  namespace: careers-vic
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: careers.home.lewelly.com
+  labels:
+    app.kubernetes.io/part-of: home-infra
+spec:
+  parentRefs:
+    - name: home-gateway
+      namespace: traefik
+      sectionName: websecure
+  hostnames:
+    - careers.home.lewelly.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: authelia-forwardauth
+      backendRefs:
+        - name: careers-vic
+          port: 8080
