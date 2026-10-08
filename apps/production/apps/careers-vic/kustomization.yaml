@@ -5,7 +5,6 @@ namespace: careers-vic
 resources:
   - namespace.yaml
   - careers-vic-secret.sops.yaml
-  - ghcr-pull-secret.sops.yaml
   - middleware.yaml
   - helmrelease.yaml
   - httproute.yaml

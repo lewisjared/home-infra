@@ -22,8 +22,6 @@ spec:
     keepHistory: false
   values:
     defaultPodOptions:
-      imagePullSecrets:
-        - name: ghcr-pull-secret
       securityContext:
         runAsUser: 65532
         runAsGroup: 65532
