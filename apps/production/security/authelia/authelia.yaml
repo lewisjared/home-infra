@@ -189,6 +189,10 @@ spec:
           - domain: date-jar-api.home.lewelly.com
             policy: bypass
 
+          # Careers Vic dashboard - any authenticated user
+          - domain: careers.home.lewelly.com
+            policy: one_factor
+
           # All other apps - bypass (temporary)
           # Note: *.domain matches subdomains but not apex, so both are needed
           - domain: home.lewelly.com
