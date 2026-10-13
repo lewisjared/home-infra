@@ -1,6 +1,7 @@
 ---
 # One gha-runner-scale-set per input. Add a repo here to give it runners.
 # The GitHub App behind githubSecret must be installed on the repo.
+# Optional inputs: dind (Docker sidecar), serviceAccount, untrusted (network lock-down, no API token).
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
@@ -8,13 +9,24 @@ metadata:
   namespace: github-runners
 spec:
   inputs:
+    - name: vela
+      repo: lewisjared/vela
+      githubSecret: github-app-secret-vela
+      maxRunners: 4
+      memoryLimit: 16Gi
+      dind: true
+      serviceAccount: arc-vela-runner
+    - name: vela-small
+      repo: lewisjared/vela
+      githubSecret: github-app-secret-vela
+      maxRunners: 8
+      memoryLimit: 8Gi
     - name: orchestrate
       repo: lewisjared/orchestrate
       githubSecret: github-app-secret-vela
       maxRunners: 4
-      cpu: 100m
-      memory: 512Mi
       memoryLimit: 8Gi
+      untrusted: true
   resourcesTemplate: |
     apiVersion: helm.toolkit.fluxcd.io/v2
     kind: HelmRelease
@@ -50,11 +62,64 @@ spec:
           name: arc-controller-gha-rs-controller
           namespace: arc-system
         template:
+          <<- if get inputs "untrusted" >>
           metadata:
             labels:
               network-policy: untrusted-runner
+          <<- end >>
           spec:
+            <<- if get inputs "untrusted" >>
             automountServiceAccountToken: false
+            <<- end >>
+            <<- if get inputs "serviceAccount" >>
+            serviceAccountName: << get inputs "serviceAccount" >>
+            <<- end >>
+            <<- if get inputs "dind" >>
+            initContainers:
+              - name: init-dind-externals
+                image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:32a63e960641cde7df61ee56e18576d9781d3980f3e6461d379308b88ec5c036
+                command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+                volumeMounts:
+                  - name: dind-externals
+                    mountPath: /home/runner/tmpDir
+              # Native sidecar: the runner waits for this startupProbe, so a cold scale-up
+              # never runs a job before dockerd is serving on the socket.
+              - name: dind
+                image: docker:29-dind@sha256:7dcdfc4a20246236f558175182ccace1eb15a41bd3eb119dd2284f393498b7c1
+                restartPolicy: Always
+                args:
+                  - dockerd
+                  - --host=unix:///var/run/docker.sock
+                  - --group=$(DOCKER_GROUP_GID)
+                env:
+                  - name: DOCKER_GROUP_GID
+                    value: "123"
+                securityContext:
+                  privileged: true
+                # Upstream chart default: ~120s window for a cold image pull.
+                startupProbe:
+                  exec:
+                    command: ["docker", "info"]
+                  initialDelaySeconds: 0
+                  periodSeconds: 5
+                  failureThreshold: 24
+                volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                  - name: dind-externals
+                    mountPath: /home/runner/externals
+                  # Own volume for the graph driver, because overlay-on-overlay kills build throughput.
+                  - name: docker-graph
+                    mountPath: /var/lib/docker
+                resources:
+                  requests:
+                    cpu: 200m
+                    memory: 256Mi
+                  limits:
+                    memory: 24Gi
+            <<- end >>
             containers:
               - name: runner
                 image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:32a63e960641cde7df61ee56e18576d9781d3980f3e6461d379308b88ec5c036
@@ -62,12 +127,35 @@ spec:
                 env:
                   - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                     value: "false"
+                  <<- if get inputs "dind" >>
+                  - name: DOCKER_HOST
+                    value: unix:///var/run/docker.sock
+                  <<- end >>
                 envFrom:
+                  # Points actions/cache at the in-cluster cache server.
                   - configMapRef:
                       name: runner-shared-env
+                <<- if get inputs "dind" >>
+                volumeMounts:
+                  - name: work
+                    mountPath: /home/runner/_work
+                  - name: dind-sock
+                    mountPath: /var/run
+                <<- end >>
                 resources:
                   requests:
-                    cpu: << inputs.cpu >>
-                    memory: << inputs.memory >>
+                    cpu: 100m
+                    memory: 512Mi
                   limits:
                     memory: << inputs.memoryLimit >>
+            <<- if get inputs "dind" >>
+            volumes:
+              - name: work
+                emptyDir: {}
+              - name: dind-sock
+                emptyDir: {}
+              - name: dind-externals
+                emptyDir: {}
+              - name: docker-graph
+                emptyDir: {}
+            <<- end >>
