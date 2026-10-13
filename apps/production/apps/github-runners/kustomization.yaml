@@ -10,4 +10,5 @@ resources:
   - runners-ref/
   - runners-vela/
   - runners-vela-small/
+  - runners-repos/
   - ghcr-token-refresher/

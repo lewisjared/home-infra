@@ -1,0 +1,73 @@
+---
+# One gha-runner-scale-set per input. Add a repo here to give it runners.
+# The GitHub App behind githubSecret must be installed on the repo.
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: repo-runners
+  namespace: github-runners
+spec:
+  inputs:
+    - name: orchestrate
+      repo: lewisjared/orchestrate
+      githubSecret: github-app-secret-vela
+      maxRunners: 4
+      cpu: 100m
+      memory: 512Mi
+      memoryLimit: 8Gi
+  resourcesTemplate: |
+    apiVersion: helm.toolkit.fluxcd.io/v2
+    kind: HelmRelease
+    metadata:
+      name: arc-<< inputs.name >>
+      namespace: github-runners
+    spec:
+      interval: 30m
+      chart:
+        spec:
+          chart: gha-runner-scale-set
+          version: 0.14.1
+          sourceRef:
+            kind: HelmRepository
+            name: actions-runner-controller
+            namespace: github-runners
+          interval: 1h
+      install:
+        createNamespace: false
+        remediation:
+          retries: 3
+      upgrade:
+        remediation:
+          retries: 3
+          remediateLastFailure: true
+        cleanupOnFail: true
+      values:
+        githubConfigUrl: https://github.com/<< inputs.repo >>
+        githubConfigSecret: << inputs.githubSecret >>
+        minRunners: 0
+        maxRunners: << inputs.maxRunners >>
+        controllerServiceAccount:
+          name: arc-controller-gha-rs-controller
+          namespace: arc-system
+        template:
+          metadata:
+            labels:
+              network-policy: untrusted-runner
+          spec:
+            automountServiceAccountToken: false
+            containers:
+              - name: runner
+                image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:32a63e960641cde7df61ee56e18576d9781d3980f3e6461d379308b88ec5c036
+                command: ["/home/runner/run.sh"]
+                env:
+                  - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
+                    value: "false"
+                envFrom:
+                  - configMapRef:
+                      name: runner-shared-env
+                resources:
+                  requests:
+                    cpu: << inputs.cpu >>
+                    memory: << inputs.memory >>
+                  limits:
+                    memory: << inputs.memoryLimit >>
