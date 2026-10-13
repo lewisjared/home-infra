@@ -26,6 +26,8 @@ spec:
       githubSecret: github-app-secret-vela
       maxRunners: 4
       memoryLimit: 8Gi
+      # The image build and the Postgres service container need a Docker daemon.
+      dind: true
       untrusted: true
   resourcesTemplate: |
     apiVersion: helm.toolkit.fluxcd.io/v2
