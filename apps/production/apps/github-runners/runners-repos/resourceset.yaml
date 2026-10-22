@@ -79,7 +79,7 @@ spec:
             <<- if get inputs "dind" >>
             initContainers:
               - name: init-dind-externals
-                image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:32a63e960641cde7df61ee56e18576d9781d3980f3e6461d379308b88ec5c036
+                image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:3c4d939869cb1374cd61bfcb3abbe6c1444991f7b20c48cbb13708484ee0a8e1
                 command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
                 volumeMounts:
                   - name: dind-externals
@@ -124,7 +124,7 @@ spec:
             <<- end >>
             containers:
               - name: runner
-                image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:32a63e960641cde7df61ee56e18576d9781d3980f3e6461d379308b88ec5c036
+                image: ghcr.io/falcondev-oss/actions-runner:latest@sha256:3c4d939869cb1374cd61bfcb3abbe6c1444991f7b20c48cbb13708484ee0a8e1
                 command: ["/home/runner/run.sh"]
                 env:
                   - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
