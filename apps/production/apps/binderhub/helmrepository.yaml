@@ -1,9 +1,0 @@
----
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: jupyterhub
-  namespace: binderhub
-spec:
-  interval: 6h
-  url: https://hub.jupyter.org/helm-chart/

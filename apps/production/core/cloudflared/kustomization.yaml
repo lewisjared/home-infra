@@ -4,7 +4,5 @@ kind: Kustomization
 namespace: cloudflared
 resources:
   - namespace.yaml
-  - cloudflared-climate-ref-secret.sops.yaml
-  - cloudflared-climate-ref.yaml
   - cloudflared-lewelly-secret.sops.yaml
   - cloudflared-lewelly.yaml
