@@ -11,6 +11,7 @@ This directory contains documentation for the home-infra Kubernetes cluster.
 
 - **[Cilium](./CILIUM.md)** - CNI plugin (networking, security, Hubble observability, upgrade process)
 - **[DNS](./DNS.md)** - Technitium DNS cluster (authoritative DNS, ad blocking, external-dns integration)
+- **[Security tooling](./security-tooling.md)** - Intrusion detection and compliance tooling options (investigation)
 
 ## OIDC / SSO Integration
 
