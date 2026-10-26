@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: ghcr.io/lewisjared/careers-vic
-              tag: sha-f88bb85b1b88d535d33019eaa0491c04db2e9e3b@sha256:ea2714ca9cb7f009504316d2f03b8ac1fde4bec8cf24e52f904477ec14ab2ddb
+              tag: sha-c9eaeeccd0cf00f1ccf1583dac3451077b617a95@sha256:4cf6d2e6fcefd1e5e7a0939ef2ac148751051769548d91f40788f0736a4184d6
             env:
               TZ: Australia/Melbourne
               PORT: &port 8080
