@@ -78,7 +78,7 @@ spec:
         type: persistentVolumeClaim
         storageClass: rook-ceph-block
         accessMode: ReadWriteOnce
-        size: 5Gi
+        size: 15Gi
         globalMounts:
           - path: /config
       tmp:
