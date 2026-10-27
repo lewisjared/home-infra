@@ -1,0 +1,29 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: unifi
+  namespace: flux-system
+spec:
+  interval: 30m
+  path: ./apps/production/apps/unifi
+  prune: true
+  wait: true
+  timeout: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
+  dependsOn:
+    - name: core
+    - name: storage
+    - name: security
+  components:
+    - ../../../../components/alerts
+    - ../../../../components/volsync
+  postBuild:
+    substitute:
+      APP: unifi
