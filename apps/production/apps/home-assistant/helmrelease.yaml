@@ -45,11 +45,12 @@ spec:
                 set -eu
                 dest=/config/custom_components/hacs
                 [ -f "$dest/manifest.json" ] && exit 0
-                rm -rf /tmp/hacs "$dest"
+                rm -rf /tmp/hacs "$dest" "$dest.staging"
                 python3 -c 'import io, sys, urllib.request, zipfile; zipfile.ZipFile(io.BytesIO(urllib.request.urlopen(sys.argv[1]).read())).extractall(sys.argv[2])' \
                   https://github.com/hacs/integration/releases/download/2.0.5/hacs.zip /tmp/hacs
                 mkdir -p /config/custom_components
-                cp -r /tmp/hacs "$dest"
+                cp -r /tmp/hacs "$dest.staging"
+                mv "$dest.staging" "$dest"
             securityContext: &securityContext
               allowPrivilegeEscalation: false
               capabilities:
