@@ -1,0 +1,109 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: speech-to-phrase
+  namespace: voice
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    controllers:
+      main:
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: docker.io/rhasspy/wyoming-speech-to-phrase
+              tag: 1.4.3@sha256:e532f0dbc6b21285c4c784212003865b9167041927328a767cb0beb1a0beaa20
+            args:
+              - --hass-websocket-uri
+              - ws://home-assistant.home-assistant.svc.cluster.local:8123/api/websocket
+              - --hass-token
+              - $(HASS_TOKEN)
+              - --retrain-on-start
+            env:
+              TZ: Australia/Melbourne
+              HOME: /tmp
+            envFrom:
+              - secretRef:
+                  name: voice-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: &port 10300
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *probes
+              # Training on start downloads and compiles the model before the port opens.
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  periodSeconds: 10
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+
+    service:
+      main:
+        controller: main
+        ports:
+          wyoming:
+            port: *port
+
+    persistence:
+      data:
+        enabled: true
+        type: persistentVolumeClaim
+        storageClass: rook-ceph-block
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /models
+                subPath: models
+              - path: /train
+                subPath: train
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

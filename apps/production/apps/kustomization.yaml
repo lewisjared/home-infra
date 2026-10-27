@@ -32,6 +32,8 @@ resources:
   - home-assistant/ks.yaml
   # ESPHome
   - esphome/ks.yaml
+  # Local voice (Wyoming STT and TTS for Assist)
+  - voice/ks.yaml
   # Hermes Agent
   - hermes/ks.yaml
   # Shared local model services
