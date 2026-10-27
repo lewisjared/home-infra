@@ -38,8 +38,8 @@ spec:
               tag: 8.0.34@sha256:b9924c330a8bbc5800fe9c69f04a84e221eca7b28fd049a0354147d9908fa142
             restartPolicy: Always
             env:
-              MONGO_INITDB_ROOT_USERNAME: unifi
-              MONGO_INITDB_ROOT_PASSWORD:
+              MONGO_INITDB_ROOT_USERNAME: &mongoUser unifi
+              MONGO_INITDB_ROOT_PASSWORD: &mongoPass
                 valueFrom:
                   secretKeyRef:
                     name: unifi-secret
@@ -81,18 +81,14 @@ spec:
               MONGO_PORT: 27017
               MONGO_DBNAME: unifi
               MONGO_AUTHSOURCE: admin
-              MONGO_USER: unifi
-              MONGO_PASS:
-                valueFrom:
-                  secretKeyRef:
-                    name: unifi-secret
-                    key: MONGO_PASS
+              MONGO_USER: *mongoUser
+              MONGO_PASS: *mongoPass
             probes:
               startup:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
+                  httpGet: &status
                     path: /status
                     port: &port 8443
                     scheme: HTTPS
@@ -102,10 +98,7 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /status
-                    port: *port
-                    scheme: HTTPS
+                  httpGet: *status
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 5
