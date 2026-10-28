@@ -30,6 +30,8 @@ resources:
   - headlamp/ks.yaml
   # Home Assistant + code-server
   - home-assistant/ks.yaml
+  # UniFi Network Application
+  - unifi/ks.yaml
   # ESPHome
   - esphome/ks.yaml
   # Local voice (Wyoming STT and TTS for Assist)

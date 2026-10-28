@@ -32,6 +32,7 @@ spec:
       - service
       - ingress
       - gateway-httproute
+      - traefik-proxy
     extraArgs:
       # Technitium DNS primary server
       - --rfc2136-host=10.10.20.71
@@ -45,6 +46,8 @@ spec:
       - --rfc2136-tsig-axfr
       # Timeouts
       - --request-timeout=120s
+      # Only traefik.io CRDs are installed.
+      - --traefik-disable-legacy
     env:
       - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
         valueFrom:
