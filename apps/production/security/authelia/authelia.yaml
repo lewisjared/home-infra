@@ -181,6 +181,12 @@ spec:
             subject:
               - "group:admins"
 
+          # UniFi controller - admins only
+          - domain: unifi.home.lewelly.com
+            policy: one_factor
+            subject:
+              - "group:admins"
+
           # Date Jar - any authenticated user (forward-auth on the app route)
           - domain: date-jar.home.lewelly.com
             policy: one_factor

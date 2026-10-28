@@ -15,6 +15,7 @@ metadata:
   namespace: traefik
   annotations:
     external-dns.alpha.kubernetes.io/hostname: unifi.home.lewelly.com
+    external-dns.alpha.kubernetes.io/target: 10.10.20.200
 spec:
   entryPoints:
     - websecure
@@ -28,6 +29,6 @@ spec:
           namespace: unifi
           port: 8443
           scheme: https
-          serversTransport: unifi-transport
+          serversTransport: traefik-unifi-transport@kubernetescrd
   tls:
     secretName: home-gateway-tls
