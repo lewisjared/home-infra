@@ -6,6 +6,7 @@ resources:
   - namespace.yaml
   - pvc.yaml
   - networkpolicy.yaml
+  - l2-announcement.yaml
   - helmrelease.yaml
 configMapGenerator:
   - name: devbox-boot
@@ -14,3 +15,6 @@ configMapGenerator:
       - authorized_keys
 generatorOptions:
   disableNameSuffixHash: true
+  annotations:
+    # boot.sh uses shell variables that Flux would otherwise blank.
+    kustomize.toolkit.fluxcd.io/substitute: disabled

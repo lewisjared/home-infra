@@ -27,12 +27,12 @@ for type in ed25519 rsa; do
   key="$STATE_DIR/ssh/ssh_host_${type}_key"
   [ -f "$key" ] || ssh-keygen -q -t "$type" -N '' -f "$key"
 done
-install -d -m 0755 /etc/ssh/authorized_keys /run/sshd
-install -m 0644 /etc/devbox/authorized_keys /etc/ssh/authorized_keys/$USER_NAME
+install -d -m 0755 /run/sshd
+# Read straight from the ConfigMap mount so key changes in Git apply without a restart.
 cat >/etc/ssh/sshd_config.d/devbox.conf <<EOF
 HostKey $STATE_DIR/ssh/ssh_host_ed25519_key
 HostKey $STATE_DIR/ssh/ssh_host_rsa_key
-AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/authorized_keys/%u
+AuthorizedKeysFile /etc/devbox/authorized_keys
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin no

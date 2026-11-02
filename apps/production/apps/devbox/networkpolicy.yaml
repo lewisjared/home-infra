@@ -1,5 +1,5 @@
 ---
-# SSH from the trusted LAN only. Needs externalTrafficPolicy Local so client IPs survive.
+# SSH from the trusted LAN only. Relies on the node-pinned L2 announcement to keep client IPs.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

@@ -25,17 +25,9 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: false
       enableServiceLinks: false
-      # Most memory headroom. talos-master-1 is near its request limit.
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
-                  - key: kubernetes.io/hostname
-                    operator: In
-                    values:
-                      - talos-master-3
+      # Must match the node in l2-announcement.yaml, which also has the most memory headroom.
+      nodeSelector:
+        kubernetes.io/hostname: talos-master-3
 
     controllers:
       main:
@@ -81,7 +73,8 @@ spec:
       main:
         controller: main
         type: LoadBalancer
-        externalTrafficPolicy: Local
+        labels:
+          l2-announcement: devbox
         annotations:
           io.cilium/lb-ipam-ips: 10.10.20.211
           external-dns.alpha.kubernetes.io/hostname: devbox.home.lewelly.com
