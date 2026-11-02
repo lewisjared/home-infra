@@ -1,0 +1,14 @@
+---
+# All state lives here: home directory, Claude login, worktrees and SSH host keys.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: devbox-home
+  namespace: devbox
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: truenas-iscsi-fast
+  resources:
+    requests:
+      storage: 200Gi

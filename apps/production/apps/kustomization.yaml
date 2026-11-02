@@ -38,6 +38,8 @@ resources:
   - voice/ks.yaml
   # Hermes Agent
   - hermes/ks.yaml
+  # Personal devbox for long-running agents (SSH + Herdr)
+  - devbox/ks.yaml
   # Shared local model services
   - ollama-mole/ks.yaml
   # OpenViking context database
