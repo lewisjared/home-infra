@@ -15,12 +15,13 @@ Quick reference for integrating applications with Authelia OIDC.
 
 ## Configured Clients
 
-| Application | Client ID    | Callback URL                                                    |
-| ----------- | ------------ | --------------------------------------------------------------- |
-| Grafana     | `grafana`    | `https://grafana.home.lewelly.com/login/generic_oauth`          |
-| Headlamp    | `headlamp`   | `https://headlamp.home.lewelly.com/oidc-callback`               |
-| Jellyfin    | `jellyfin`   | `https://jellyfin.home.lewelly.com/sso/OID/redirect/authelia`   |
-| Jellyseerr  | `jellyseerr` | `https://jellyseerr.home.lewelly.com/api/v1/auth/oidc-callback` |
+| Application | Client ID    | Callback URL                                                                 |
+| ----------- | ------------ | ---------------------------------------------------------------------------- |
+| Grafana     | `grafana`    | `https://grafana.home.lewelly.com/login/generic_oauth`                       |
+| Headlamp    | `headlamp`   | `https://headlamp.home.lewelly.com/oidc-callback`                            |
+| Jellyfin    | `jellyfin`   | `https://jellyfin.home.lewelly.com/sso/OID/redirect/authelia`                |
+| Jellyseerr  | `jellyseerr` | `https://jellyseerr.home.lewelly.com/api/v1/auth/oidc-callback`              |
+| Immich      | `immich`     | `https://immich.home.lewelly.com/auth/login`, `app.immich:///oauth-callback` |
 
 ## Adding a New OIDC Client
 

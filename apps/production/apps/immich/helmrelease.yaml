@@ -1,0 +1,246 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 3000
+        runAsGroup: 3000
+        runAsNonRoot: true
+        fsGroup: 3000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+    controllers:
+      server:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/immich-app/immich-server
+              tag: v3.4.0@sha256:7b7b575029168bfb9eb901d868ce7dbfda0d7818e78aaace29b7b8a08cd4e7d5
+            env:
+              TZ: Australia/Melbourne
+              IMMICH_CONFIG_FILE: /config/immich-config.json
+              DB_HOSTNAME: immich-postgres-rw.database.svc.cluster.local
+              DB_USERNAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: immich-db-credentials
+                    key: username
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: immich-db-credentials
+                    key: password
+              REDIS_HOSTNAME: immich-valkey
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet: &serverPing
+                    path: /api/server/ping
+                    port: &serverPort 2283
+                  periodSeconds: 10
+                  failureThreshold: 60
+              liveness: &serverProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet: *serverPing
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *serverProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 4Gi
+            securityContext: &containerSecurity
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+      machine-learning:
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/immich-app/immich-machine-learning
+              tag: v3.4.0@sha256:f4e7275c9fbd956ed7bccc738ac57890bcbd9f9c17844d2ea0b137e38a083454
+            env:
+              TZ: Australia/Melbourne
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet: &mlPing
+                    path: /ping
+                    port: &mlPort 3003
+                  periodSeconds: 10
+                  failureThreshold: 30
+              liveness: &mlProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet: *mlPing
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *mlProbes
+            resources:
+              requests:
+                cpu: 100m
+                memory: 1Gi
+              limits:
+                memory: 6Gi
+            securityContext: *containerSecurity
+      valkey:
+        containers:
+          main:
+            image:
+              repository: docker.io/valkey/valkey
+              tag: 9.1.3@sha256:3add1a336a920ea54770a001ab6feb3da5fceea96a40373a3a2cd469b815f0b7
+            probes:
+              liveness: &valkeyProbes
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - valkey-cli
+                      - ping
+                  periodSeconds: 30
+              readiness: *valkeyProbes
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 256Mi
+            securityContext: &readOnlySecurity
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+      public-proxy:
+        # Upstream image runs as the node user and writes nothing to disk.
+        pod:
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          main:
+            image:
+              repository: ghcr.io/alangrainger/immich-public-proxy
+              tag: 4.1.2@sha256:d6480d1e6beb3da661cb895e1b368340df48904ecbfe53ece2d5da343e78b857
+            env:
+              TZ: Australia/Melbourne
+              IMMICH_URL: http://immich-server:2283
+              PUBLIC_BASE_URL: https://immich.lewelly.com
+            probes:
+              liveness: &proxyProbes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /share/healthcheck
+                    port: &proxyPort 3000
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+              readiness: *proxyProbes
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 512Mi
+            securityContext: *readOnlySecurity
+    service:
+      server:
+        controller: server
+        ports:
+          http:
+            port: *serverPort
+      machine-learning:
+        controller: machine-learning
+        ports:
+          http:
+            port: *mlPort
+      valkey:
+        controller: valkey
+        ports:
+          redis:
+            port: 6379
+      public-proxy:
+        controller: public-proxy
+        ports:
+          http:
+            port: *proxyPort
+    persistence:
+      library:
+        existingClaim: immich-library
+        advancedMounts:
+          server:
+            main:
+              - path: /data
+      config:
+        type: secret
+        name: immich-config
+        advancedMounts:
+          server:
+            main:
+              - path: /config
+                readOnly: true
+      model-cache:
+        suffix: model-cache
+        type: persistentVolumeClaim
+        storageClass: rook-ceph-block
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        advancedMounts:
+          machine-learning:
+            main:
+              - path: /cache
+      valkey-data:
+        type: emptyDir
+        advancedMounts:
+          valkey:
+            main:
+              - path: /data
+      tmp:
+        type: emptyDir
+        advancedMounts:
+          public-proxy:
+            main:
+              - path: /tmp
