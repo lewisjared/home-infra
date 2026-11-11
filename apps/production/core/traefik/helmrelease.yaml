@@ -111,10 +111,10 @@ spec:
         protocol: TCP
         tls:
           enabled: true
-        # Traefik's default 60s read timeout aborts large Immich video uploads.
+        # Long enough for multi-GB Immich video uploads over Tailscale, but finite for every other route.
         transport:
           respondingTimeouts:
-            readTimeout: 0s
+            readTimeout: 1h
 
     # Resource limits
     resources:
