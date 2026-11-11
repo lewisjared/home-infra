@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: immich-config
+  namespace: immich
+type: Opaque
+stringData:
+  immich-config.json: ENC[AES256_GCM,data:aruWl9Tg1O7SCrZ8mOw89o5cMQtH1XRvqfoohyrTX0u+hyu8ZqPVSzpMPdErR6o6MKLciqEnWPEYlqMcQRU0e0u2E7VYcEXJ6aVrYFv+/66HcYl1EsKIsRgdH8E5j1rjvrf9hf0iOXmVJyOvplrLZqLe/WhezZ8b4XjuPf00hzGVsyZieauNyNAfZIy5UjXnvk86+iEIHGosA/eYJK7KjYOTQxx1OhWpA75NTbU4OiyPdkB66GXlHCzUcT3UE0IOXjOoSMc03HgUVxDZYgpep8Si7+EzFYggXn2TH89q/+SE1qHpIiJwDY/1+cNiUuZNuXFtLrXwtYksFDPEJTvvymlk2/5j3sEv1zIKm59O9zZM1Zd9Yxumbq00e3wTW05TZYbO7nSCBVnt+4eqRxMH6fEBv/WXx00R8kGKAMP6vrX5blmG24upLQ2kuUtboN62cDSQegxx6DibHOaUg4mAy8GP/PYQOYQHX6Ve5FeU25BNjvhxx7GQaTSywK2jfJzwV52nn8qURXtFHSaXvQFlaAmFMBAqiSXPjCA2CS8qZNv8eIR+miXJDFhL+6cU+xVHBZ/rwpQl/H6qLDzHgYK5stlEIlsGAvgRoJGC8JLT47rT6jCSCnXiygXjtdpb5+4YnNpmE0Wj25OLfmvhCzFzpIX6XHLiYEdG/ZTs1z/u9EOERjJB6dhsW96uz6wB0YI1tiwpZ+vorLMhsNTREv6YdQ83JqgdD5VHW5hT6igNugMLYdlB5tK5V2UfLEBB3AO5r8+ZRoReR+LL5AwLGHVI3872S84oxsIk26JUjymRP7Rc3ch7+XOXN2MkIzxmdTmCVwsEHBTgvb/DyYITpZHsnNb9jZl0RDQtF5RPFmofGwYP+ZlovYFZ25KvTUHYmuT+EZFAtTbBbDrW/lQSwqO3PsfxlcuM6zgKMrL2WIpRUjjDTLMFa3vjW44fxfKXwQ==,iv:Qn0rWSctFPsrm93gZ7dt0k9pY68dk3UIcWUh6kfZOo8=,tag:CjDhmGBxZcOzkNNV+HFB8w==,type:str]
+sops:
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-10T21:14:47Z"
+  mac: ENC[AES256_GCM,data:1x2uPfehRolX4uFW48r9SxhlBE/KCMnBuuE8aCcIhrODaSOAb+6gLqrKkUbxBvlBat2hXqnemXZoUvLaxM8OVJ864A6C3PQ2r2aOAXf4aNEWwN5OxlTxEQu8NOe1bM09nBd7rj/9vYYf5ix1UPj4+q99TW0/89V0ZIIDnef35gg=,iv:g99NERenHSadYwfL2b3PUwL19zpwSAdIHT2sg4+g3jw=,tag:AV6XVxnqNbgt+68ziaXECQ==,type:str]
+  pgp:
+    - created_at: "2026-11-10T21:14:47Z"
+      enc: |-
+        -----BEGIN PGP MESSAGE-----
+
+        hF4DG75A0M95pbgSAQdAfLOuzjazx68WZT4ctm3eaiCqTaKqK3lyqqOEQ2WrBVEw
+        TnFSzRPpzAZ108PuXr0S4sQUPO43aI3rD2IsuMDWnZNDS+FsV/d6V8frYxvliyLt
+        1GgBCQIQVCga510U4b1pT1bu2MjwarcrlNW46eZiUUNqVBWvlap+KbV2a/LtgqKi
+        cAycPAravkJ3LzDuyWOtGHvLnIcwXvKp8cOIE7ukl3IkNFdpPc20QOIQJLj1u79V
+        0mthhYboJad/wQ==
+        =Zvgj
+        -----END PGP MESSAGE-----
+      fp: 069DD0015041A4D8B4FBF3C9848F5EA65E3CFB0F
+  version: 3.13.3

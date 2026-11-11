@@ -111,6 +111,10 @@ spec:
         protocol: TCP
         tls:
           enabled: true
+        # Long enough for multi-GB Immich video uploads over Tailscale, but finite for every other route.
+        transport:
+          respondingTimeouts:
+            readTimeout: 1h
 
     # Resource limits
     resources:

@@ -11,3 +11,5 @@ resources:
   - postgres.yaml
   - date-jar-database.yaml
   - date-jar-scheduled-backup.yaml
+  - immich-db-credentials.sops.yaml
+  - immich-postgres.yaml
