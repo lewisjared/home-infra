@@ -1,0 +1,25 @@
+---
+# Only immich-public-proxy is public, so the internet reaches share links and never the Immich API.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: immich-public
+  namespace: immich
+  labels:
+    app.kubernetes.io/part-of: home-infra
+    exposure: public
+spec:
+  parentRefs:
+    - name: public-gateway
+      namespace: traefik
+      sectionName: websecure
+  hostnames:
+    - immich.lewelly.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: immich-public-proxy
+          port: 3000

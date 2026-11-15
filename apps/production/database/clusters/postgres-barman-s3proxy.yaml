@@ -176,8 +176,9 @@ spec:
   ingress:
     - from:
         - podSelector:
-            matchLabels:
-              cnpg.io/cluster: postgres
+            matchExpressions:
+              - key: cnpg.io/cluster
+                operator: Exists
       ports:
         - protocol: TCP
           port: 80

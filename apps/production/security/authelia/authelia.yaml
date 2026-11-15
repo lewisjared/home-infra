@@ -318,6 +318,29 @@ spec:
               userinfo_signed_response_alg: none
               token_endpoint_auth_method: client_secret_post
 
+            # Immich OIDC Client (web and mobile app)
+            - client_id: immich
+              client_name: Immich
+              client_secret: "$pbkdf2-sha512$310000$RwDbpwz77nHYyNDcRCexrw$74462nYpdYRog2KSJblkIlJ9CrSjP3q/qLFB1TxB4v86R5Nkn3nyxQC/H1iksDdHe1.5sfnRh6G5YV0MBt5MwA"
+              public: false
+              authorization_policy: one_factor
+              require_pkce: true
+              pkce_challenge_method: S256
+              redirect_uris:
+                - https://immich.home.lewelly.com/auth/login
+                - https://immich.home.lewelly.com/user-settings
+                - app.immich:///oauth-callback
+              scopes:
+                - openid
+                - profile
+                - email
+              grant_types:
+                - authorization_code
+              response_types:
+                - code
+              userinfo_signed_response_alg: none
+              token_endpoint_auth_method: client_secret_basic
+
             # Hermes dashboard OIDC Client (public PKCE client; Hermes stores no client secret)
             - client_id: hermes-dashboard
               client_name: Hermes Dashboard

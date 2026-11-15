@@ -1,0 +1,80 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-postgres
+  namespace: database
+spec:
+  instances: 1
+  enablePDB: false
+  primaryUpdateStrategy: unsupervised
+  # Immich needs the VectorChord extension, which the stock CNPG image lacks.
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.6-0.5.3@sha256:ef3bf2e3abe76c3939b994afbde46cb9f24d2fbdf7ff2026a03aefa84d9a2a23
+
+  postgresql:
+    shared_preload_libraries:
+      - vchord.so
+    parameters:
+      shared_buffers: "256MB"
+
+  storage:
+    size: 10Gi
+    storageClass: rook-ceph-block
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
+  monitoring:
+    enablePodMonitor: true
+
+  # Superuser so Immich can upgrade its extensions during release migrations.
+  managed:
+    roles:
+      - name: immich
+        login: true
+        superuser: true
+        passwordSecret:
+          name: immich-db-credentials
+
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      destinationPath: s3://postgres-barman/immich-postgres
+      endpointURL: http://s3proxy.database.svc.cluster.local
+      s3Credentials:
+        accessKeyId:
+          name: postgres-barman-s3-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: postgres-barman-s3-credentials
+          key: SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      secret:
+        name: immich-db-credentials
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE;
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: immich-postgres-daily
+  namespace: database
+spec:
+  schedule: "0 30 3 * * *"
+  backupOwnerReference: cluster
+  method: barmanObjectStore
+  cluster:
+    name: immich-postgres

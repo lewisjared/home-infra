@@ -1,0 +1,38 @@
+---
+# Create the dataset on mole first, exported over NFS and owned by 3000:3000.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: immich-library-csi
+spec:
+  capacity:
+    storage: 2Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: immich-library-csi
+  mountOptions:
+    - nfsvers=4.2
+    - hard
+    - noatime
+    - nconnect=8
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: 10.10.30.20#mnt/tank/photos#immich-library
+    volumeAttributes:
+      server: 10.10.30.20
+      share: /mnt/tank/photos
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-library
+  namespace: immich
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: immich-library-csi
+  volumeName: immich-library-csi
+  resources:
+    requests:
+      storage: 2Ti
