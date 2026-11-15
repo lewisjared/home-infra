@@ -16,6 +16,11 @@ metadata:
   name: default
 spec:
   loadBalancerIPs: true
+  # Services with their own node-pinned policy opt out of this one.
+  serviceSelector:
+    matchExpressions:
+      - key: l2-announcement
+        operator: DoesNotExist
   interfaces:
     # Talos uses predictable interface names (ens18/ens19); the old ^eth[0-9]+
     # regex matched nothing post-migration, so the LoadBalancer VIP was never

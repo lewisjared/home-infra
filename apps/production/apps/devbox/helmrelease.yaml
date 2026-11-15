@@ -1,0 +1,95 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: devbox
+  namespace: devbox
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      # Must match the node in l2-announcement.yaml, which also has the most memory headroom.
+      nodeSelector:
+        kubernetes.io/hostname: talos-master-3
+
+    controllers:
+      main:
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: docker.io/library/debian
+              tag: trixie-20261027-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4
+            # Runs as root so sshd can switch users. Logins are key-only as jared.
+            command:
+              - /bin/bash
+              - /etc/devbox/boot.sh
+            env:
+              TZ: Australia/Melbourne
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: &port 22
+                  periodSeconds: 10
+                  failureThreshold: 60
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  periodSeconds: 30
+                  failureThreshold: 3
+              readiness:
+                enabled: false
+            resources:
+              requests:
+                cpu: 1
+                memory: 4Gi
+              limits:
+                memory: 16Gi
+
+    service:
+      main:
+        controller: main
+        type: LoadBalancer
+        labels:
+          l2-announcement: devbox
+        annotations:
+          io.cilium/lb-ipam-ips: 10.10.20.211
+          external-dns.alpha.kubernetes.io/hostname: devbox.home.lewelly.com
+        ports:
+          ssh:
+            port: *port
+
+    persistence:
+      home:
+        existingClaim: devbox-home
+        globalMounts:
+          - path: /home
+      boot:
+        type: configMap
+        name: devbox-boot
+        globalMounts:
+          - path: /etc/devbox
+            readOnly: true
