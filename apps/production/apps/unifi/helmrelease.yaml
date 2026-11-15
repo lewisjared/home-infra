@@ -71,7 +71,7 @@ spec:
           main:
             image:
               repository: lscr.io/linuxserver/unifi-network-application
-              tag: 10.6.109@sha256:8389f585c6443af7051b4696a09e4bb5408636da7f99c5a0e5a883595c1d434c
+              tag: 10.6.109@sha256:f782b39e005d4c104b2cfa3185594ce93b3c9bd4b0622cc6559d417844d2d037
             env:
               TZ: Australia/Melbourne
               PUID: 3000
