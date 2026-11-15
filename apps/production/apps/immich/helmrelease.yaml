@@ -169,16 +169,23 @@ spec:
               IMMICH_URL: http://immich-server:2283
               PUBLIC_BASE_URL: https://immich.lewelly.com
             probes:
-              liveness: &proxyProbes
+              # The healthcheck fails while Immich is down, so liveness only checks the proxy's own port.
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: &proxyPort 3000
+                  periodSeconds: 30
+              readiness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /share/healthcheck
-                    port: &proxyPort 3000
+                    port: *proxyPort
                   periodSeconds: 30
                   timeoutSeconds: 5
-              readiness: *proxyProbes
             resources:
               requests:
                 cpu: 10m
