@@ -12,18 +12,18 @@ It reads the ZFS snapshot, never the live tree, so every upload is one consisten
 Protection on the B2 side:
 
 - Kopia encrypts client-side, so B2 only ever holds ciphertext.
-- Every object carries a 30-day GOVERNANCE Object Lock, and maintenance extends it daily.
+- Every object carries a 30-day GOVERNANCE Object Lock, and daily full maintenance extends it.
   The app's key has no `bypassGovernance`, so a compromised mole cannot erase the last 30 days.
 - Retention is 30 daily, 8 weekly and 12 monthly snapshots.
 
 ## Schedule
 
-| Time                   | What                                                                                         |
-| ---------------------- | -------------------------------------------------------------------------------------------- |
-| 02:00                  | TrueNAS takes the `daily-*` snapshot of `tank/photos`.                                       |
-| 03:00                  | TrueNAS takes the `daily-*` snapshot of `tank/backups/k8s`, after VolSync finishes.          |
-| 04:00                  | The app snapshots both sources to B2, then runs Kopia maintenance. A failure retries hourly. |
-| 15th, after the backup | The drill reads 2% of file contents back from B2 and checks their hashes.                    |
+| Time                   | What                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------- |
+| 02:00                  | TrueNAS takes the `daily-*` snapshot of `tank/photos`.                                            |
+| 03:00                  | TrueNAS takes the `daily-*` snapshot of `tank/backups/k8s`, after VolSync finishes.               |
+| 04:00                  | The app snapshots both sources to B2, then runs Kopia full maintenance. A failure retries hourly. |
+| 15th, after the backup | The drill reads 2% of file contents back from B2 and checks their hashes.                         |
 
 The app refuses a ZFS snapshot older than 36 hours, so a stopped snapshot task shows up as a failed backup.
 
@@ -34,7 +34,7 @@ Alerts live in the `offsite-backup-alerts` group of `apps/production/monitoring/
 
 - `OffsiteBackupStale` fires when a source has not reached B2 for 36 hours.
 - `OffsiteBackupMissing` fires when there are no metrics at all.
-- `OffsiteBackupMaintenanceFailing` fires because failed maintenance stops extending the locks.
+- `OffsiteBackupMaintenanceFailing` fires when full maintenance has not succeeded for two days, because it extends the locks.
 - `OffsiteBackupDrillFailed` fires when the drill fails or has not passed for 40 days.
 
 ## Setup
@@ -157,6 +157,6 @@ From there, VolSync restores app PVCs and CNPG recovers the databases, see [docs
 
 - Retention: `kopia policy set --global --keep-daily=...` inside the container.
 - Lock period: `kopia repository set-parameters --retention-mode=GOVERNANCE --retention-period=<days>d`.
-  Keep it at least a day longer than the 24h full maintenance interval.
+  Keep it well above the daily full maintenance that extends it.
 - Script changes: copy the new `offsite-backup.sh` to `/mnt/tank/backups/offsite/scripts/` and restart the app.
 - Deleting the repository: locked objects cannot be removed for 30 days without a key that has `bypassGovernance`.

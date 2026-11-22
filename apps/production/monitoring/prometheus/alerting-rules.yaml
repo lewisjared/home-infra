@@ -249,18 +249,21 @@ spec:
               Either the offsite-backup app on mole is down or it has never succeeded.
 
         - alert: OffsiteBackupMaintenanceFailing
-          expr: offsite_backup_maintenance_last_run_success == 0
-          for: 26h
+          # yamllint disable-line rule:line-length
+          expr: time() - (offsite_backup_maintenance_last_success_timestamp_seconds or offsite_backup_first_run_timestamp_seconds) > 48 * 3600
+          for: 15m
           labels:
             severity: warning
           annotations:
-            summary: "Kopia maintenance on the B2 repository is failing"
+            summary: "Kopia full maintenance on the B2 repository is failing"
             description: >-
-              Object locks stop being extended when maintenance fails,
+              Full maintenance has not succeeded for two days.
+              Object locks stop being extended when it fails,
               so old snapshots lose their protection after 30 days.
 
         - alert: OffsiteBackupDrillFailed
-          expr: offsite_backup_drill_last_run_success == 0 or time() - offsite_backup_drill_last_success_timestamp_seconds > 40 * 86400
+          # yamllint disable-line rule:line-length
+          expr: offsite_backup_drill_last_run_success == 0 or time() - (offsite_backup_drill_last_success_timestamp_seconds or offsite_backup_first_run_timestamp_seconds) > 40 * 86400
           for: 1h
           labels:
             severity: warning

@@ -17,7 +17,7 @@ DRILL_DAY=${DRILL_DAY:-15}
 DRILL_VERIFY_PERCENT=${DRILL_VERIFY_PERCENT:-2}
 B2_ENDPOINT=${B2_ENDPOINT:-s3.eu-central-003.backblazeb2.com}
 B2_PREFIX=${B2_PREFIX:-mole/}
-# Must stay at least one day longer than the full maintenance interval (24h).
+# Must stay well above the daily full maintenance interval that extends the locks.
 RETENTION_PERIOD=${RETENTION_PERIOD:-30d}
 STATE_DIR=${STATE_DIR:-/state}
 METRICS_FILE=${METRICS_FILE:-/metrics/metrics}
@@ -49,6 +49,11 @@ render_metrics() {
       value=$(read_state "result_$name")
       [[ -n $value ]] && echo "offsite_backup_last_run_success{source=\"$name\"} $value"
     done
+    value=$(read_state first_run)
+    if [[ -n $value ]]; then
+      echo '# TYPE offsite_backup_first_run_timestamp_seconds gauge'
+      echo "offsite_backup_first_run_timestamp_seconds $value"
+    fi
     for name in maintenance drill; do
       value=$(read_state "success_$name")
       if [[ -n $value ]]; then
@@ -122,7 +127,8 @@ init() {
     kopia policy set "$src" \
       --before-snapshot-root-action=/scripts/offsite-backup.sh --action-command-mode=essential
   done
-  kopia maintenance set --owner=me --enable-full=true --full-interval=24h --extend-object-locks=true
+  # Only the explicit full run in backup extends locks, so its result alone drives the maintenance metric.
+  kopia maintenance set --owner=me --enable-quick=false --enable-full=false --extend-object-locks=true
   log "repository ready"
 }
 
@@ -140,7 +146,7 @@ backup() {
       rc=1
     fi
   done
-  if kopia maintenance run; then
+  if kopia maintenance run --full; then
     write_state success_maintenance "$(date +%s)"
     write_state result_maintenance 1
   else
@@ -168,6 +174,7 @@ drill() {
 
 run() {
   mkdir -p "$STATE_DIR" "$(dirname "$METRICS_FILE")"
+  [[ -n $(read_state first_run) ]] || write_state first_run "$(date +%s)"
   render_metrics
   until connect; do
     log "cannot connect to the repository, run init first. Retrying in 10 minutes."
