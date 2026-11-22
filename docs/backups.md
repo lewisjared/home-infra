@@ -1,213 +1,94 @@
-# Backup System
+# Backups
 
-This document describes the PVC backup system used to protect
-persistent application data in the Kubernetes cluster.
+Cluster configuration is not backed up here.
+It lives in this repository and Flux rebuilds it.
+This page covers the data that git cannot recreate.
 
-## Overview
+## Layers
 
-The backup system uses [VolSync](https://volsync.readthedocs.io/)
-with the [Kopia](https://kopia.io/) backend to create daily snapshots
-of application PersistentVolumeClaims (PVCs). Backups are written over
-NFS to the TrueNAS server at `10.10.20.20`.
+| Layer                | Protects                                      | Lands on                                   | Retention                                                                          |
+| -------------------- | --------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| VolSync              | App PVCs on Ceph                              | `tank/backups/k8s` on mole                 | 30 daily, 6 monthly                                                                |
+| CloudNativePG barman | Postgres, with WAL for point-in-time recovery | `tank/backups/k8s/postgres-barman` on mole | 30 days                                                                            |
+| ZFS snapshots        | Immich photos and the backup datasets         | mole                                       | see [the snapshot tasks](../truenas/offsite-backup/README.md#1-zfs-snapshot-tasks) |
+| Offsite              | Photos and everything in `tank/backups/k8s`   | Backblaze B2 EU Central                    | 30 daily, 8 weekly, 12 monthly                                                     |
 
-This covers **persistent data only**. Cluster configuration (manifests,
-Helm values, secrets) is the source of truth in this Git repository and
-is recovered by Flux CD during a rebuild.
+So the Immich library, the Immich database and all app state each exist live, as local snapshots on mole,
+and as an encrypted offsite copy.
+The offsite leg is documented in [truenas/offsite-backup/README.md](../truenas/offsite-backup/README.md).
 
-## Components
+### Deliberately not backed up
 
-### VolSync Operator
+- `tank/media`, because it can be downloaded again.
+- climate-ref, vela and the runner caches, because they are work data or rebuildable.
+- `tank/backups/timemachine`, because the laptop has its own offsite backup.
+- Prometheus, Loki and Tempo data, because it is high-churn and the dashboards are in git.
 
-- **Namespace:** `volsync-system`
-- **Image:** `ghcr.io/perfectra1n/volsync:v0.17.11`
-  (perfectra1n fork with Kopia support)
-- **Helm chart:**
-  `oci://ghcr.io/home-operations/charts-mirror/volsync-perfectra1n`
-  (v0.18.5)
-- **Deployed by:** Flux, via `apps/production/core/volsync/`
+## VolSync
 
-### Snapshot Controller
+VolSync (perfectra1n fork with Kopia, `apps/production/core/volsync/`) snapshots each PVC through the
+`csi-ceph-blockpool` VolumeSnapshotClass and writes it with Kopia to `10.10.20.20:/mnt/tank/backups/k8s`.
+It runs daily at 16:00 UTC, which is 02:00 or 03:00 in Melbourne depending on daylight saving.
 
-- **Namespace:** `snapshot-controller`
-- **Helm chart:**
-  `oci://ghcr.io/piraeusdatastore/helm-charts/snapshot-controller`
-  (v5.0.3)
-- **Purpose:** Provides the Kubernetes VolumeSnapshot API, used by
-  VolSync to create point-in-time snapshots before running a backup
-- **Deployed by:** Flux, via
-  `apps/production/core/snapshot-controller/`
+Most apps get their ReplicationSource from the shared component `components/volsync`.
+The app's Flux Kustomization (`ks.yaml`) lists the component and sets substitutions:
 
-### VolumeSnapshotClass
+| Variable                       | Default  | Meaning                               |
+| ------------------------------ | -------- | ------------------------------------- |
+| `APP`                          | none     | ReplicationSource name and PVC name   |
+| `VOLSYNC_CLAIM`                | `${APP}` | PVC name when it differs from the app |
+| `VOLSYNC_PUID`, `VOLSYNC_PGID` | 3000     | User and group the mover runs as      |
 
-- **Name:** `csi-ceph-blockpool`
-- **Driver:** `rook-ceph.rbd.csi.ceph.com`
-- **Defined in:**
-  `apps/production/storage/ceph-cluster/volumesnapshotclass.yaml`
+Authelia keeps its own `apps/production/security/authelia/replicationsource.yaml`.
 
-## Backup Configuration
+Backed up today:
 
-Each backed-up application has a `replicationsource.yaml` that defines
-its VolSync ReplicationSource. All share the same configuration pattern:
+| Namespace        | ReplicationSources                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `media`          | bazarr, calibre-web-automated, jellyfin-config, jellyseerr, prowlarr, qbittorrent-config, radarr, sabnzbd, sonarr, tdarr-config |
+| `authelia`       | authelia                                                                                                                        |
+| `hermes`         | hermes                                                                                                                          |
+| `home-assistant` | home-assistant                                                                                                                  |
+| `openviking`     | openviking                                                                                                                      |
+| `unifi`          | unifi                                                                                                                           |
 
-| Setting        | Value                                           |
-| -------------- | ----------------------------------------------- |
-| Schedule       | `0 16 * * *` (daily at 16:00 UTC / 02:00 AEST)  |
-| Backend        | Kopia                                           |
-| Compression    | `zstd-fastest`                                  |
-| Copy method    | `Snapshot` (Ceph RBD volume snapshot)           |
-| Parallelism    | 2                                               |
-| Retention      | 7 daily snapshots                               |
-| Storage class  | `rook-ceph-block`                               |
-| Snapshot class | `csi-ceph-blockpool`                            |
-| Destination    | NFS: `10.10.20.20:/mnt/tank/backups/k8s`        |
+Check the live list with `kubectl get replicationsource -A`.
 
-### Backup Flow
+### Adding an app
 
-1. The cron trigger fires at 16:00 UTC
-2. VolSync creates a VolumeSnapshot of the source PVC via the
-   Ceph CSI driver
-3. A mover pod mounts the snapshot (read-only) and the NFS repository
-4. Kopia deduplicates, compresses, and writes the backup to the
-   NFS target
-5. The temporary snapshot is cleaned up
+1. Add `../../../../../components/volsync` (adjusted for depth) to `components` in the app's `ks.yaml`.
+2. Set `APP` under `postBuild.substitute`, plus `VOLSYNC_CLAIM` and the IDs when the defaults do not fit.
+3. If the namespace has no `volsync-secret` yet, create one with `sops`.
+   It needs `KOPIA_PASSWORD` and `KOPIA_REPOSITORY`.
+   Apps in one namespace share a repository, so they deduplicate against each other.
+4. Run `make validate`.
 
-Applications continue running uninterrupted because the backup reads
-from the snapshot, not the live PVC.
+### Monitoring
 
-## Backed-Up Applications
+The "VolSync Backups" Grafana dashboard (`apps/production/monitoring/grafana/instance/volsync-dashboard.yaml`)
+shows sync status, missed intervals, duration, repository connectivity and Kopia errors.
 
-### Media namespace (8 apps)
+## Postgres
 
-| App         | PVC                  | UID/GID | Manifest                                   |
-| ----------- | -------------------- | ------- | ------------------------------------------ |
-| Jellyfin    | `jellyfin-config`    | 3000    | `media/jellyfin/replicationsource.yaml`    |
-| qBittorrent | `qbittorrent-config` | 3000    | `media/qbittorrent/replicationsource.yaml` |
-| Radarr      | `radarr`             | 3000    | `media/radarr/replicationsource.yaml`      |
-| Sonarr      | `sonarr`             | 3000    | `media/sonarr/replicationsource.yaml`      |
-| Bazarr      | `bazarr`             | 3000    | `media/bazarr/replicationsource.yaml`      |
-| Prowlarr    | `prowlarr`           | 3000    | `media/prowlarr/replicationsource.yaml`    |
-| SABnzbd     | `sabnzbd`            | 3000    | `media/sabnzbd/replicationsource.yaml`     |
-| Jellyseerr  | `jellyseerr`         | 3000    | `media/jellyseerr/replicationsource.yaml`  |
+Both CNPG clusters archive WAL continuously and take a daily base backup through the s3proxy in the
+`database` namespace, which stores it on the `postgres-barman` NFS volume.
 
-All manifest paths are relative to `apps/production/apps/`.
+| Cluster               | Base backup (UTC) |
+| --------------------- | ----------------- |
+| `postgres` (date-jar) | 03:00             |
+| `immich-postgres`     | 03:30             |
 
-### Security namespace (1 app)
+A file-level copy of a running database is not a backup, so this is the only path for database recovery.
+See [postgres-restore.md](postgres-restore.md).
 
-| App      | PVC        | UID/GID | Manifest                                                   |
-| -------- | ---------- | ------- | ---------------------------------------------------------- |
-| Authelia | `authelia` | 8000    | `apps/production/security/authelia/replicationsource.yaml` |
+## Restoring
 
-## Secrets
+- One app: create a VolSync ReplicationDestination against the namespace's `volsync-secret`
+  and point the PVC at it.
+- One database: follow [postgres-restore.md](postgres-restore.md).
+- A file from yesterday on mole: copy it out of `<dataset>/.zfs/snapshot/<name>/`.
+- mole lost: restore `tank/photos` and `tank/backups/k8s` from B2 first, see
+  [Restoring with mole gone](../truenas/offsite-backup/README.md#restoring-with-mole-gone).
+  Then rebuild the cluster with Flux and restore apps and databases as above.
 
-Each namespace with backups has a `volsync-secret` Kubernetes Secret
-containing Kopia repository credentials (`KOPIA_PASSWORD`,
-`KOPIA_REPOSITORY`). These are SOPS-encrypted at rest:
-
-- `apps/production/apps/media/volsync-secret.yaml`
-- `apps/production/security/authelia/volsync-secret.yaml`
-
-All media apps share a single Kopia repository (and therefore a single
-secret), enabling cross-app deduplication.
-
-## Monitoring
-
-A Grafana dashboard ("VolSync Backups") is deployed via the Grafana
-Operator CRD at:
-`apps/production/monitoring/grafana/instance/volsync-dashboard.yaml`
-
-### Dashboard panels
-
-#### Backup Status
-
-- **Sync Status** (`volsync_volume_out_of_sync`):
-  Shows "Out of Sync" (red) when a backup is stale.
-- **Missed Intervals** (`volsync_missed_intervals_total`):
-  Yellow at 1 missed, red at 3+.
-
-#### Backup Duration
-
-- **Sync Duration** (`volsync_sync_duration_seconds`):
-  Yellow above 5 min, red above 10 min.
-
-#### Kopia Repository
-
-- **Repository Connectivity**
-  (`volsync_kopia_repository_connectivity`):
-  "Disconnected" (red) means NFS or repo issue.
-- **Retention Compliance**
-  (`volsync_kopia_retention_compliance`):
-  "Non-Compliant" means the retention policy is not met.
-- **Cache Size** (`volsync_kopia_cache_size_bytes`):
-  Trend monitoring only.
-
-#### Errors
-
-- **Snapshot Creation Failures**
-  (`volsync_kopia_snapshot_creation_failure_total`):
-  Any non-zero value in last 24h.
-- **Operation Failures**
-  (`volsync_kopia_operation_failure_total`):
-  Any non-zero value in last 24h.
-
-## Flux Dependency Chain
-
-Backups depend on several layers being deployed in order:
-
-```text
-cert-manager
-  └── core (volsync, snapshot-controller)
-        └── storage (rook-ceph, VolumeSnapshotClass)
-              ├── apps (media ReplicationSources)
-              └── security (authelia ReplicationSource)
-```
-
-## Adding Backups to a New Application
-
-1. Create a `replicationsource.yaml` in the app's directory.
-   Use an existing one as a template
-   (e.g., `apps/production/apps/media/radarr/replicationsource.yaml`).
-
-2. Update the metadata (`name`, `namespace`) and `sourcePVC` to
-   match the app.
-
-3. Set the `moverSecurityContext` to match the UID/GID the app
-   runs as.
-
-4. If the app is in a new namespace that doesn't already have a
-   `volsync-secret`, create one:
-
-   ```bash
-   sops apps/production/<category>/<app>/volsync-secret.yaml
-   ```
-
-   It needs `KOPIA_PASSWORD` and `KOPIA_REPOSITORY` in `stringData`.
-   For apps sharing an existing Kopia repository (e.g., all media
-   apps), reuse the same credentials.
-
-5. Add the new files to the app's `kustomization.yaml`.
-
-6. Run `make validate` before committing.
-
-## Disaster Recovery
-
-### Single app data loss
-
-Restore the PVC from the Kopia repository. VolSync supports
-ReplicationDestination resources for restoring data into a new or
-existing PVC.
-
-### Full cluster rebuild
-
-1. Flux reconciles all manifests from this repository
-   (cluster config recovery)
-2. SOPS decrypts secrets using the PGP key
-3. VolSync operator starts and processes ReplicationSource resources
-4. To restore data, create ReplicationDestination resources targeting
-   the Kopia repository on NFS
-
-### What is NOT backed up by VolSync
-
-- The shared `media-library` PVC (large media files) -- relies on
-  TrueNAS-level protection
-- PostgreSQL databases -- rely on Ceph redundancy (consider adding
-  WAL-based backups)
+A rebuild also needs the SOPS PGP key and the B2 credentials, which live in the password manager.

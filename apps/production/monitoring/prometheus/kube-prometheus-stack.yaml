@@ -125,6 +125,16 @@ spec:
                 regex: '10\.10\.20\.14:.*'
                 target_label: instance
                 replacement: tamale
+          - job_name: offsite-backup
+            scrape_interval: 60s
+            # busybox httpd serves the metrics file without a Prometheus content type.
+            fallback_scrape_protocol: PrometheusText0.0.4
+            static_configs:
+              - targets:
+                  - 10.10.20.20:9851
+                labels:
+                  instance: mole-truenas
+                  cluster: home-infra
     defaultRules:
       create: true
       rules:

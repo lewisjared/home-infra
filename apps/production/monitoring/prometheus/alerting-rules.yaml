@@ -221,3 +221,51 @@ spec:
               {{ $labels.mountpoint }} on
               {{ $labels.instance }} is
               {{ $value | humanize }}% full.
+
+    - name: offsite-backup-alerts
+      rules:
+        - alert: OffsiteBackupStale
+          expr: time() - offsite_backup_last_success_timestamp_seconds > 36 * 3600
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Offsite backup of {{ $labels.source }} is stale"
+            description: >-
+              The last successful B2 snapshot of {{ $labels.source }} is
+              {{ $value | humanizeDuration }} old.
+              Check the offsite-backup app logs on mole.
+
+        - alert: OffsiteBackupMissing
+          # yamllint disable-line rule:line-length
+          expr: absent_over_time(offsite_backup_last_success_timestamp_seconds{source="photos"}[2h]) or absent_over_time(offsite_backup_last_success_timestamp_seconds{source="k8s"}[2h])
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "No offsite backup metrics"
+            description: >-
+              Prometheus has no successful offsite backup recorded for a source.
+              Either the offsite-backup app on mole is down or it has never succeeded.
+
+        - alert: OffsiteBackupMaintenanceFailing
+          expr: offsite_backup_maintenance_last_run_success == 0
+          for: 26h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kopia maintenance on the B2 repository is failing"
+            description: >-
+              Object locks stop being extended when maintenance fails,
+              so old snapshots lose their protection after 30 days.
+
+        - alert: OffsiteBackupDrillFailed
+          expr: offsite_backup_drill_last_run_success == 0 or time() - offsite_backup_drill_last_success_timestamp_seconds > 40 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Offsite restore drill failed or is overdue"
+            description: >-
+              The monthly drill reads a sample of files back from B2.
+              Run it by hand with the drill mode and check the logs.
