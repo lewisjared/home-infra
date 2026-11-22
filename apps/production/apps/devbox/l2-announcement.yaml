@@ -1,0 +1,16 @@
+---
+# Announce from the node the pod is pinned to, so SSH arrives without SNAT and keeps the LAN client IP.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: devbox
+spec:
+  loadBalancerIPs: true
+  serviceSelector:
+    matchLabels:
+      l2-announcement: devbox
+  interfaces:
+    - ^(eth|ens)[0-9]+
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/hostname: talos-master-3
