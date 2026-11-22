@@ -39,23 +39,7 @@ Alerts live in the `offsite-backup-alerts` group of `apps/production/monitoring/
 
 ## Setup
 
-### 1. ZFS snapshot tasks
-
-In TrueNAS, under Data Protection, add these periodic snapshot tasks.
-Kopia selects snapshots by the `daily-` prefix, so the naming schemas matter.
-
-| Dataset            | Naming schema            | Schedule           | Keep      |
-| ------------------ | ------------------------ | ------------------ | --------- |
-| `tank/photos`      | `hourly-%Y-%m-%d_%H-%M`  | every hour         | 2 days    |
-| `tank/photos`      | `daily-%Y-%m-%d_%H-%M`   | daily 02:00        | 30 days   |
-| `tank/photos`      | `weekly-%Y-%m-%d_%H-%M`  | Sunday 02:00       | 8 weeks   |
-| `tank/photos`      | `monthly-%Y-%m-%d_%H-%M` | 1st of month 02:00 | 12 months |
-| `tank/backups/k8s` | `daily-%Y-%m-%d_%H-%M`   | daily 03:00        | 14 days   |
-
-Then delete the old `auto-%Y-%m-%d_%H-%M` task on `tank/photos`.
-Its last few `auto-*` snapshots are no longer managed, so remove them by hand once the new tasks have run for a while.
-
-### 2. B2 bucket and key
+### 1. B2 bucket and key
 
 The B2 region is fixed per account at sign-up, so the account itself must be in EU Central.
 
@@ -70,55 +54,48 @@ The B2 region is fixed per account at sign-up, so the account itself must be in 
      listBuckets,listFiles,readFiles,writeFiles,deleteFiles,readBucketRetentions,readFileRetentions,writeFileRetentions
    ```
 
-3. Generate a repository password with `openssl rand -base64 33`.
-4. Save the bucket name, key ID, application key and repository password in the password manager,
+3. Save the bucket name, key ID and application key in the password manager,
    next to the SOPS PGP key.
    Nothing in B2 can be read without them.
 
-### 3. Host directories
+### 2. Run the setup script
+
+`setup.sh` does everything on mole through `midclt`, so nothing needs clicking in the UI:
+
+- It adds the snapshot tasks below and deletes the old `auto-%Y-%m-%d_%H-%M` task on `tank/photos`.
+- It creates `/mnt/tank/backups/offsite`, installs `offsite-backup.sh` and writes `kopia.env` from prompts.
+  A blank repository password generates one, which goes in the password manager next to the B2 key.
+- It installs or updates the `offsite-backup` custom app from `compose.yaml`.
+- It runs `init`, which creates the locked repository and applies the policies, then restarts the app.
+
+Kopia selects snapshots by the `daily-` prefix, so the naming schemas matter.
+
+| Dataset            | Naming schema            | Schedule           | Keep      |
+| ------------------ | ------------------------ | ------------------ | --------- |
+| `tank/photos`      | `hourly-%Y-%m-%d_%H-%M`  | every hour         | 2 days    |
+| `tank/photos`      | `daily-%Y-%m-%d_%H-%M`   | daily 02:00        | 30 days   |
+| `tank/photos`      | `weekly-%Y-%m-%d_%H-%M`  | Sunday 02:00       | 8 weeks   |
+| `tank/photos`      | `monthly-%Y-%m-%d_%H-%M` | 1st of month 02:00 | 12 months |
+| `tank/backups/k8s` | `daily-%Y-%m-%d_%H-%M`   | daily 03:00        | 14 days   |
 
 From the repository root on the laptop:
 
 ```bash
-scp truenas/offsite-backup/offsite-backup.sh truenas/offsite-backup/kopia.env.example jared@10.10.20.20:/tmp/
+scp -r truenas/offsite-backup jared@10.10.20.20:/tmp/
+ssh -t jared@10.10.20.20 sudo bash /tmp/offsite-backup/setup.sh
 ```
 
-Then in a TrueNAS shell:
+It is safe to run again: it keeps an existing `kopia.env`, and updates the script and app.
+The old task's leftover `auto-*` snapshots are no longer managed, so remove them by hand after a few days.
 
-```bash
-sudo mkdir -p /mnt/tank/backups/offsite/{scripts,config,cache,logs,state,metrics}
-sudo chmod 700 /mnt/tank/backups/offsite
-sudo install -m 755 /tmp/offsite-backup.sh /mnt/tank/backups/offsite/scripts/
-sudo install -m 600 /tmp/kopia.env.example /mnt/tank/backups/offsite/kopia.env
-sudo nano /mnt/tank/backups/offsite/kopia.env
-```
-
-Fill in `kopia.env` with the values from step 2.
-Check that `B2_ENDPOINT` matches the endpoint on the bucket's details page.
-
-### 4. Install the app
-
-In TrueNAS, open Apps, then Discover Apps, then Custom App, then Install via YAML.
-Name it `offsite-backup` and paste `compose.yaml`.
-
-The app starts and waits for a repository, logging a retry every 10 minutes.
-
-### 5. Create the repository
-
-```bash
-sudo docker exec offsite-backup /scripts/offsite-backup.sh init
-sudo docker restart offsite-backup
-sudo docker logs -f offsite-backup
-```
-
-`init` creates the locked repository and applies the policies. It is safe to run again.
-After the restart, the loop starts the first backup straight away if it is past 04:00.
+After the restart, the loop starts the first backup straight away if it is past 04:00 and a `daily-*` snapshot exists.
 The first upload is about 60 GB, so expect it to take hours.
+Follow it with `sudo docker logs -f offsite-backup`.
 
 If the log says a snapshot directory `is empty, check the bind mount propagation`,
 the ZFS automount is not reaching the container. This is the one part that could not be tested off mole.
 
-### 6. Check it
+### 3. Check it
 
 ```bash
 curl -s http://10.10.20.20:9851/metrics
@@ -158,5 +135,5 @@ From there, VolSync restores app PVCs and CNPG recovers the databases, see [docs
 - Retention: `kopia policy set --global --keep-daily=...` inside the container.
 - Lock period: `kopia repository set-parameters --retention-mode=GOVERNANCE --retention-period=<days>d`.
   Keep it well above the daily full maintenance that extends it.
-- Script changes: copy the new `offsite-backup.sh` to `/mnt/tank/backups/offsite/scripts/` and restart the app.
+- Script or compose changes: copy the directory to mole again and rerun `setup.sh`, then restart the app.
 - Deleting the repository: locked objects cannot be removed for 30 days without a key that has `bypassGovernance`.

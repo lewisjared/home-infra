@@ -1,4 +1,4 @@
-# TrueNAS custom app (Apps > Discover > Custom App > Install via YAML).
+# TrueNAS custom app, installed and updated by setup.sh.
 # Host layout and first-run steps are in README.md next to this file.
 services:
   kopia:
