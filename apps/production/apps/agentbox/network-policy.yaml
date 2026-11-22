@@ -1,0 +1,32 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: agentbox
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# SSH from the home LAN and NetBird peers only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ssh-from-private
+  namespace: agentbox
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: agentbox
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 10.0.0.0/8
+        - ipBlock:
+            cidr: 100.64.0.0/10
+      ports:
+        - protocol: TCP
+          port: 2222
