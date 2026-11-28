@@ -18,3 +18,22 @@ Recommended split path:
    `HERMES_ALLOW_PRIVATE_URLS` disabled, and add egress policy excluding RFC1918/cluster destinations.
 4. Route day-to-day chat to the non-privileged instance;
    use the privileged instance only for trusted cluster administration.
+
+## Model provider: ChatGPT subscription
+
+Hermes uses the `openai-codex` provider, which bills against the ChatGPT plan rather than per API token.
+Credentials live in `/opt/data/auth.json` on the PVC, so they survive restarts and are backed up by VolSync.
+
+Log in with the device-code flow, then select the provider and model:
+
+```bash
+kubectl -n hermes exec -it deploy/hermes -c main -- hermes auth add openai-codex
+kubectl -n hermes exec -it deploy/hermes -c main -- hermes model
+```
+
+Re-run `hermes auth add openai-codex` if the logs report a dead refresh token.
+
+## Webapp
+
+The gateway serves the Webapp at <https://hermes.home.lewelly.com>, signed in through Authelia.
+Its settings are pinned in `managed-config.yaml` (Hermes managed scope), so `hermes config set webapp.*` in the pod has no effect.
