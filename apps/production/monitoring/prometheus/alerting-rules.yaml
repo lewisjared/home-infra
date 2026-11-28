@@ -221,3 +221,54 @@ spec:
               {{ $labels.mountpoint }} on
               {{ $labels.instance }} is
               {{ $value | humanize }}% full.
+
+    - name: offsite-backup-alerts
+      rules:
+        - alert: OffsiteBackupStale
+          expr: time() - offsite_backup_last_success_timestamp_seconds > 36 * 3600
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Offsite backup of {{ $labels.source }} is stale"
+            description: >-
+              The last successful B2 snapshot of {{ $labels.source }} is
+              {{ $value | humanizeDuration }} old.
+              Check the offsite-backup app logs on mole.
+
+        - alert: OffsiteBackupMissing
+          # yamllint disable-line rule:line-length
+          expr: absent_over_time(offsite_backup_last_success_timestamp_seconds{source="photos"}[2h]) or absent_over_time(offsite_backup_last_success_timestamp_seconds{source="k8s"}[2h])
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "No offsite backup metrics"
+            description: >-
+              Prometheus has no successful offsite backup recorded for a source.
+              Either the offsite-backup app on mole is down or it has never succeeded.
+
+        - alert: OffsiteBackupMaintenanceFailing
+          # yamllint disable-line rule:line-length
+          expr: time() - (offsite_backup_maintenance_last_success_timestamp_seconds or offsite_backup_first_run_timestamp_seconds) > 48 * 3600
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kopia full maintenance on the B2 repository is failing"
+            description: >-
+              Full maintenance has not succeeded for two days.
+              Object locks stop being extended when it fails,
+              so old snapshots lose their protection after 30 days.
+
+        - alert: OffsiteBackupDrillFailed
+          # yamllint disable-line rule:line-length
+          expr: offsite_backup_drill_last_run_success == 0 or time() - (offsite_backup_drill_last_success_timestamp_seconds or offsite_backup_first_run_timestamp_seconds) > 40 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Offsite restore drill failed or is overdue"
+            description: >-
+              The monthly drill reads a sample of files back from B2.
+              Run it by hand with the drill mode and check the logs.
