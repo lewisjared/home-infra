@@ -6,6 +6,8 @@ metadata:
   namespace: media
 spec:
   interval: 1h
+  # The image is ~1.4GB, so a cold pull exceeds the 5m default and fails the release.
+  timeout: 20m
   chartRef:
     kind: OCIRepository
     name: app-template
