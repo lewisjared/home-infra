@@ -32,3 +32,8 @@ kubectl -n hermes exec -it deploy/hermes -c main -- hermes model
 ```
 
 Re-run `hermes auth add openai-codex` if the logs report a dead refresh token.
+
+## Webapp
+
+The gateway serves the Webapp at <https://hermes.home.lewelly.com>, signed in through Authelia.
+Its settings are pinned in `managed-config.yaml` (Hermes managed scope), so `hermes config set webapp.*` in the pod has no effect.

@@ -1,0 +1,19 @@
+---
+# Managed scope: these keys win over /opt/data/config.yaml and cannot be changed from inside the pod.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-managed-config
+  namespace: hermes
+data:
+  config.yaml: |
+    webapp:
+      enabled: true
+      host: 0.0.0.0
+      # Matches the Service, HTTPRoute and NetworkPolicy.
+      port: 9119
+      public_url: https://hermes.home.lewelly.com
+    dashboard:
+      # Pod CIDR: only Traefik can reach 9119 (network-policy.yaml), so this trusts Traefik's forwarded headers.
+      trusted_proxies:
+        - 10.244.0.0/16

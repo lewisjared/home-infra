@@ -77,12 +77,9 @@ spec:
               # Allow them so the agent can inspect in-cluster service URLs
               # while debugging, in addition to normal internet/GitHub access.
               HERMES_ALLOW_PRIVATE_URLS: "true"
-              # Internal admin dashboard. Hermes requires an auth provider for non-loopback binds.
-              # This uses Authelia as a public OIDC client; the HTTPRoute does not add separate ForwardAuth.
-              HERMES_DASHBOARD: "1"
-              HERMES_DASHBOARD_HOST: "0.0.0.0"
-              HERMES_DASHBOARD_PORT: "9119"
-              HERMES_DASHBOARD_PUBLIC_URL: https://hermes.home.lewelly.com
+              # The gateway serves the Webapp (see managed-config.yaml), which signs in through Authelia.
+              # The HTTPRoute adds no separate ForwardAuth.
+              HERMES_MANAGED_DIR: /etc/hermes-managed
               HERMES_DASHBOARD_OIDC_ISSUER: https://auth.home.lewelly.com
               HERMES_DASHBOARD_OIDC_CLIENT_ID: hermes-dashboard
               HERMES_DASHBOARD_OIDC_SCOPES: "openid profile email groups"
@@ -102,7 +99,7 @@ spec:
             envFrom:
               - secretRef:
                   name: hermes-secret
-            # The dashboard is exposed for admin access, but the gateway itself is supervised by s6
+            # The Webapp is exposed for admin access, but the gateway itself is supervised by s6
             # keep probes disabled until the exact image's mode-aware health semantics have been verified.
             probes:
               liveness:
@@ -169,6 +166,14 @@ spec:
           main:
             main:
               - path: /opt/data
+      managed-config:
+        type: configMap
+        name: hermes-managed-config
+        advancedMounts:
+          main:
+            main:
+              - path: /etc/hermes-managed
+                readOnly: true
       kubeconfig:
         type: configMap
         name: hermes-kubeconfig

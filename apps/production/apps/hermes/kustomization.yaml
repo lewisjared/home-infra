@@ -11,4 +11,5 @@ resources:
   - hermes-secret.yaml
   - volsync-secret.yaml
   - kubeconfig.yaml
+  - managed-config.yaml
   - helmrelease.yaml
